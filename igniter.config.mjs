@@ -1,5 +1,5 @@
-import { ExecTask, TaskOfTasks } from "@flybywiresim/igniter";
-import { getInstrumentsIgniterTasks } from "./fbw-a32nx/src/systems/instruments/buildSrc/igniter/tasks.mjs";
+import {ExecTask, TaskOfTasks} from "@flybywiresim/igniter";
+import {getInstrumentsIgniterTasks} from "./fbw-a32nx/src/systems/instruments/buildSrc/igniter/tasks.mjs";
 
 export default new TaskOfTasks("all", [
     // A32NX Task
@@ -97,13 +97,12 @@ export default new TaskOfTasks("all", [
                     "fbw-common/src/wasm/fbw_common",
                     "fbw-a32nx/out/flybywire-aircraft-a320-neo/SimObjects/AirPlanes/FlyByWire_A320_NEO/panel/fbw.wasm"
                 ]),
-            new ExecTask("flypad-backend",
-                "npm run build-a32nx:flypad-backend",
+            new ExecTask('extra-backend',
+                "npm run build:extra-backend-cmake",
                 [
-                    "fbw-a32nx/src/wasm/flypad-backend",
-                    "fbw-common/src/wasm/fbw_common",
-                    "fbw-a32nx/out/flybywire-aircraft-a320-neo/SimObjects/AirPlanes/FlyByWire_A320_NEO/panel/flypad-backend.wasm"
-                ])
+                    'fbw-a32nx/src/wasm/extra-backend',
+                    'fbw-a32nx/out/flybywire-aircraft-a320-neo/SimObjects/AirPlanes/FlyByWire_A320_NEO/panel/extra-backend.wasm'
+                ]),
         ], true),
 
         // Create final package meta files.
