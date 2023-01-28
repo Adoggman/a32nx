@@ -148,13 +148,6 @@ export default new TaskOfTasks("all", [
                     "fbw-common/src/wasm/fbw_common",
                     "fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/FlyByWire_A380_841/panel/fbw.wasm"
                 ]),
-            new ExecTask("flypad-backend",
-                "npm run build-a380x:flypad-backend",
-                [
-                    "fbw-a380x/src/wasm/flypad-backend",
-                    "fbw-common/src/wasm/fbw_common",
-                    "fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/FlyByWire_A380_841/panel/flypad-backend.wasm"
-                ])
         ], true)
     ])
 
