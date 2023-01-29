@@ -40,11 +40,12 @@
 
     "prettier": "prettier --write **/*.json **/*.yml fbw-a32nx/src/systems/instruments/**/*.css",
 
-    "build-a32nx:all": "npm run build-a32nx:copy-base-files && npm run build-a32nx:efb-translation && npm run build-a32nx:model && npm run build-a32nx:behavior && npm run build-a32nx:atsu && npm run build-a32nx:failures && npm run build-a32nx:fmgc && npm run build-a32nx:sentry-client && npm run build-a32nx:simbridge-client && npm run build-a32nx:tcas && npm run build-a32nx:pfd && npm run build-a32nx:systems && npm run build-a32nx:fadec && npm run build-a32nx:fbw && npm run build-a32nx:flypad-backend && npm run build-a32nx:metadata && npm run build-a32nx:manifest",
+    "build-a32nx:all": "npm run build-a32nx:copy-base-files && npm run build-a32nx:efb-translation && npm run build-a32nx:model && npm run build-a32nx:behavior && npm run build-a32nx:atsu && npm run build-a32nx:failures && npm run build-a32nx:fmgc && npm run build-a32nx:sentry-client && npm run build-a32nx:simbridge-client && npm run build-a32nx:tcas && npm run build-a32nx:pfd && npm run build-a32nx:systems && npm run build-a32nx:fadec && npm run build-a32nx:fbw && npm run build-a32nx:extra-backend-cmake && npm run build-a32nx:metadata && npm run build-a32nx:manifest",
 
     "====== A380 =================": "==========================================",
 
     "build-a380x:copy-base-files": "mkdir -p fbw-a380x/out/flybywire-aircraft-a380-842 && (rsync -a fbw-a380x/src/base/flybywire-aircraft-a380-842 fbw-a380x/out/ || cp -a -u fbw-a380x/src/base/flybywire-aircraft-a380-842 fbw-a380x/out/)",
+
     "build-a380x:systems": "cargo build -p a380_systems_wasm --target wasm32-wasi --release && wasm-opt -O1 -o /external/fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/fbw_a380X/panel/systems.wasm /external/target/wasm32-wasi/release/a380_systems_wasm.wasm",
     "build-a380x:fadec": "cd fbw-a380x/src/wasm/fadec_a380 && ./build.sh && wasm-opt -O1 -o /external/fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/fbw_a380X/panel/fadec.wasm /external/fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/fbw_a380X/panel/fadec.wasm",
     "build-a380x:fbw": "cd fbw-a380x/src/wasm/fbw_a380 && ./build.sh && wasm-opt -O1 -o /external/fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/fbw_a380X/panel/fbw.wasm /external/fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/fbw_a380X/panel/fbw.wasm",
@@ -53,7 +54,7 @@
     "build-a380x:extra-backend-cmake-debug": "fbw-a380x/src/wasm/extra-backend/build-cmake.sh --debug",
     "build-a380x:extra-backend-cmake-clean": "fbw-a380x/src/wasm/extra-backend/build-cmake.sh --clean",
 
-    "build-a380x:all": "npm run build-a380x:copy-base-files && npm run build-a380x:systems && npm run build-a380x:fadec && npm run build-a380x:fbw && npm run build-a380x:flypad-backend",
+    "build-a380x:all": "npm run build-a380x:copy-base-files && npm run build-a380x:systems && npm run build-a380x:fadec && npm run build-a380x:fbw && npm run build-a380x:extra-backend-cmake",
 
     "====== COMMON ================": "==========================================",
 
