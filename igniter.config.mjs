@@ -97,7 +97,7 @@ export default new TaskOfTasks("all", [
                     "fbw-common/src/wasm/fbw_common",
                     "fbw-a32nx/out/flybywire-aircraft-a320-neo/SimObjects/AirPlanes/FlyByWire_A320_NEO/panel/fbw.wasm"
                 ]),
-            new ExecTask('extra-backend',
+            new ExecTask('extra-backend-a32nx',
                 "npm run build-a32nx:extra-backend-cmake",
                 [
                     'fbw-a32nx/src/wasm/extra-backend',
@@ -147,6 +147,12 @@ export default new TaskOfTasks("all", [
                     "fbw-a380x/src/wasm/fbw_a380",
                     "fbw-common/src/wasm/fbw_common",
                     "fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/FlyByWire_A380_841/panel/fbw.wasm"
+                ]),
+            new ExecTask('extra-backend-a380x',
+                "npm run build-a32nx:extra-backend-cmake",
+                [
+                    'fbw-a380x/src/wasm/extra-backend',
+                    'fbw-a380x/out/flybywire-aircraft-a380-842/SimObjects/AirPlanes/fbw_a380X/panel/extra-backend.wasm'
                 ]),
         ], true)
     ])
