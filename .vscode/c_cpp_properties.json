@@ -6,10 +6,13 @@
                 "C:\\MSFS SDK\\/WASM/include",
                 "C:\\MSFS SDK\\/WASM/wasi-sysroot/include",
                 "C:\\MSFS SDK\\/SimConnect SDK/include",
-                "${workspaceFolder}/src/fbw_common/src/**",
-                "${workspaceFolder}/src/fbw_a320/src/**",
-                "${workspaceFolder}/src/fbw_a380/src/**",
-                "${workspaceFolder}/src/extra-backend/src/**"
+                "${MSFS_SDK}/SimConnect SDK/include",
+                "${workspaceFolder}/fbw-a32nx/src/wasm/extra-backend/**",
+                "${workspaceFolder}/fbw-common/src/wasm/extra-backend/**",
+                "${workspaceFolder}/fbw-a32nx/src/wasm/fadec_a320/**",
+                "${workspaceFolder}/fbw-common/src/wasm/fadec_common/**",
+                "${workspaceFolder}/fbw-a32nx/src/wasm/fbw_a320/**",
+                "${workspaceFolder}/fbw-common/src/wasm/fbw_common/**"
             ],
             "defines": [
                 "_MSFS_WASM=1",
@@ -34,11 +37,12 @@
                     "C:\\MSFS SDK\\/WASM/include",
                     "C:\\MSFS SDK\\/WASM/wasi-sysroot/include",
                     "C:\\MSFS SDK\\/SimConnect SDK/include",
-                    "${workspaceFolder}/src/fbw_common/src/**",
-                    "${workspaceFolder}/src/fbw_a320/src/**",
-                    "${workspaceFolder}/src/fbw_a380/src/**",
-                    "${workspaceFolder}/src/extra-backend/src/**",
-                    "${workspaceFolder}"
+                    "${workspaceFolder}/fbw-a32nx/src/wasm/extra-backend/**",
+                    "${workspaceFolder}/fbw-common/src/wasm/extra-backend/**",
+                    "${workspaceFolder}/fbw-a32nx/src/wasm/fadec_a320/**",
+                    "${workspaceFolder}/fbw-common/src/wasm/fadec_common/**",
+                    "${workspaceFolder}/fbw-a32nx/src/wasm/fbw_a320/**",
+                    "${workspaceFolder}/fbw-common/src/wasm/fbw_common/**"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
