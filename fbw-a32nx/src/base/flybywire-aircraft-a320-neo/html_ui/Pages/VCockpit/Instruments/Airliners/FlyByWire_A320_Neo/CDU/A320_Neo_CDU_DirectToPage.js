@@ -4,16 +4,27 @@
 // TODO this whole thing is thales layout...
 
 const MODE_DIRECT = 1;
-const MODE_RADIAL_IN = 2;
-const MODE_RADIAL_OUT = 3;
+const MODE_ABEAM = 2;
+const MODE_RADIAL_IN = 3;
+const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
-    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = 1) {
+
+    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
         mcdu.returnPageCallback = () => {
             CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
         };
+
+        /**
+         * @param w {import('msfs-navdata').Fix | import('msfs-navdata').IlsNavaid}
+         * @returns {NauticalMiles}
+         */
+        function calculateDistance(w) {
+            const planeLla = new LatLongAlt(SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude"), SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude"));
+            return Avionics.Utils.computeGreatCircleDistance(planeLla, w.locLocation ? w.locLocation : w.location);
+        }
 
         mcdu.activeSystem = 'FMGC';
 
@@ -84,18 +95,19 @@ class CDUDirectToPage {
         };
 
         mcdu.onRightInput[1] = () => {
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, 1);
+            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
         };
         mcdu.onRightInput[2] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_ABEAM);
         };
         mcdu.onRightInput[3] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, 2);
+            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN);
         };
         mcdu.onRightInput[4] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, 3);
+            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_OUT);
         };
 
         const plan = mcdu.flightPlanService.active;
@@ -165,23 +177,28 @@ class CDUDirectToPage {
         // AJH
         const hasTemporary = mcdu.flightPlanService.hasTemporary;
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
+
         const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
-        // TODO: calculate distance and UTC
-        const distanceCell = hasTemporary ? "\xa0\xa0\xa0[color]yellow" : "---";
+        const calculatedDistance = hasTemporary ? calculateDistance(directWaypoint) : 0;
+        const distanceLabel = (hasTemporary && dirToMode === MODE_DIRECT) ? calculatedDistance.toFixed(0) : "\xa0\xa0\xa0";
+        const distanceCell = hasTemporary ? (distanceLabel + "\xa0[color]yellow") : "---\xa0";
+        // TODO: calculate UTC
         const utcCell = hasTemporary ? "\xa0\xa0\xa0\xa0[color]yellow" : "----";
+        const directToCell = "DIRECT TO" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
+        const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
         // TODO: calculate radial in/out, support setting radial in, radial out
-        const radialInCell = "[\xa0]°[color]" + (dirToMode === MODE_RADIAL_IN ? colorForHasTemporary : "cyan");
-        const radialOutCell = "[\xa0]°[color]" + (dirToMode === MODE_RADIAL_OUT ? colorForHasTemporary : "cyan");
+        const radialInCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_IN ? colorForHasTemporary : "cyan");
+        const radialOutCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_OUT ? colorForHasTemporary : "cyan");
 
         mcdu.setTemplate([
             ["DIR TO[color]" + colorForHasTemporary],
-            ["WAYPOINT", "DIST", "UTC"],
+            ["WAYPOINT", "DIST\xa0", "\xa0UTC"],
             [directWaypointCell, distanceCell, utcCell],
             ["F-PLN WPTS"],
-            [waypointsCell[0], "DIRECT TO[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan")],
+            [waypointsCell[0], directToCell],
             ["", "WITH\xa0"],
-            [waypointsCell[1], "ABEAM PTS[color]cyan"],
+            [waypointsCell[1], abeamPtsCell],
             ["", "RADIAL IN\xa0"],
             [waypointsCell[2], radialInCell],
             ["", "RADIAL OUT\xa0"],
