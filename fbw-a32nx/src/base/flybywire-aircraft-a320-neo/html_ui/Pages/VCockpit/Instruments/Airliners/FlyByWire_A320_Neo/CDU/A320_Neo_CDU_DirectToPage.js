@@ -188,7 +188,8 @@ class CDUDirectToPage {
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
         // TODO: calculate radial in/out, support setting radial in, radial out
-        const radialInCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_IN ? colorForHasTemporary : "cyan");
+        const radialIn = (hasTemporary && !!directWaypoint && directWaypoint.bearing) ? directWaypoint.bearing.toFixed(0).padStart(3, "0") + "°" + (dirToMode !== MODE_RADIAL_IN ? "}" : "\xa0") : false;
+        const radialInCell = (radialIn ? radialIn : "[\xa0]°\xa0") + "[color]" + (dirToMode === MODE_RADIAL_IN ? colorForHasTemporary : "cyan");
         const radialOutCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_OUT ? colorForHasTemporary : "cyan");
 
         mcdu.setTemplate([
