@@ -168,9 +168,13 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.setActiveLegIndex(turnEndLegIndexInPlan);
   }
 
-  directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false) {
+  directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: Degrees | false) {
     // TODO withAbeam
     // TODO handle direct-to into the alternate (make alternate active...?
+    if (radial) {
+      console.log('AJH Radial not handled: ' + radial.toFixed(0));
+    }
+
     const existingLegIndex = this.allLegs.findIndex(
       (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
     );

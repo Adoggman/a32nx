@@ -382,12 +382,13 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     waypoint: Fix,
     withAbeam = false,
     planIndex = FlightPlanIndex.Active,
+    radial: Degrees | false,
   ) {
     const finalIndex = this.prepareDestructiveModification(planIndex);
 
     const plan = this.flightPlanManager.get(finalIndex);
 
-    plan.directToWaypoint(ppos, trueTrack, waypoint, withAbeam);
+    plan.directToWaypoint(ppos, trueTrack, waypoint, withAbeam, radial);
   }
 
   async directToLeg(

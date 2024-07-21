@@ -5027,6 +5027,7 @@ class FMCMainDisplay extends BaseAirliners {
     /**
      * Modifies the active flight plan to go direct to a specific waypoint, not necessarily in the flight plan
      * @param {import('msfs-navdata').Waypoint} waypoint
+     * @param radial: false | Degrees
      */
     async directToWaypoint(waypoint, radial = false) {
         // FIXME fm pos
@@ -5044,10 +5045,10 @@ class FMCMainDisplay extends BaseAirliners {
         };
 
         if (radial) {
-            console.log("Would try direct to radial " + radial.toString());
+            console.log("Would try direct to radial " + radial.toFixed(0));
         }
 
-        await this.flightPlanService.directToWaypoint(ppos, trueTrack.value, waypoint);
+        await this.flightPlanService.directToWaypoint(ppos, trueTrack.value, waypoint, radial);
     }
 
     /**

@@ -232,6 +232,7 @@ export interface FlightPlanInterface<P extends FlightPlanPerformanceData = Fligh
     waypoint: Fix,
     withAbeam: boolean,
     planIndex: number,
+    radial: Degrees | false,
   ): Promise<void>;
 
   /**
