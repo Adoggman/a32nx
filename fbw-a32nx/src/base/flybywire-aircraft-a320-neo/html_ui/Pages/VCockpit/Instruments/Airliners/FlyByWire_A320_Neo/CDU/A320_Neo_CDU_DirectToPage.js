@@ -10,7 +10,7 @@ const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
 
-    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT) {
+    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
         mcdu.returnPageCallback = () => {
@@ -94,17 +94,75 @@ class CDUDirectToPage {
             });
         };
 
+        // DIRECT TO
         mcdu.onRightInput[1] = () => {
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
+            if (dirToMode === MODE_DIRECT) {
+                return;
+            }
+            mcdu.eraseTemporaryFlightPlan(() => {
+                mcdu.directToWaypoint(directWaypoint).then(() => {
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
+                }).catch(err => {
+                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                    console.error(err);
+                });
+            });
         };
+        // ABEAM
         mcdu.onRightInput[2] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
             CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_ABEAM);
         };
-        mcdu.onRightInput[3] = () => {
-            mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN);
+        // RADIAL IN
+        mcdu.onRightInput[3] = (value, scratchpadCallback) => {
+            //mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+
+            // If no waypoint entered, don't do anything
+            if (!mcdu.flightPlanService.hasTemporary) {
+                return;
+            }
+
+            // If no input and bearing already exists, add calculated bearing
+            if (value.length === 0 && hasTemporary && !!directWaypoint && directWaypoint.bearing) {
+                mcdu.eraseTemporaryFlightPlan(() => {
+                    mcdu.directToWaypoint(directWaypoint, directWaypoint.bearing).then(() => {
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing);
+                    }).catch(err => {
+                        mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                        console.error(err);
+                    });
+                });
+                return;
+            }
+
+            if (dirToMode === MODE_RADIAL_IN && value === FMCMainDisplay.clrValue) {
+                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
+            }
+
+            // If none of the above, make sure we have a valid heading
+            if (value.match(/^[0-9]{1,3}$/) === null) {
+                mcdu.setScratchpadMessage(NXSystemMessages.formatError);
+                scratchpadCallback();
+                return;
+            }
+            const magCourse = parseInt(value);
+            if (magCourse > 360) {
+                mcdu.setScratchpadMessage(NXSystemMessages.entryOutOfRange);
+                scratchpadCallback();
+                return;
+            }
+
+            mcdu.eraseTemporaryFlightPlan(() => {
+                mcdu.directToWaypoint(directWaypoint, magCourse).then(() => {
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse); ;
+                }).catch(err => {
+                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                    console.error(err);
+                });
+            });
+            return;
         };
+        // RADIAL OUT
         mcdu.onRightInput[4] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
             CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_OUT);
@@ -187,9 +245,19 @@ class CDUDirectToPage {
         const directToCell = "DIRECT TO" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
-        // TODO: calculate radial in/out, support setting radial in, radial out
-        const radialIn = (hasTemporary && !!directWaypoint && directWaypoint.bearing) ? directWaypoint.bearing.toFixed(0).padStart(3, "0") + "°" + (dirToMode !== MODE_RADIAL_IN ? "}" : "\xa0") : false;
-        const radialInCell = (radialIn ? radialIn : "[\xa0]°\xa0") + "[color]" + (dirToMode === MODE_RADIAL_IN ? colorForHasTemporary : "cyan");
+
+        let radialInCell = "";
+        if (!hasTemporary) {
+            radialInCell = "[\xa0]°\xa0[color]cyan";
+        } else if (dirToMode === MODE_RADIAL_IN) {
+            radialInCell = radialValue.toFixed(0).padStart(3, "0") + "°\xa0[color]yellow";
+        } else {
+            if (!!directWaypoint && directWaypoint.bearing) {
+                radialInCell = directWaypoint.bearing.toFixed(0).padStart(3, "0") + "°}[color]cyan";
+            } else {
+                radialInCell = "[\xa0]°\xa0[color]cyan";
+            }
+        }
         const radialOutCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_OUT ? colorForHasTemporary : "cyan");
 
         mcdu.setTemplate([
