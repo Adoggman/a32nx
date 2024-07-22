@@ -10,6 +10,15 @@ const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
 
+    /**
+     * @param w {import('msfs-navdata').Fix | import('msfs-navdata').IlsNavaid}
+     * @returns {NauticalMiles}
+     */
+    static calculateDistance(w) {
+        const planeLla = new LatLongAlt(SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude"), SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude"));
+        return Avionics.Utils.computeGreatCircleDistance(planeLla, w.locLocation ? w.locLocation : w.location);
+    }
+
     static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
@@ -17,13 +26,15 @@ class CDUDirectToPage {
             CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
         };
 
-        /**
-         * @param w {import('msfs-navdata').Fix | import('msfs-navdata').IlsNavaid}
-         * @returns {NauticalMiles}
-         */
-        function calculateDistance(w) {
-            const planeLla = new LatLongAlt(SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude"), SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude"));
-            return Avionics.Utils.computeGreatCircleDistance(planeLla, w.locLocation ? w.locLocation : w.location);
+        const hasTemporary = mcdu.flightPlanService.hasTemporary;
+
+        // regular update for distance if we have temporary plan
+        if (hasTemporary) {
+            mcdu.page.SelfPtr = setTimeout(() => {
+                if (mcdu.page.Current === mcdu.page.DirectToPage) {
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
+                }
+            }, mcdu.PageTimeout.Medium);
         }
 
         mcdu.activeSystem = 'FMGC';
@@ -31,7 +42,7 @@ class CDUDirectToPage {
         let directWaypointIdent = "";
         if (directWaypoint) {
             directWaypointIdent = directWaypoint.ident;
-        } else if (mcdu.flightPlanService.hasTemporary) {
+        } else if (hasTemporary) {
             mcdu.eraseTemporaryFlightPlan(() => {
                 CDUDirectToPage.ShowPage(mcdu);
             });
@@ -44,7 +55,7 @@ class CDUDirectToPage {
         let eraseLine = "";
         let insertLabel = "";
         let insertLine = "";
-        if (mcdu.flightPlanService.hasTemporary) {
+        if (hasTemporary) {
             iMax--;
             eraseLabel = "\xa0DIR TO[color]amber";
             eraseLine = "{ERASE[color]amber";
@@ -175,9 +186,7 @@ class CDUDirectToPage {
         mcdu.setArrows(up, down, false, false);
 
         // AJH
-        const hasTemporary = mcdu.flightPlanService.hasTemporary;
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
-
         const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
         const calculatedDistance = hasTemporary ? calculateDistance(directWaypoint) : 0;
         const distanceLabel = (hasTemporary && dirToMode === MODE_DIRECT) ? calculatedDistance.toFixed(0) : "\xa0\xa0\xa0";
@@ -187,7 +196,7 @@ class CDUDirectToPage {
         const directToCell = "DIRECT TO" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
-        // TODO: calculate radial in/out, support setting radial in, radial out
+        // TODO: support setting radial in, radial out
         const radialIn = (hasTemporary && !!directWaypoint && directWaypoint.bearing) ? directWaypoint.bearing.toFixed(0).padStart(3, "0") + "°" + (dirToMode !== MODE_RADIAL_IN ? "}" : "\xa0") : false;
         const radialInCell = (radialIn ? radialIn : "[\xa0]°\xa0") + "[color]" + (dirToMode === MODE_RADIAL_IN ? colorForHasTemporary : "cyan");
         const radialOutCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_OUT ? colorForHasTemporary : "cyan");
