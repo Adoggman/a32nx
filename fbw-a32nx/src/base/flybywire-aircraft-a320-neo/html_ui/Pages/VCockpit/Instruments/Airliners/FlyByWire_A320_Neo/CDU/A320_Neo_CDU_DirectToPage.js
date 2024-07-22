@@ -10,15 +10,6 @@ const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
 
-    /**
-     * @param w {import('msfs-navdata').Fix | import('msfs-navdata').IlsNavaid}
-     * @returns {NauticalMiles}
-     */
-    static calculateDistance(w) {
-        const planeLla = new LatLongAlt(SimVar.GetSimVarValue("PLANE LATITUDE", "degree latitude"), SimVar.GetSimVarValue("PLANE LONGITUDE", "degree longitude"));
-        return Avionics.Utils.computeGreatCircleDistance(planeLla, w.locLocation ? w.locLocation : w.location);
-    }
-
     static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
@@ -185,13 +176,12 @@ class CDUDirectToPage {
         }
         mcdu.setArrows(up, down, false, false);
 
-        // AJH
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
         const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
-        //const calculatedDistance = hasTemporary ? CDUDirectToPage.calculateDistance(directWaypoint) : 0;
         let calculatedDistance = false;
-        if (hasTemporary && mcdu.flightPlanService.temporary.activeLeg.calculated) {
-            calculatedDistance = mcdu.flightPlanService.temporary.activeLeg.calculated.distance;
+        const activeLegCalculated = mcdu.flightPlanService.temporary.activeLeg.calculated;
+        if (hasTemporary && activeLegCalculated) {
+            calculatedDistance = activeLegCalculated.distance;
         }
         const distanceLabel = (hasTemporary && dirToMode === MODE_DIRECT && calculatedDistance) ? calculatedDistance.toFixed(0) : "\xa0\xa0\xa0";
         const distanceCell = hasTemporary ? (distanceLabel + "\xa0[color]yellow") : "---\xa0";
@@ -199,7 +189,7 @@ class CDUDirectToPage {
         let utcCell = "----";
         if (hasTemporary) {
             const mcduProfile = mcdu.guidanceController.vnavDriver.mcduProfile;
-            if (dirToMode === MODE_DIRECT && mcdu.flightPlanService.temporary.activeLeg.calculated && mcduProfile && mcduProfile.isReadyToDisplay && mcduProfile.tempPredictions && mcduProfile.tempPredictions.size > 0) {
+            if (dirToMode === MODE_DIRECT && activeLegCalculated && mcduProfile && mcduProfile.isReadyToDisplay && mcduProfile.tempPredictions && mcduProfile.tempPredictions.size > 0) {
                 const utcTime = SimVar.GetGlobalVarValue("ZULU TIME", "seconds");
                 const secondsFromPresent = mcduProfile.tempPredictions.get(1).secondsFromPresent;
                 utcCell = FMCMainDisplay.secondsToUTC(utcTime + secondsFromPresent) + "[color]yellow";
