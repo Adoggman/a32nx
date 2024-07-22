@@ -2554,6 +2554,7 @@ class FMCMainDisplay extends BaseAirliners {
     eraseTemporaryFlightPlan(callback = EmptyCallback.Void) {
         if (this.flightPlanService.hasTemporary) {
             this.flightPlanService.temporaryDelete();
+            this.guidanceController.vnavDriver.mcduProfile.clearTemporary();
 
             SimVar.SetSimVarValue("L:FMC_FLIGHT_PLAN_IS_TEMPORARY", "number", 0);
             SimVar.SetSimVarValue("L:MAP_SHOW_TEMPORARY_FLIGHT_PLAN", "number", 0);
