@@ -175,14 +175,16 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
 
     const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse, false);
+    const toRadial = FlightPlanLeg.toRadial(this.enrouteSegment, ppos, magneticCourse, radial, waypoint);
+    //const leavingPoint = FlightPlanLeg.leavingPoint(this.enrouteSegment, ppos, magneticCourse);
     //const courseToIntercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, magneticCourse);
-    const intercept = FlightPlanLeg.interceptPoint(
-      this.enrouteSegment,
-      ppos,
-      magneticCourse,
-      waypoint.location,
-      radial,
-    );
+    //const intercept = FlightPlanLeg.interceptPoint(
+    //  this.enrouteSegment,
+    //  ppos,
+    //  magneticCourse,
+    //  waypoint.location,
+    // radial,
+    //;
     const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
 
     // Move all legs before active one to the enroute segment
@@ -200,7 +202,10 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
       0,
       indexInEnrouteSegment + 1,
       turningPoint,
-      intercept,
+      toRadial,
+      //leavingPoint,
+      //turningPoint,
+      //intercept,
       //courseToIntercept,
       radialInLeg,
     );

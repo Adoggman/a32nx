@@ -309,6 +309,46 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     this.pilotEnteredSpeedConstraint = undefined;
   }
 
+  static toRadial(
+    segment: EnrouteSegment,
+    location: Coordinates,
+    magneticCourse: DegreesMagnetic,
+    radial: DegreesMagnetic,
+    radialWaypoint: Fix,
+  ): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CR,
+        overfly: false,
+        waypoint: WaypointFactory.fromLocation('C-R', location),
+        magneticCourse,
+        recommendedNavaid: radialWaypoint,
+        theta: radial,
+      },
+      'C-R',
+      '',
+      undefined,
+    );
+  }
+
+  static leavingPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CF,
+        overfly: false,
+        waypoint: WaypointFactory.fromLocation('T-P', location),
+        magneticCourse,
+      },
+      'T-P',
+      '',
+      undefined,
+    );
+  }
+
   static turningPoint(
     segment: EnrouteSegment,
     location: Coordinates,
@@ -474,7 +514,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     const distance = Avionics.Utils.computeGreatCircleDistance(currentLocation, interceptPosition);
     const offsetInterceptPosition = Avionics.Utils.bearingDistanceToCoordinates(
       reciprocal(currentHeading),
-      distance * 0.2,
+      distance * 0.3,
       interceptPosition.lat,
       interceptPosition.long,
     );
