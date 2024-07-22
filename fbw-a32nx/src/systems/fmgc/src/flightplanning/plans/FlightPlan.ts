@@ -171,11 +171,18 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
   directToWaypointViaRadial(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
     console.log('AJH FlightPlan Radial: ' + radial.toFixed(0));
 
-    //const magVar = MagVar.get(ppos.lat, ppos.long);
-    //const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
+    const magVar = MagVar.get(ppos.lat, ppos.long);
+    const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
 
-    //const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse);
-    //const turnEnd = FlightPlanLeg.directToTurnEnd(this.enrouteSegment, waypoint);
+    const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse, false);
+    //const courseToIntercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, magneticCourse);
+    const intercept = FlightPlanLeg.interceptPoint(
+      this.enrouteSegment,
+      ppos,
+      magneticCourse,
+      waypoint.location,
+      radial,
+    );
     const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
 
     // Move all legs before active one to the enroute segment
@@ -183,32 +190,45 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.redistributeLegsAt(0);
     if (this.activeLegIndex >= 1) {
       this.redistributeLegsAt(this.activeLegIndex);
-      indexInEnrouteSegment = this.enrouteSegment.allLegs.findIndex((it) => it === this.activeLeg);
+      indexInEnrouteSegment = this.enrouteSegment.allLegs.findIndex(
+        (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
+      );
     }
 
     // Remove legs before active on from enroute
-    this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment, radialInLeg); //turningPoint, turnEnd);
+    this.enrouteSegment.allLegs.splice(
+      0,
+      indexInEnrouteSegment + 1,
+      turningPoint,
+      intercept,
+      //courseToIntercept,
+      radialInLeg,
+    );
     this.incrementVersion();
 
-    const radialInLegIndexInPlan = this.allLegs.findIndex((it) => it === radialInLeg);
+    const radialInLegIndexInPlan = this.allLegs.findIndex(
+      (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
+    );
     if (this.maybeElementAt(radialInLegIndexInPlan + 1)?.isDiscontinuity === false) {
-      this.enrouteSegment.allLegs.splice(2, 0, { isDiscontinuity: true });
+      if (indexInEnrouteSegment === -1) {
+        this.enrouteSegment.allLegs.splice(3, 0, { isDiscontinuity: true });
+      }
       this.syncSegmentLegsChange(this.enrouteSegment);
       this.incrementVersion();
 
       // Since we added a discontinuity after the DIR TO leg, we want to make sure that the leg after it
       // is a leg that can be after a disco (not something like a CI) and convert it to IF
-      this.cleanUpAfterDiscontinuity(radialInLegIndexInPlan + 1);
+      //this.cleanUpAfterDiscontinuity(1);
     }
 
-    this.setActiveLegIndex(radialInLegIndexInPlan);
+    //this.setActiveLegIndex(radialInLegIndexInPlan);
   }
 
   directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: false | Degrees) {
     // TODO withAbeam
     // TODO handle direct-to into the alternate (make alternate active...?
 
-    if (radial) {
+    if (radial !== false) {
       this.directToWaypointViaRadial(ppos, trueTrack, waypoint, radial);
       return;
     }

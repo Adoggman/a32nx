@@ -26,6 +26,7 @@ import { MagVar } from '@microsoft/msfs-sdk';
 import { HoldUtils } from '@fmgc/flightplanning/data/hold';
 import { OriginSegment } from '@fmgc/flightplanning/segments/OriginSegment';
 import { ReadonlyFlightPlanLeg } from '@fmgc/flightplanning/legs/ReadonlyFlightPlanLeg';
+import { reciprocal } from '@fmgc/guidance/lnav/CommonGeometry';
 
 /**
  * A serialized flight plan leg, to be sent across FMSes
@@ -308,13 +309,18 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     this.pilotEnteredSpeedConstraint = undefined;
   }
 
-  static turningPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
+  static turningPoint(
+    segment: EnrouteSegment,
+    location: Coordinates,
+    magneticCourse: DegreesMagnetic,
+    flyover = false,
+  ): FlightPlanLeg {
     return new FlightPlanLeg(
       segment,
       {
         procedureIdent: '',
         type: LegType.CF,
-        overfly: false,
+        overfly: flyover,
         waypoint: WaypointFactory.fromLocation('T-P', location),
         magneticCourse,
       },
@@ -432,12 +438,68 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     );
   }
 
+  static courseToIntercept(
+    segment: FlightPlanSegment,
+    location: Coordinates,
+    magneticCourse: DegreesMagnetic,
+  ): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CI,
+        overfly: false,
+        waypoint: WaypointFactory.fromLocation('C-I', location),
+        magneticCourse: magneticCourse,
+      },
+      'C-I',
+      '',
+      undefined,
+    );
+  }
+
+  static interceptPoint(
+    segment: FlightPlanSegment,
+    currentLocation: Coordinates,
+    currentHeading: DegreesMagnetic,
+    destination: Coordinates,
+    magneticCourse: DegreesMagnetic,
+  ): FlightPlanLeg {
+    const interceptPosition = A32NX_Util.greatCircleIntersection(
+      currentLocation,
+      currentHeading,
+      destination,
+      magneticCourse,
+    );
+    const distance = Avionics.Utils.computeGreatCircleDistance(currentLocation, interceptPosition);
+    const offsetInterceptPosition = Avionics.Utils.bearingDistanceToCoordinates(
+      reciprocal(currentHeading),
+      distance * 0.2,
+      interceptPosition.lat,
+      interceptPosition.long,
+    );
+    const waypoint = WaypointFactory.fromLocation('INTCPT', offsetInterceptPosition);
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CF,
+        overfly: false,
+        waypoint: waypoint,
+        magneticCourse: currentHeading,
+      },
+      '',
+      '',
+      undefined,
+    );
+  }
+
   static radialIn(segment: FlightPlanSegment, waypoint: Fix, radial: Degrees): FlightPlanLeg {
     return new FlightPlanLeg(
       segment,
       {
         procedureIdent: '',
-        type: LegType.IF,
+        type: LegType.CF,
         overfly: false,
         waypoint: waypoint,
         magneticCourse: radial,
