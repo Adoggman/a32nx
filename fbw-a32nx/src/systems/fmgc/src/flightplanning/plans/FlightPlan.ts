@@ -168,16 +168,56 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.setActiveLegIndex(turnEndLegIndexInPlan);
   }
 
-  directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: Degrees | false) {
+  directToWaypointViaRadial(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
+    console.log('AJH Radial: ' + radial.toFixed(0));
+
+    //const magVar = MagVar.get(ppos.lat, ppos.long);
+    //const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
+
+    //const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse);
+    //const turnEnd = FlightPlanLeg.directToTurnEnd(this.enrouteSegment, waypoint);
+    const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
+
+    // Move all legs before active one to the enroute segment
+    let indexInEnrouteSegment = 0;
+    this.redistributeLegsAt(0);
+    if (this.activeLegIndex >= 1) {
+      this.redistributeLegsAt(this.activeLegIndex);
+      indexInEnrouteSegment = this.enrouteSegment.allLegs.findIndex((it) => it === this.activeLeg);
+    }
+
+    // Remove legs before active on from enroute
+    this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment, radialInLeg); //turningPoint, turnEnd);
+    this.incrementVersion();
+
+    const radialInLegIndexInPlan = this.allLegs.findIndex((it) => it === radialInLeg);
+    if (this.maybeElementAt(radialInLegIndexInPlan + 1)?.isDiscontinuity === false) {
+      this.enrouteSegment.allLegs.splice(2, 0, { isDiscontinuity: true });
+      this.syncSegmentLegsChange(this.enrouteSegment);
+      this.incrementVersion();
+
+      // Since we added a discontinuity after the DIR TO leg, we want to make sure that the leg after it
+      // is a leg that can be after a disco (not something like a CI) and convert it to IF
+      this.cleanUpAfterDiscontinuity(radialInLegIndexInPlan + 1);
+    }
+
+    this.setActiveLegIndex(radialInLegIndexInPlan);
+  }
+
+  directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: false | Degrees) {
     // TODO withAbeam
     // TODO handle direct-to into the alternate (make alternate active...?
+
     if (radial) {
-      console.log('AJH Radial not handled: ' + radial.toFixed(0));
+      this.directToWaypointViaRadial(ppos, trueTrack, waypoint, radial);
+      return;
     }
 
     const existingLegIndex = this.allLegs.findIndex(
       (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
     );
+
+    // If we already have this waypoint, go directly there
     if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
       this.directToLeg(ppos, trueTrack, existingLegIndex, withAbeam);
       return;

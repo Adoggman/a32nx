@@ -262,8 +262,9 @@ export class FlightPlanRpcClient<P extends FlightPlanPerformanceData> implements
     waypoint: Fix,
     withAbeam: boolean,
     planIndex: number,
+    radial: Degrees | false,
   ): Promise<void> {
-    return this.callFunctionViaRpc('directToWaypoint', ppos, trueTrack, waypoint, withAbeam, planIndex);
+    return this.callFunctionViaRpc('directToWaypoint', ppos, trueTrack, waypoint, withAbeam, planIndex, radial);
   }
 
   addOrEditManualHold(

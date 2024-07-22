@@ -432,6 +432,22 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     );
   }
 
+  static radialIn(segment: FlightPlanSegment, waypoint: Fix, radial: Degrees): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.IF,
+        overfly: false,
+        waypoint: waypoint,
+        magneticCourse: radial,
+      },
+      waypoint.ident,
+      '',
+      undefined,
+    );
+  }
+
   static originExtendedCenterline(segment: OriginSegment, runway: Runway, runwayLeg: FlightPlanLeg): FlightPlanLeg {
     const altitude = Number.isFinite(runway?.thresholdLocation?.alt)
       ? 10 * Math.round(runway.thresholdLocation.alt / 10) + 1500
