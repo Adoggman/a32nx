@@ -179,7 +179,7 @@ class CDUDirectToPage {
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
         const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
         let calculatedDistance = false;
-        const activeLegCalculated = mcdu.flightPlanService.temporary.activeLeg.calculated;
+        const activeLegCalculated = hasTemporary ? mcdu.flightPlanService.temporary.activeLeg.calculated : false;
         if (hasTemporary && activeLegCalculated) {
             calculatedDistance = activeLegCalculated.distance;
         }
