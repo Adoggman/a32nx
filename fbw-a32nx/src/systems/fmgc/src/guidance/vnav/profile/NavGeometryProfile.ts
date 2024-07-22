@@ -9,6 +9,8 @@ import { isAltitudeConstraintMet } from '@fmgc/guidance/vnav/descent/DescentPath
 import { FlightPlanService } from '@fmgc/flightplanning/FlightPlanService';
 import { AltitudeConstraint, SpeedConstraint } from '@fmgc/flightplanning/data/constraint';
 import { AltitudeDescriptor } from '@flybywiresim/fbw-sdk';
+import { FlightPlanPerformanceData } from '@fmgc/flightplanning/plans/performance/FlightPlanPerformanceData';
+import { FlightPlan } from '@fmgc/flightplanning/plans/FlightPlan';
 
 // TODO: Merge this with VerticalCheckpoint
 export interface VerticalWaypointPrediction {
@@ -139,6 +141,7 @@ export interface GeographicCruiseStep {
 
 export class NavGeometryProfile extends BaseGeometryProfile {
   public waypointPredictions: Map<number, VerticalWaypointPrediction> = new Map();
+  public tempPredictions: Map<number, VerticalWaypointPrediction> = new Map();
 
   constructor(
     private flightPlanService: FlightPlanService,
@@ -203,7 +206,9 @@ export class NavGeometryProfile extends BaseGeometryProfile {
   /**
    * This is used to display predictions in the MCDU
    */
-  private computePredictionsAtWaypoints(): Map<number, VerticalWaypointPrediction> {
+  private computePredictionsAtWaypoints(
+    plan: FlightPlan<FlightPlanPerformanceData>,
+  ): Map<number, VerticalWaypointPrediction> {
     const predictions = new Map<number, VerticalWaypointPrediction>();
 
     if (!this.isReadyToDisplay) {
@@ -213,10 +218,8 @@ export class NavGeometryProfile extends BaseGeometryProfile {
     const topOfDescent = this.findVerticalCheckpoint(VerticalCheckpointReason.TopOfDescent);
     const distanceToPresentPosition = this.distanceToPresentPosition;
 
-    const activePlan = this.flightPlanService.active;
-
-    for (let i = activePlan.activeLegIndex - 1; i < activePlan.firstMissedApproachLegIndex; i++) {
-      const leg = activePlan.maybeElementAt(i);
+    for (let i = plan.activeLegIndex - 1; i < plan.firstMissedApproachLegIndex; i++) {
+      const leg = plan.maybeElementAt(i);
 
       if (!leg || leg.isDiscontinuity === true) {
         continue;
@@ -293,12 +296,22 @@ export class NavGeometryProfile extends BaseGeometryProfile {
   override finalizeProfile(): void {
     super.finalizeProfile();
 
-    this.waypointPredictions = this.computePredictionsAtWaypoints();
+    this.waypointPredictions = this.computePredictionsAtWaypoints(this.flightPlanService.active);
+    if (this.flightPlanService.hasTemporary) {
+      this.tempPredictions = this.computePredictionsAtWaypoints(this.flightPlanService.temporary);
+    } else {
+      this.tempPredictions = new Map();
+    }
+  }
+
+  clearTemporary(): void {
+    this.tempPredictions = new Map();
   }
 
   invalidate(): void {
     this.isReadyToDisplay = false;
     this.waypointPredictions = new Map();
+    this.tempPredictions = new Map();
   }
 
   getDistanceFromStart(distanceFromEnd: NauticalMiles): NauticalMiles {

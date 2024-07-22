@@ -28,7 +28,7 @@ class CDUDirectToPage {
 
         const hasTemporary = mcdu.flightPlanService.hasTemporary;
 
-        // regular update for distance if we have temporary plan
+        // regular update due to showing dynamic data on this page (distance/UTC)
         if (hasTemporary) {
             mcdu.page.SelfPtr = setTimeout(() => {
                 if (mcdu.page.Current === mcdu.page.DirectToPage) {
@@ -188,11 +188,25 @@ class CDUDirectToPage {
         // AJH
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
         const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
-        const calculatedDistance = hasTemporary ? calculateDistance(directWaypoint) : 0;
-        const distanceLabel = (hasTemporary && dirToMode === MODE_DIRECT) ? calculatedDistance.toFixed(0) : "\xa0\xa0\xa0";
+        //const calculatedDistance = hasTemporary ? CDUDirectToPage.calculateDistance(directWaypoint) : 0;
+        let calculatedDistance = false;
+        if (hasTemporary && mcdu.flightPlanService.temporary.activeLeg.calculated) {
+            calculatedDistance = mcdu.flightPlanService.temporary.activeLeg.calculated.distance;
+        }
+        const distanceLabel = (hasTemporary && dirToMode === MODE_DIRECT && calculatedDistance) ? calculatedDistance.toFixed(0) : "\xa0\xa0\xa0";
         const distanceCell = hasTemporary ? (distanceLabel + "\xa0[color]yellow") : "---\xa0";
-        // TODO: calculate UTC
-        const utcCell = hasTemporary ? "\xa0\xa0\xa0\xa0[color]yellow" : "----";
+
+        let utcCell = "----";
+        if (hasTemporary) {
+            const mcduProfile = mcdu.guidanceController.vnavDriver.mcduProfile;
+            if (dirToMode === MODE_DIRECT && mcdu.flightPlanService.temporary.activeLeg.calculated && mcduProfile && mcduProfile.isReadyToDisplay && mcduProfile.tempPredictions && mcduProfile.tempPredictions.size > 0) {
+                const utcTime = SimVar.GetGlobalVarValue("ZULU TIME", "seconds");
+                const secondsFromPresent = mcduProfile.tempPredictions.get(1).secondsFromPresent;
+                utcCell = FMCMainDisplay.secondsToUTC(utcTime + secondsFromPresent) + "[color]yellow";
+            } else {
+                utcCell = "\xa0\xa0\xa0\xa0[color]yellow";
+            }
+        }
         const directToCell = "DIRECT TO" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
