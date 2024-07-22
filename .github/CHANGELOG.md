@@ -107,6 +107,7 @@
 1. [MCDU] Removed V-speed auto-fill function - @tracernz (Mike)
 1. [PFD] Implement alerts within artificial horizon (ROP, ROW, OANS, stall, windshear) @flogross89 (Flo)
 1. [MCDU] Improve Direct To page - @adoggman (Andrew)
+1. [MCDU] Implement radial in on Direct To page - @adoggman (Andrew)
 
 ## 0.11.0
 

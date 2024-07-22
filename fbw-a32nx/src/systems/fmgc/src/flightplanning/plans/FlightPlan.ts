@@ -169,7 +169,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
   }
 
   directToWaypointViaRadial(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
-    console.log('AJH Radial: ' + radial.toFixed(0));
+    console.log('AJH FlightPlan Radial: ' + radial.toFixed(0));
 
     //const magVar = MagVar.get(ppos.lat, ppos.long);
     //const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
@@ -212,6 +212,8 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
       this.directToWaypointViaRadial(ppos, trueTrack, waypoint, radial);
       return;
     }
+
+    console.log('AJH FlightPlan no radial');
 
     const existingLegIndex = this.allLegs.findIndex(
       (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),

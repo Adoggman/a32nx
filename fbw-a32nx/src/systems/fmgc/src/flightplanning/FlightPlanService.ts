@@ -388,6 +388,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
 
     const plan = this.flightPlanManager.get(finalIndex);
 
+    console.log('AJH Flight plan service trying to radial: ' + radial);
     plan.directToWaypoint(ppos, trueTrack, waypoint, withAbeam, radial);
   }
 

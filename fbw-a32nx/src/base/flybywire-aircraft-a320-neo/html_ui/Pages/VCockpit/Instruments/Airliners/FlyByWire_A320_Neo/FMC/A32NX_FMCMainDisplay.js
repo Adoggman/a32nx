@@ -2554,7 +2554,9 @@ class FMCMainDisplay extends BaseAirliners {
     eraseTemporaryFlightPlan(callback = EmptyCallback.Void) {
         if (this.flightPlanService.hasTemporary) {
             this.flightPlanService.temporaryDelete();
-            this.guidanceController.vnavDriver.mcduProfile.clearTemporary();
+            if (this.guidanceController.vnavDriver.mcduProfile) {
+                this.guidanceController.vnavDriver.mcduProfile.clearTemporary();
+            }
 
             SimVar.SetSimVarValue("L:FMC_FLIGHT_PLAN_IS_TEMPORARY", "number", 0);
             SimVar.SetSimVarValue("L:MAP_SHOW_TEMPORARY_FLIGHT_PLAN", "number", 0);
@@ -5046,7 +5048,7 @@ class FMCMainDisplay extends BaseAirliners {
         };
 
         if (radial) {
-            console.log("Would try direct to radial " + radial.toFixed(0));
+            console.log("AJH FMC trying to radial " + radial.toFixed(0));
         }
 
         await this.flightPlanService.directToWaypoint(ppos, trueTrack.value, waypoint, radial);
