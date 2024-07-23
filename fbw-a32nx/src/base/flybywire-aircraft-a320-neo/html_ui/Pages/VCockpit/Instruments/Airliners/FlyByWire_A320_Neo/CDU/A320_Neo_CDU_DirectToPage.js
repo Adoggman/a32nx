@@ -147,7 +147,6 @@ class CDUDirectToPage {
 
             mcdu.eraseTemporaryFlightPlan(() => {
                 mcdu.directToWaypoint(directWaypoint, magCourse).then(() => {
-                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse); ;
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse);
                 }).catch(err => {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions, true);
