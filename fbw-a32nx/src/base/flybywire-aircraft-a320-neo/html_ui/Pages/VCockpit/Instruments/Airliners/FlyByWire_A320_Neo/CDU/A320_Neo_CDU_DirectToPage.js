@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
 // TODO this whole thing is thales layout...
-
 const MODE_DIRECT = 1;
 const MODE_ABEAM = 2;
 const MODE_RADIAL_IN = 3;
@@ -284,27 +283,45 @@ class CDUDirectToPage {
         // regular update due to showing dynamic data on this page (distance/UTC)
         if (hasTemporary) {
 
-            if (dirToMode === MODE_DIRECT && activeLegCalculated) {
-                // If we've already calculated, do a slow refresh with a fresh waypoint at the end in case we've moved
-                mcdu.page.SelfPtr = setTimeout(() => {
-                    if (mcdu.page.Current === mcdu.page.DirectToPage) {
-                        // Refresh temp plan when in direct to mode as T-P will change, don't clear predictions though as they are probably kinda right
-                        mcdu.eraseTemporaryFlightPlan(() => {
-                            mcdu.directToWaypoint(directWaypoint).then(() => {
-                                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT, false, { utc: calculatedUTC, dist: calculatedDistance });
-                            }).catch(err => {
-                                mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
-                                console.error(err);
-                            });
-                        });
-                    }
-                }, mcdu.PageTimeout.Slow);
-            } else {
+            // Medium refresh until we have calcluated distances
+            if (!activeLegCalculated) {
                 mcdu.page.SelfPtr = setTimeout(() => {
                     if (mcdu.page.Current === mcdu.page.DirectToPage) {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
                     }
                 }, mcdu.PageTimeout.Medium);
+            } else {
+                if (dirToMode === MODE_DIRECT) {
+                    // If we've already calculated, do a slow refresh with a fresh waypoint at the end in case we've moved
+                    mcdu.page.SelfPtr = setTimeout(() => {
+                        if (mcdu.page.Current === mcdu.page.DirectToPage) {
+                            // Refresh temp plan when in direct to mode as T-P will change, don't clear predictions though as they are probably kinda right
+                            mcdu.eraseTemporaryFlightPlan(() => {
+                                mcdu.directToWaypoint(directWaypoint).then(() => {
+                                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT, false, { utc: calculatedUTC, dist: calculatedDistance });
+                                }).catch(err => {
+                                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                                    console.error(err);
+                                });
+                            });
+                        }
+                    }, mcdu.PageTimeout.Slow);
+                } else if (dirToMode === MODE_RADIAL_IN) {
+                    // If we've already calculated, do a slow refresh with a fresh waypoint at the end in case we've moved
+                    mcdu.page.SelfPtr = setTimeout(() => {
+                        if (mcdu.page.Current === mcdu.page.DirectToPage) {
+                            // Refresh temp plan when in direct to mode as T-P will change, don't clear predictions though as they are probably kinda right
+                            mcdu.eraseTemporaryFlightPlan(() => {
+                                mcdu.directToWaypoint(directWaypoint, radialValue).then(() => {
+                                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
+                                }).catch(err => {
+                                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                                    console.error(err);
+                                });
+                            });
+                        }
+                    }, mcdu.PageTimeout.Slow);
+                }
             }
         }
     }
