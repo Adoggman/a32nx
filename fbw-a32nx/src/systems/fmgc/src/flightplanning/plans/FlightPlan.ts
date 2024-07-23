@@ -20,6 +20,8 @@ import {
 } from '@fmgc/flightplanning/plans/performance/FlightPlanPerformanceData';
 import { BaseFlightPlan, FlightPlanQueuedOperation, SerializedFlightPlan } from './BaseFlightPlan';
 
+const max_intercept_distance: NauticalMiles = 500;
+
 export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerformanceData> extends BaseFlightPlan<P> {
   static empty<P extends FlightPlanPerformanceData>(
     index: number,
@@ -170,6 +172,18 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
 
   directToWaypointViaRadial(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
     console.log('AJH FlightPlan Radial: ' + radial.toFixed(0));
+
+    const interceptPosition = A32NX_Util.greatCircleIntersection(ppos, trueTrack, waypoint.location, radial);
+    const distance = Avionics.Utils.computeGreatCircleDistance(ppos, interceptPosition);
+
+    // Couldn't find a close enough intercept, give up
+    if (distance > max_intercept_distance) {
+      throw new Error('[FPM] No intercept found');
+    }
+
+    console.log(
+      'Intercept (' + distance.toFixed(0) + ') Position ' + interceptPosition.lat + ', ' + interceptPosition.long,
+    );
 
     const magVar = MagVar.get(ppos.lat, ppos.long);
     const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);

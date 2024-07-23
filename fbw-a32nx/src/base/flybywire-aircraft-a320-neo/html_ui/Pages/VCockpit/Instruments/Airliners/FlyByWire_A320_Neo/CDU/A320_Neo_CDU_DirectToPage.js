@@ -120,7 +120,7 @@ class CDUDirectToPage {
                     mcdu.directToWaypoint(directWaypoint, directWaypoint.bearing).then(() => {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing);
                     }).catch(err => {
-                        mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                        mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
                         console.error(err);
                     });
                 });
@@ -148,7 +148,7 @@ class CDUDirectToPage {
                 mcdu.directToWaypoint(directWaypoint, magCourse).then(() => {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse); ;
                 }).catch(err => {
-                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                    mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
                     console.error(err);
                 });
             });
@@ -315,7 +315,7 @@ class CDUDirectToPage {
                                 mcdu.directToWaypoint(directWaypoint, radialValue).then(() => {
                                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
                                 }).catch(err => {
-                                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                                    mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
                                     console.error(err);
                                 });
                             });
