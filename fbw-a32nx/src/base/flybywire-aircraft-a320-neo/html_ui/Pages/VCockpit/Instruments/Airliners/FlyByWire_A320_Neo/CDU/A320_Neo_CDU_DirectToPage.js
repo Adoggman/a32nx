@@ -10,7 +10,7 @@ const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
 
-    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false) {
+    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
         mcdu.returnPageCallback = () => {
@@ -18,15 +18,6 @@ class CDUDirectToPage {
         };
 
         const hasTemporary = mcdu.flightPlanService.hasTemporary;
-
-        // regular update due to showing dynamic data on this page (distance/UTC)
-        if (hasTemporary) {
-            mcdu.page.SelfPtr = setTimeout(() => {
-                if (mcdu.page.Current === mcdu.page.DirectToPage) {
-                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue);
-                }
-            }, mcdu.PageTimeout.Medium);
-        }
 
         mcdu.activeSystem = 'FMGC';
 
@@ -237,7 +228,7 @@ class CDUDirectToPage {
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
 
         const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
-        let calculatedDistance = false;
+        let calculatedDistance = cachedPredictions.dist;
         const activeLegCalculated = hasTemporary ? mcdu.flightPlanService.temporary.activeLeg.calculated : false;
         if (hasTemporary && activeLegCalculated) {
             calculatedDistance = activeLegCalculated.distance;
@@ -246,15 +237,15 @@ class CDUDirectToPage {
         const distanceCell = hasTemporary ? (distanceLabel + "\xa0[color]yellow") : "---\xa0";
 
         let utcCell = "----";
+        let calculatedUTC = cachedPredictions.utc;
         if (hasTemporary) {
             const mcduProfile = mcdu.guidanceController.vnavDriver.mcduProfile;
             if (dirToMode === MODE_DIRECT && activeLegCalculated && mcduProfile && mcduProfile.isReadyToDisplay && mcduProfile.tempPredictions && mcduProfile.tempPredictions.size > 0) {
                 const utcTime = SimVar.GetGlobalVarValue("ZULU TIME", "seconds");
                 const secondsFromPresent = mcduProfile.tempPredictions.get(1).secondsFromPresent;
-                utcCell = FMCMainDisplay.secondsToUTC(utcTime + secondsFromPresent) + "[color]yellow";
-            } else {
-                utcCell = "\xa0\xa0\xa0\xa0[color]yellow";
+                calculatedUTC = utcTime + secondsFromPresent;
             }
+            utcCell = calculatedUTC ? FMCMainDisplay.secondsToUTC(calculatedUTC) + "[color]yellow" : "\xa0\xa0\xa0\xa0[color]yellow";
         }
         const directToCell = "DIRECT TO" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
@@ -289,5 +280,32 @@ class CDUDirectToPage {
             [eraseLabel, insertLabel],
             [eraseLine ? eraseLine : waypointsCell[4], insertLine]
         ]);
+
+        // regular update due to showing dynamic data on this page (distance/UTC)
+        if (hasTemporary) {
+
+            if (dirToMode === MODE_DIRECT && activeLegCalculated) {
+                // If we've already calculated, do a slow refresh with a fresh waypoint at the end in case we've moved
+                mcdu.page.SelfPtr = setTimeout(() => {
+                    if (mcdu.page.Current === mcdu.page.DirectToPage) {
+                        // Refresh temp plan when in direct to mode as T-P will change, don't clear predictions though as they are probably kinda right
+                        mcdu.eraseTemporaryFlightPlan(() => {
+                            mcdu.directToWaypoint(directWaypoint).then(() => {
+                                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT, false, { utc: calculatedUTC, dist: calculatedDistance });
+                            }).catch(err => {
+                                mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                                console.error(err);
+                            });
+                        });
+                    }
+                }, mcdu.PageTimeout.Slow);
+            } else {
+                mcdu.page.SelfPtr = setTimeout(() => {
+                    if (mcdu.page.Current === mcdu.page.DirectToPage) {
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
+                    }
+                }, mcdu.PageTimeout.Medium);
+            }
+        }
     }
 }
