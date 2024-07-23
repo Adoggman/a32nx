@@ -333,34 +333,29 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     );
   }
 
-  static leavingPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
+  static inboundPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
     return new FlightPlanLeg(
       segment,
       {
         procedureIdent: '',
         type: LegType.CF,
         overfly: false,
-        waypoint: WaypointFactory.fromLocation('T-P', location),
+        waypoint: WaypointFactory.fromLocation('IN-BND', location),
         magneticCourse,
       },
-      'T-P',
+      'IN-BND',
       '',
       undefined,
     );
   }
 
-  static turningPoint(
-    segment: EnrouteSegment,
-    location: Coordinates,
-    magneticCourse: DegreesMagnetic,
-    flyover = false,
-  ): FlightPlanLeg {
+  static turningPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
     return new FlightPlanLeg(
       segment,
       {
         procedureIdent: '',
         type: LegType.CF,
-        overfly: flyover,
+        overfly: false,
         waypoint: WaypointFactory.fromLocation('T-P', location),
         magneticCourse,
       },
@@ -542,7 +537,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         type: LegType.CF,
         overfly: false,
         waypoint: waypoint,
-        magneticCourse: radial,
+        magneticCourse: reciprocal(radial),
       },
       waypoint.ident,
       '',

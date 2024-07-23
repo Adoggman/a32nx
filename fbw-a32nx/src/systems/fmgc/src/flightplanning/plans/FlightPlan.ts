@@ -9,7 +9,7 @@ import { EventBus, MagVar } from '@microsoft/msfs-sdk';
 import { FixInfoData, FixInfoEntry } from '@fmgc/flightplanning/plans/FixInfo';
 import { loadAllDepartures, loadAllRunways } from '@fmgc/flightplanning/DataLoading';
 import { Coordinates, Degrees } from 'msfs-geo';
-import { FlightPlanLeg, FlightPlanLegFlags } from '@fmgc/flightplanning/legs/FlightPlanLeg';
+import { FlightPlanElement, FlightPlanLeg, FlightPlanLegFlags } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 import { SegmentClass } from '@fmgc/flightplanning/segments/SegmentClass';
 import { FlightArea } from '@fmgc/navigation/FlightArea';
 import { CopyOptions } from '@fmgc/flightplanning/plans/CloningOptions';
@@ -174,9 +174,8 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     const magVar = MagVar.get(ppos.lat, ppos.long);
     const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
 
-    const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse, false);
+    const inboundPoint = FlightPlanLeg.inboundPoint(this.enrouteSegment, ppos, magneticCourse);
     const toRadial = FlightPlanLeg.toRadial(this.enrouteSegment, ppos, magneticCourse, radial, waypoint);
-    //const leavingPoint = FlightPlanLeg.leavingPoint(this.enrouteSegment, ppos, magneticCourse);
     //const courseToIntercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, magneticCourse);
     //const intercept = FlightPlanLeg.interceptPoint(
     //  this.enrouteSegment,
@@ -197,18 +196,10 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
       );
     }
 
+    const newFlightPlanElements: FlightPlanElement[] = [inboundPoint, toRadial, radialInLeg];
+
     // Remove legs before active on from enroute
-    this.enrouteSegment.allLegs.splice(
-      0,
-      indexInEnrouteSegment + 1,
-      turningPoint,
-      toRadial,
-      //leavingPoint,
-      //turningPoint,
-      //intercept,
-      //courseToIntercept,
-      radialInLeg,
-    );
+    this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment + 1, ...newFlightPlanElements);
     this.incrementVersion();
 
     const radialInLegIndexInPlan = this.allLegs.findIndex(
@@ -216,7 +207,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     );
     if (this.maybeElementAt(radialInLegIndexInPlan + 1)?.isDiscontinuity === false) {
       if (indexInEnrouteSegment === -1) {
-        this.enrouteSegment.allLegs.splice(3, 0, { isDiscontinuity: true });
+        this.enrouteSegment.allLegs.splice(newFlightPlanElements.length, 0, { isDiscontinuity: true });
       }
       this.syncSegmentLegsChange(this.enrouteSegment);
       this.incrementVersion();
