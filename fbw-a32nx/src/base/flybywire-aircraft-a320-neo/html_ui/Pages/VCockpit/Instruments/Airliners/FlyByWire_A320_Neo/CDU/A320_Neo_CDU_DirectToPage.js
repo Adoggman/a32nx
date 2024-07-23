@@ -9,7 +9,7 @@ const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
 
-    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }) {
+    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }, suppressRefresh = false) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
         mcdu.returnPageCallback = () => {
@@ -120,6 +120,7 @@ class CDUDirectToPage {
                     mcdu.directToWaypoint(directWaypoint, directWaypoint.bearing).then(() => {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing);
                     }).catch(err => {
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing, cachedPredictions, true);
                         mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
                         console.error(err);
                     });
@@ -147,7 +148,9 @@ class CDUDirectToPage {
             mcdu.eraseTemporaryFlightPlan(() => {
                 mcdu.directToWaypoint(directWaypoint, magCourse).then(() => {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse); ;
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse);
                 }).catch(err => {
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions, true);
                     mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
                     console.error(err);
                 });
@@ -281,7 +284,7 @@ class CDUDirectToPage {
         ]);
 
         // regular update due to showing dynamic data on this page (distance/UTC)
-        if (hasTemporary) {
+        if (hasTemporary && !suppressRefresh) {
 
             // Medium refresh until we have calcluated distances
             if (!activeLegCalculated) {
@@ -315,6 +318,7 @@ class CDUDirectToPage {
                                 mcdu.directToWaypoint(directWaypoint, radialValue).then(() => {
                                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
                                 }).catch(err => {
+                                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance }, true);
                                     mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
                                     console.error(err);
                                 });

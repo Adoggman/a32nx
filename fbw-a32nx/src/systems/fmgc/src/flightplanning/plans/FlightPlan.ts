@@ -19,6 +19,7 @@ import {
   FlightPlanPerformanceDataProperties,
 } from '@fmgc/flightplanning/plans/performance/FlightPlanPerformanceData';
 import { BaseFlightPlan, FlightPlanQueuedOperation, SerializedFlightPlan } from './BaseFlightPlan';
+import { reciprocal } from '@fmgc/guidance/lnav/CommonGeometry';
 
 const max_intercept_distance: NauticalMiles = 500;
 
@@ -175,14 +176,22 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
 
     const interceptPosition = A32NX_Util.greatCircleIntersection(ppos, trueTrack, waypoint.location, radial);
     const distance = Avionics.Utils.computeGreatCircleDistance(ppos, interceptPosition);
+    const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(interceptPosition, waypoint.location);
 
     // Couldn't find a close enough intercept, give up
-    if (distance > max_intercept_distance) {
+    if (distance > max_intercept_distance || Math.abs(reciprocal(headingAfterIntercept) - radial) > 90) {
       throw new Error('[FPM] No intercept found');
     }
 
     console.log(
-      'Intercept (' + distance.toFixed(0) + ') Position ' + interceptPosition.lat + ', ' + interceptPosition.long,
+      'Intercept bearing ' +
+        headingAfterIntercept.toFixed(0) +
+        ' (' +
+        distance.toFixed(0) +
+        ') Position ' +
+        interceptPosition.lat +
+        ', ' +
+        interceptPosition.long,
     );
 
     const magVar = MagVar.get(ppos.lat, ppos.long);
