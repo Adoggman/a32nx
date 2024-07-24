@@ -329,6 +329,22 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     );
   }
 
+  static manual(segment: FlightPlanSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: 'MANUAL',
+        type: LegType.VM,
+        overfly: false,
+        waypoint: WaypointFactory.fromLocation('MANUAL', location),
+        magneticCourse: magneticCourse,
+      },
+      'MANUAL',
+      '',
+      undefined,
+    );
+  }
+
   static interceptPoint(
     segment: FlightPlanSegment,
     currentLocation: Coordinates,
@@ -342,6 +358,15 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
       destination,
       magneticCourse,
     );
+
+    const distance = Avionics.Utils.computeGreatCircleDistance(currentLocation, interceptPosition);
+    const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(interceptPosition, destination);
+
+    // Couldn't find a close enough intercept, give up
+    if (distance > this.maxRadialInDistance || Math.abs(reciprocal(headingAfterIntercept) - magneticCourse) > 90) {
+      throw new Error('[FPM] No intercept found');
+    }
+
     const waypoint = WaypointFactory.fromLocation('INTCPT', interceptPosition);
     return new FlightPlanLeg(
       segment,
@@ -367,8 +392,32 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         overfly: false,
         waypoint: waypoint,
         magneticCourse: reciprocal(radial),
+        length: 500,
       },
       waypoint.ident,
+      '',
+      undefined,
+    );
+  }
+
+  static maxRadialInDistance = 20;
+  static radialInStart(segment: FlightPlanSegment, waypoint: Fix, radial: Degrees): FlightPlanLeg {
+    const startWaypoint = WaypointFactory.fromPlaceBearingDistance(
+      'INBOUND',
+      waypoint.location,
+      this.maxRadialInDistance,
+      radial,
+    );
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.IF,
+        overfly: false,
+        waypoint: startWaypoint,
+        magneticCourse: reciprocal(radial),
+      },
+      'INBOUND',
       '',
       undefined,
     );
@@ -403,7 +452,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
       segment,
       {
         procedureIdent: '',
-        type: LegType.CF, // TODO try LegType.CI
+        type: LegType.IF, // TODO was CF
         overfly: false,
         waypoint: WaypointFactory.fromLocation('IN-BND', location),
         magneticCourse,

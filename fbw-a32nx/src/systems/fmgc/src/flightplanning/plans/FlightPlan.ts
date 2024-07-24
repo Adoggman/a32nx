@@ -19,9 +19,6 @@ import {
   FlightPlanPerformanceDataProperties,
 } from '@fmgc/flightplanning/plans/performance/FlightPlanPerformanceData';
 import { BaseFlightPlan, FlightPlanQueuedOperation, SerializedFlightPlan } from './BaseFlightPlan';
-import { reciprocal } from '@fmgc/guidance/lnav/CommonGeometry';
-
-const max_intercept_distance: NauticalMiles = 500;
 
 export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerformanceData> extends BaseFlightPlan<P> {
   static empty<P extends FlightPlanPerformanceData>(
@@ -172,42 +169,18 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
   }
 
   directToWaypointViaRadial(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
-    console.log('AJH FlightPlan Radial: ' + radial.toFixed(0));
+    //const magVar = MagVar.get(ppos.lat, ppos.long);
+    //const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
 
-    const interceptPosition = A32NX_Util.greatCircleIntersection(ppos, trueTrack, waypoint.location, radial);
-    const distance = Avionics.Utils.computeGreatCircleDistance(ppos, interceptPosition);
-    const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(interceptPosition, waypoint.location);
-
-    // Couldn't find a close enough intercept, give up
-    if (distance > max_intercept_distance || Math.abs(reciprocal(headingAfterIntercept) - radial) > 90) {
-      throw new Error('[FPM] No intercept found');
-    }
-
-    console.log(
-      'Intercept bearing ' +
-        headingAfterIntercept.toFixed(0) +
-        ' (' +
-        distance.toFixed(0) +
-        ') Position ' +
-        interceptPosition.lat +
-        ', ' +
-        interceptPosition.long,
-    );
-
-    const magVar = MagVar.get(ppos.lat, ppos.long);
-    const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
-
-    const inboundPoint = FlightPlanLeg.inboundPoint(this.enrouteSegment, ppos, magneticCourse);
-    const toRadial = FlightPlanLeg.toRadial(this.enrouteSegment, ppos, magneticCourse, radial, waypoint);
+    //const inboundPoint = FlightPlanLeg.inboundPoint(this.enrouteSegment, ppos, magneticCourse);
+    //const toRadial = FlightPlanLeg.toRadial(this.enrouteSegment, ppos, magneticCourse, radial, waypoint);
     //const courseToIntercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, magneticCourse);
-    //const intercept = FlightPlanLeg.interceptPoint(
-    //  this.enrouteSegment,
-    //  ppos,
-    //  magneticCourse,
-    //  waypoint.location,
-    // radial,
-    //;
+    //const manual = FlightPlanLeg.manual(this.enrouteSegment, ppos, magneticCourse);
+    //const intercept = FlightPlanLeg.interceptPoint(this.enrouteSegment, ppos, magneticCourse, waypoint.location, radial);
+    //const radialInStart = FlightPlanLeg.radialInStart(this.enrouteSegment, waypoint, radial);
     const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
+
+    console.log('AJH no bad');
 
     // Move all legs before active one to the enroute segment
     let indexInEnrouteSegment = 0;
@@ -219,7 +192,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
       );
     }
 
-    const newFlightPlanElements: FlightPlanElement[] = [inboundPoint, toRadial, radialInLeg];
+    const newFlightPlanElements: FlightPlanElement[] = [{ isDiscontinuity: true }, radialInLeg];
 
     // Remove legs before active on from enroute
     this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment + 1, ...newFlightPlanElements);
@@ -247,30 +220,41 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     // TODO withAbeam
     // TODO handle direct-to into the alternate (make alternate active...?
 
-    if (radial !== false) {
-      this.directToWaypointViaRadial(ppos, trueTrack, waypoint, radial);
-      return;
+    // if (radial !== false) {
+    //   this.directToWaypointViaRadial(ppos, trueTrack, waypoint, radial);
+    //   return;
+    // }
+
+    console.log('AJH Direct to - radial: ' + (radial === false ? 'false' : radial.toFixed(2)));
+
+    if (radial === false) {
+      const existingLegIndex = this.allLegs.findIndex(
+        (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
+      );
+
+      // If we already have this waypoint, go directly there
+      if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
+        this.directToLeg(ppos, trueTrack, existingLegIndex, withAbeam);
+        return;
+      }
     }
 
-    console.log('AJH FlightPlan no radial');
+    let newFlightPlanElements: FlightPlanElement[] = [];
+    let toBeActiveLeg: FlightPlanLeg;
 
-    const existingLegIndex = this.allLegs.findIndex(
-      (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
-    );
-
-    // If we already have this waypoint, go directly there
-    if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
-      this.directToLeg(ppos, trueTrack, existingLegIndex, withAbeam);
-      return;
+    if (radial === false) {
+      const magVar = MagVar.get(ppos.lat, ppos.long);
+      const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
+      const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse);
+      const turnEnd = FlightPlanLeg.directToTurnEnd(this.enrouteSegment, waypoint);
+      turningPoint.flags |= FlightPlanLegFlags.DirectToTurningPoint;
+      toBeActiveLeg = turnEnd;
+      newFlightPlanElements = [turningPoint, turnEnd];
+    } else {
+      const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
+      toBeActiveLeg = radialInLeg;
+      newFlightPlanElements = [{ isDiscontinuity: true }, radialInLeg];
     }
-
-    const magVar = MagVar.get(ppos.lat, ppos.long);
-    const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
-
-    const turningPoint = FlightPlanLeg.turningPoint(this.enrouteSegment, ppos, magneticCourse);
-    const turnEnd = FlightPlanLeg.directToTurnEnd(this.enrouteSegment, waypoint);
-
-    turningPoint.flags |= FlightPlanLegFlags.DirectToTurningPoint;
 
     // Move all legs before active one to the enroute segment
     let indexInEnrouteSegment = 0;
@@ -281,12 +265,12 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     }
 
     // Remove legs before active on from enroute
-    this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment, turningPoint, turnEnd);
+    this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment, ...newFlightPlanElements);
     this.incrementVersion();
 
-    const turnEndLegIndexInPlan = this.allLegs.findIndex((it) => it === turnEnd);
+    const turnEndLegIndexInPlan = this.allLegs.findIndex((it) => it === toBeActiveLeg);
     if (this.maybeElementAt(turnEndLegIndexInPlan + 1)?.isDiscontinuity === false) {
-      this.enrouteSegment.allLegs.splice(2, 0, { isDiscontinuity: true });
+      this.enrouteSegment.allLegs.splice(newFlightPlanElements.length, 0, { isDiscontinuity: true });
       this.syncSegmentLegsChange(this.enrouteSegment);
       this.incrementVersion();
 
