@@ -168,11 +168,25 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.setActiveLegIndex(turnEndLegIndexInPlan);
   }
 
+  interceptCourse(ppos: Coordinates, trueTrack: DegreesTrue) {
+    //, waypoint: Fix, radial: Degrees) {
+    let newFlightPlanElements: FlightPlanElement[] = [];
+
+    const inbound = FlightPlanLeg.inboundPoint(this.enrouteSegment, ppos, trueTrack);
+    const intercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, trueTrack);
+    newFlightPlanElements = [inbound, intercept];
+
+    // Remove disco, insert new legs
+    this.enrouteSegment.allLegs.splice(0, 1, ...newFlightPlanElements);
+    this.syncSegmentLegsChange(this.enrouteSegment);
+    this.incrementVersion();
+
+    this.setActiveLegIndex(1);
+  }
+
   directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: false | Degrees) {
     // TODO withAbeam
     // TODO handle direct-to into the alternate (make alternate active...?
-
-    console.log('AJH Direct to - radial: ' + (radial === false ? 'false' : radial.toFixed(2)));
 
     const existingLegIndex = this.allLegs.findIndex(
       (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),

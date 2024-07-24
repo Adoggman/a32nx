@@ -153,8 +153,8 @@ export class FlightPlanRpcClient<P extends FlightPlanPerformanceData> implements
     return this.callFunctionViaRpc('secondaryReset', index);
   }
 
-  temporaryInsert(): Promise<void> {
-    return this.callFunctionViaRpc('temporaryInsert');
+  temporaryInsert(location: Coordinates, heading: DegreesTrue): Promise<void> {
+    return this.callFunctionViaRpc('temporaryInsert', location, heading);
   }
 
   temporaryDelete(): Promise<void> {

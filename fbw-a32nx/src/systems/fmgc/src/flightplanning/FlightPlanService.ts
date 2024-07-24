@@ -6,7 +6,7 @@
 import { FlightPlanIndex, FlightPlanManager } from '@fmgc/flightplanning/FlightPlanManager';
 import { FpmConfig, FpmConfigs } from '@fmgc/flightplanning/FpmConfig';
 import { FlightPlanLeg, FlightPlanLegFlags } from '@fmgc/flightplanning/legs/FlightPlanLeg';
-import { Fix, NXDataStore, Waypoint } from '@flybywiresim/fbw-sdk';
+import { Fix, LegType, NXDataStore, Waypoint } from '@flybywiresim/fbw-sdk';
 import { NavigationDatabase } from '@fmgc/NavigationDatabase';
 import { Coordinates, Degrees } from 'msfs-geo';
 import { EventBus } from '@microsoft/msfs-sdk';
@@ -111,7 +111,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     this.flightPlanManager.create(FlightPlanIndex.FirstSecondary + index - 1);
   }
 
-  async temporaryInsert(): Promise<void> {
+  async temporaryInsert(currentPosition: Coordinates, currentHeading: DegreesTrue): Promise<void> {
     const temporaryPlan = this.flightPlanManager.get(FlightPlanIndex.Temporary);
 
     if (temporaryPlan.pendingAirways) {
@@ -123,12 +123,22 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     }
 
     const fromLeg = temporaryPlan.maybeElementAt(temporaryPlan.activeLegIndex - 1);
+    const activeLeg = temporaryPlan.maybeElementAt(temporaryPlan.activeLegIndex);
+
+    if (
+      fromLeg.isDiscontinuity === true &&
+      activeLeg.isDiscontinuity === false &&
+      activeLeg.definition.type === LegType.CF
+    ) {
+      // inserting radial in
+      console.log('AJH Inserting radial in');
+      temporaryPlan.interceptCourse(currentPosition, currentHeading);
+      //return;
+    }
 
     // Update T-P
     if (fromLeg?.isDiscontinuity === false && fromLeg.flags & FlightPlanLegFlags.DirectToTurningPoint) {
-      // TODO fm pos
-      fromLeg.definition.waypoint.location.lat = SimVar.GetSimVarValue('PLANE LATITUDE', 'Degrees');
-      fromLeg.definition.waypoint.location.long = SimVar.GetSimVarValue('PLANE LONGITUDE', 'Degrees');
+      fromLeg.definition.waypoint.location = currentPosition;
     }
 
     this.flightPlanManager.copy(FlightPlanIndex.Temporary, FlightPlanIndex.Active, CopyOptions.IncludeFixInfos);
@@ -376,6 +386,20 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     plan.startAirwayEntry(at);
   }
 
+  async interceptCourse(
+    ppos: Coordinates,
+    trueTrack: Degrees,
+    _waypoint: Fix,
+    planIndex = FlightPlanIndex.Active,
+    _radial: Degrees,
+  ) {
+    const finalIndex = this.prepareDestructiveModification(planIndex);
+
+    const plan = this.flightPlanManager.get(finalIndex);
+
+    plan.interceptCourse(ppos, trueTrack); //, waypoint, radial);
+  }
+
   async directToWaypoint(
     ppos: Coordinates,
     trueTrack: Degrees,
@@ -388,7 +412,6 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
 
     const plan = this.flightPlanManager.get(finalIndex);
 
-    console.log('AJH Flight plan service trying to radial: ' + radial);
     plan.directToWaypoint(ppos, trueTrack, waypoint, withAbeam, radial);
   }
 

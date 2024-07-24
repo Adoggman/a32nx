@@ -309,21 +309,19 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     this.pilotEnteredSpeedConstraint = undefined;
   }
 
-  static courseToIntercept(
-    segment: FlightPlanSegment,
-    location: Coordinates,
-    magneticCourse: DegreesMagnetic,
-  ): FlightPlanLeg {
+  static courseToIntercept(segment: FlightPlanSegment, location: Coordinates, track: DegreesTrue): FlightPlanLeg {
+    const magVar = Facilities.getMagVar(location.lat, location.long);
+    const magTrack = A32NX_Util.trueToMagnetic(track, magVar);
     return new FlightPlanLeg(
       segment,
       {
         procedureIdent: '',
         type: LegType.CI,
         overfly: false,
-        waypoint: WaypointFactory.fromLocation('C-I', location),
-        magneticCourse: magneticCourse,
+        waypoint: WaypointFactory.fromLocation('INTCPT', location),
+        magneticCourse: magTrack,
       },
-      'C-I',
+      'INTCPT',
       '',
       undefined,
     );
