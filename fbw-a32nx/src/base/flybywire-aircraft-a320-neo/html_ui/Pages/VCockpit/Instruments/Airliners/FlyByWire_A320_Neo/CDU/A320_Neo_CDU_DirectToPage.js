@@ -55,6 +55,32 @@ class CDUDirectToPage {
             };
         }
 
+        let defaultHeading = false;
+        if (directWaypoint) {
+            if (directWaypoint.bearing) {
+                defaultHeading = (directWaypoint.bearing + 180) % 360;
+            } else {
+                const waypointIndex = mcdu.flightPlanService.active.allLegs.findIndex((it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(directWaypoint));
+                if (waypointIndex > 1) {
+                    const waypointLeg = mcdu.flightPlanService.active.allLegs[waypointIndex];
+                    if (waypointLeg.definition.magneticCourse) {
+                        defaultHeading = (waypointLeg.definition.magneticCourse + 180) % 360;
+                    } else {
+                        const prevLeg = mcdu.flightPlanService.active.allLegs[waypointIndex - 1];
+                        if (!prevLeg.isDiscontinuity) {
+                            const prevWaypoint = prevLeg.terminationWaypoint();
+                            if (prevWaypoint) {
+                                const magVar = Facilities.getMagVar(directWaypoint.location.lat, directWaypoint.location.long);
+                                const track = Avionics.Utils.computeGreatCircleHeading(directWaypoint.location, prevWaypoint.location);
+                                const magTrack = A32NX_Util.trueToMagnetic(track, magVar);
+                                defaultHeading = magTrack;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         mcdu.onLeftInput[0] = (value) => {
             if (value === FMCMainDisplay.clrValue) {
                 mcdu.eraseTemporaryFlightPlan(() => {
@@ -114,12 +140,12 @@ class CDUDirectToPage {
             }
 
             // If no input and bearing already exists, add calculated bearing
-            if (value.length === 0 && hasTemporary && !!directWaypoint && directWaypoint.bearing) {
+            if (value.length === 0 && hasTemporary && !!directWaypoint && defaultHeading) {
                 mcdu.eraseTemporaryFlightPlan(() => {
-                    mcdu.directToWaypoint(directWaypoint, directWaypoint.bearing).then(() => {
-                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing);
+                    mcdu.directToWaypoint(directWaypoint, defaultHeading).then(() => {
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading);
                     }).catch(err => {
-                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing, cachedPredictions, true);
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading, cachedPredictions, true);
                         mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                         console.error(err);
                     });
@@ -257,8 +283,8 @@ class CDUDirectToPage {
         } else if (dirToMode === MODE_RADIAL_IN) {
             radialInCell = radialValue.toFixed(0).padStart(3, "0") + "°\xa0[color]yellow";
         } else {
-            if (!!directWaypoint && directWaypoint.bearing) {
-                radialInCell = directWaypoint.bearing.toFixed(0).padStart(3, "0") + "°}[color]cyan";
+            if (!!directWaypoint && defaultHeading) {
+                radialInCell = defaultHeading.toFixed(0).padStart(3, "0") + "°}[color]cyan";
             } else {
                 radialInCell = "[\xa0]°\xa0[color]cyan";
             }
