@@ -168,62 +168,9 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.setActiveLegIndex(turnEndLegIndexInPlan);
   }
 
-  directToWaypointViaRadial(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
-    //const magVar = MagVar.get(ppos.lat, ppos.long);
-    //const magneticCourse = A32NX_Util.trueToMagnetic(trueTrack, magVar);
-
-    //const inboundPoint = FlightPlanLeg.inboundPoint(this.enrouteSegment, ppos, magneticCourse);
-    //const toRadial = FlightPlanLeg.toRadial(this.enrouteSegment, ppos, magneticCourse, radial, waypoint);
-    //const courseToIntercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, magneticCourse);
-    //const manual = FlightPlanLeg.manual(this.enrouteSegment, ppos, magneticCourse);
-    //const intercept = FlightPlanLeg.interceptPoint(this.enrouteSegment, ppos, magneticCourse, waypoint.location, radial);
-    //const radialInStart = FlightPlanLeg.radialInStart(this.enrouteSegment, waypoint, radial);
-    const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
-
-    console.log('AJH no bad');
-
-    // Move all legs before active one to the enroute segment
-    let indexInEnrouteSegment = 0;
-    this.redistributeLegsAt(0);
-    if (this.activeLegIndex >= 1) {
-      this.redistributeLegsAt(this.activeLegIndex);
-      indexInEnrouteSegment = this.enrouteSegment.allLegs.findIndex(
-        (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
-      );
-    }
-
-    const newFlightPlanElements: FlightPlanElement[] = [{ isDiscontinuity: true }, radialInLeg];
-
-    // Remove legs before active on from enroute
-    this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment + 1, ...newFlightPlanElements);
-    this.incrementVersion();
-
-    const radialInLegIndexInPlan = this.allLegs.findIndex(
-      (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
-    );
-    if (this.maybeElementAt(radialInLegIndexInPlan + 1)?.isDiscontinuity === false) {
-      if (indexInEnrouteSegment === -1) {
-        this.enrouteSegment.allLegs.splice(newFlightPlanElements.length, 0, { isDiscontinuity: true });
-      }
-      this.syncSegmentLegsChange(this.enrouteSegment);
-      this.incrementVersion();
-
-      // Since we added a discontinuity after the DIR TO leg, we want to make sure that the leg after it
-      // is a leg that can be after a disco (not something like a CI) and convert it to IF
-      //this.cleanUpAfterDiscontinuity(1);
-    }
-
-    //this.setActiveLegIndex(radialInLegIndexInPlan);
-  }
-
   directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: false | Degrees) {
     // TODO withAbeam
     // TODO handle direct-to into the alternate (make alternate active...?
-
-    // if (radial !== false) {
-    //   this.directToWaypointViaRadial(ppos, trueTrack, waypoint, radial);
-    //   return;
-    // }
 
     console.log('AJH Direct to - radial: ' + (radial === false ? 'false' : radial.toFixed(2)));
 
