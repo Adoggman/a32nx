@@ -174,15 +174,17 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
 
     console.log('AJH Direct to - radial: ' + (radial === false ? 'false' : radial.toFixed(2)));
 
-    if (radial === false) {
-      const existingLegIndex = this.allLegs.findIndex(
-        (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
-      );
+    const existingLegIndex = this.allLegs.findIndex(
+      (it) => it.isDiscontinuity === false && it.terminatesWithWaypoint(waypoint),
+    );
 
-      // If we already have this waypoint, go directly there
-      if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
+    // If we already have this waypoint, go directly there
+    const foundInRoute = existingLegIndex !== -1;
+    if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
+      if (radial === false) {
         this.directToLeg(ppos, trueTrack, existingLegIndex, withAbeam);
-        return;
+      } else {
+        this.allLegs.splice(0, existingLegIndex);
       }
     }
 
@@ -215,18 +217,18 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.enrouteSegment.allLegs.splice(0, indexInEnrouteSegment, ...newFlightPlanElements);
     this.incrementVersion();
 
-    const turnEndLegIndexInPlan = this.allLegs.findIndex((it) => it === toBeActiveLeg);
-    if (this.maybeElementAt(turnEndLegIndexInPlan + 1)?.isDiscontinuity === false) {
+    const activeLegIndexInPlan = this.allLegs.findIndex((it) => it === toBeActiveLeg);
+    if (!foundInRoute && this.maybeElementAt(activeLegIndexInPlan + 1)?.isDiscontinuity === false) {
       this.enrouteSegment.allLegs.splice(newFlightPlanElements.length, 0, { isDiscontinuity: true });
       this.syncSegmentLegsChange(this.enrouteSegment);
       this.incrementVersion();
 
       // Since we added a discontinuity after the DIR TO leg, we want to make sure that the leg after it
       // is a leg that can be after a disco (not something like a CI) and convert it to IF
-      this.cleanUpAfterDiscontinuity(turnEndLegIndexInPlan + 1);
+      this.cleanUpAfterDiscontinuity(activeLegIndexInPlan + 1);
     }
 
-    this.setActiveLegIndex(turnEndLegIndexInPlan);
+    this.setActiveLegIndex(activeLegIndexInPlan);
   }
 
   /**
