@@ -309,6 +309,71 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     this.pilotEnteredSpeedConstraint = undefined;
   }
 
+  static courseToIntercept(
+    segment: FlightPlanSegment,
+    location: Coordinates,
+    magneticCourse: DegreesMagnetic,
+  ): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CI,
+        overfly: false,
+        waypoint: WaypointFactory.fromLocation('C-I', location),
+        magneticCourse: magneticCourse,
+      },
+      'C-I',
+      '',
+      undefined,
+    );
+  }
+
+  static interceptPoint(
+    segment: FlightPlanSegment,
+    currentLocation: Coordinates,
+    currentHeading: DegreesMagnetic,
+    destination: Coordinates,
+    magneticCourse: DegreesMagnetic,
+  ): FlightPlanLeg {
+    const interceptPosition = A32NX_Util.greatCircleIntersection(
+      currentLocation,
+      currentHeading,
+      destination,
+      magneticCourse,
+    );
+    const waypoint = WaypointFactory.fromLocation('INTCPT', interceptPosition);
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CF,
+        overfly: false,
+        waypoint: waypoint,
+        magneticCourse: currentHeading,
+      },
+      'INTCPT',
+      '',
+      undefined,
+    );
+  }
+
+  static radialIn(segment: FlightPlanSegment, waypoint: Fix, radial: Degrees): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.CF,
+        overfly: false,
+        waypoint: waypoint,
+        magneticCourse: reciprocal(radial),
+      },
+      waypoint.ident,
+      '',
+      undefined,
+    );
+  }
+
   static toRadial(
     segment: EnrouteSegment,
     location: Coordinates,
@@ -469,71 +534,6 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
       },
       airport.ident,
       procedureIdent,
-      undefined,
-    );
-  }
-
-  static courseToIntercept(
-    segment: FlightPlanSegment,
-    location: Coordinates,
-    magneticCourse: DegreesMagnetic,
-  ): FlightPlanLeg {
-    return new FlightPlanLeg(
-      segment,
-      {
-        procedureIdent: '',
-        type: LegType.CI,
-        overfly: false,
-        waypoint: WaypointFactory.fromLocation('C-I', location),
-        magneticCourse: magneticCourse,
-      },
-      'C-I',
-      '',
-      undefined,
-    );
-  }
-
-  static interceptPoint(
-    segment: FlightPlanSegment,
-    currentLocation: Coordinates,
-    currentHeading: DegreesMagnetic,
-    destination: Coordinates,
-    magneticCourse: DegreesMagnetic,
-  ): FlightPlanLeg {
-    const interceptPosition = A32NX_Util.greatCircleIntersection(
-      currentLocation,
-      currentHeading,
-      destination,
-      magneticCourse,
-    );
-    const waypoint = WaypointFactory.fromLocation('INTCPT', interceptPosition);
-    return new FlightPlanLeg(
-      segment,
-      {
-        procedureIdent: '',
-        type: LegType.CF,
-        overfly: false,
-        waypoint: waypoint,
-        magneticCourse: currentHeading,
-      },
-      'INTCPT',
-      '',
-      undefined,
-    );
-  }
-
-  static radialIn(segment: FlightPlanSegment, waypoint: Fix, radial: Degrees): FlightPlanLeg {
-    return new FlightPlanLeg(
-      segment,
-      {
-        procedureIdent: '',
-        type: LegType.CF,
-        overfly: false,
-        waypoint: waypoint,
-        magneticCourse: reciprocal(radial),
-      },
-      waypoint.ident,
-      '',
       undefined,
     );
   }
