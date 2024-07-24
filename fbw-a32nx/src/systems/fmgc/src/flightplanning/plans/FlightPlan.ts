@@ -183,6 +183,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
       if (radial === false) {
         this.directToLeg(ppos, trueTrack, existingLegIndex, withAbeam);
+        return;
       } else {
         this.allLegs.splice(0, existingLegIndex);
       }
