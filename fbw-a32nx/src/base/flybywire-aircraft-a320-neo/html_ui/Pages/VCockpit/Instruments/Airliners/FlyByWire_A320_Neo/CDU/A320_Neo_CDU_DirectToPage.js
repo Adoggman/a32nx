@@ -107,7 +107,6 @@ class CDUDirectToPage {
         };
         // RADIAL IN
         mcdu.onRightInput[3] = (value, scratchpadCallback) => {
-            //mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
 
             // If no waypoint entered, don't do anything
             if (!hasTemporary) {
@@ -121,7 +120,7 @@ class CDUDirectToPage {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing);
                     }).catch(err => {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, directWaypoint.bearing, cachedPredictions, true);
-                        mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
+                        mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                         console.error(err);
                     });
                 });
@@ -150,7 +149,7 @@ class CDUDirectToPage {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse);
                 }).catch(err => {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions, true);
-                    mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
+                    mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                     console.error(err);
                 });
             });
@@ -318,7 +317,7 @@ class CDUDirectToPage {
                                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
                                 }).catch(err => {
                                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance }, true);
-                                    mcdu.setScratchpadMessage(NXSystemMessages.noNavIntercept);
+                                    mcdu.setScratchpadMessage(NXSystemMessages.internalError);
                                     console.error(err);
                                 });
                             });
