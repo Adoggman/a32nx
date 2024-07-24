@@ -52,7 +52,7 @@ export interface FlightPlanInterface<P extends FlightPlanPerformanceData = Fligh
 
   secondaryReset(index: number): Promise<void>;
 
-  temporaryInsert(currentPosition: Coordinates, currentHeading: DegreesTrue): Promise<void>;
+  temporaryInsert(currentPosition: Coordinates, currentHeading: DegreesTrue): Promise<boolean>;
 
   temporaryDelete(): Promise<void>;
 

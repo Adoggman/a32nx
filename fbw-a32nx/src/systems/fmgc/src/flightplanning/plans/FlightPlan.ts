@@ -168,9 +168,18 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.setActiveLegIndex(turnEndLegIndexInPlan);
   }
 
-  interceptCourse(ppos: Coordinates, trueTrack: DegreesTrue) {
-    //, waypoint: Fix, radial: Degrees) {
+  private static maxRadialInDistance = 500;
+  interceptCourse(ppos: Coordinates, trueTrack: DegreesTrue, waypoint: Fix, radial: Degrees): boolean {
     let newFlightPlanElements: FlightPlanElement[] = [];
+
+    const interceptPosition = A32NX_Util.greatCircleIntersection(ppos, trueTrack, waypoint.location, radial);
+    const distance = Avionics.Utils.computeGreatCircleDistance(ppos, waypoint.location);
+    const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(interceptPosition, waypoint.location);
+
+    // Couldn't find an intercept, give up
+    if (distance > FlightPlan.maxRadialInDistance || Math.abs(headingAfterIntercept - radial) > 90) {
+      return false;
+    }
 
     const inbound = FlightPlanLeg.inboundPoint(this.enrouteSegment, ppos, trueTrack);
     const intercept = FlightPlanLeg.courseToIntercept(this.enrouteSegment, ppos, trueTrack);
@@ -181,7 +190,8 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.syncSegmentLegsChange(this.enrouteSegment);
     this.incrementVersion();
 
-    this.setActiveLegIndex(1);
+    this.setActiveLegIndex(0);
+    return true;
   }
 
   directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: false | Degrees) {

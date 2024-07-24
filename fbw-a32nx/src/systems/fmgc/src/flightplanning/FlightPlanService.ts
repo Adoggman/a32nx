@@ -111,9 +111,14 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     this.flightPlanManager.create(FlightPlanIndex.FirstSecondary + index - 1);
   }
 
-  async temporaryInsert(currentPosition: Coordinates, currentHeading: DegreesTrue): Promise<void> {
+  /**
+   * @param currentPosition Aircraft position
+   * @param currentHeading  Aircraft heading
+   * @returns False if we couldn't find an intercept for radial in, true otherwise
+   */
+  async temporaryInsert(currentPosition: Coordinates, currentHeading: DegreesTrue): Promise<boolean> {
     const temporaryPlan = this.flightPlanManager.get(FlightPlanIndex.Temporary);
-
+    let successfulIntercept = true;
     if (temporaryPlan.pendingAirways) {
       temporaryPlan.pendingAirways.finalize();
     }
@@ -132,8 +137,12 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     ) {
       // inserting radial in
       console.log('AJH Inserting radial in');
-      temporaryPlan.interceptCourse(currentPosition, currentHeading);
-      //return;
+      successfulIntercept = temporaryPlan.interceptCourse(
+        currentPosition,
+        currentHeading,
+        activeLeg.definition.waypoint,
+        activeLeg.definition.magneticCourse,
+      );
     }
 
     // Update T-P
@@ -143,6 +152,8 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
 
     this.flightPlanManager.copy(FlightPlanIndex.Temporary, FlightPlanIndex.Active, CopyOptions.IncludeFixInfos);
     this.flightPlanManager.delete(FlightPlanIndex.Temporary);
+
+    return successfulIntercept;
   }
 
   async temporaryDelete(): Promise<void> {
@@ -386,19 +397,19 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     plan.startAirwayEntry(at);
   }
 
-  async interceptCourse(
-    ppos: Coordinates,
-    trueTrack: Degrees,
-    _waypoint: Fix,
-    planIndex = FlightPlanIndex.Active,
-    _radial: Degrees,
-  ) {
-    const finalIndex = this.prepareDestructiveModification(planIndex);
+  // async interceptCourse(
+  //   ppos: Coordinates,
+  //   trueTrack: Degrees,
+  //   waypoint: Fix,
+  //   planIndex = FlightPlanIndex.Active,
+  //   radial: Degrees,
+  // ) {
+  //   const finalIndex = this.prepareDestructiveModification(planIndex);
 
-    const plan = this.flightPlanManager.get(finalIndex);
+  //   const plan = this.flightPlanManager.get(finalIndex);
 
-    plan.interceptCourse(ppos, trueTrack); //, waypoint, radial);
-  }
+  //   plan.interceptCourse(ppos, trueTrack, waypoint, radial);
+  // }
 
   async directToWaypoint(
     ppos: Coordinates,

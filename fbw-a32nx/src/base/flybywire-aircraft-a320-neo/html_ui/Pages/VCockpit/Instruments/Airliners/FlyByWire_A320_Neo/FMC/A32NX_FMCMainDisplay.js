@@ -2574,7 +2574,11 @@ class FMCMainDisplay extends BaseAirliners {
             const adirLat = ADIRS.getLatitude();
             const adirLong = ADIRS.getLongitude();
             const track = ADIRS.getTrueTrack();
-            this.flightPlanService.temporaryInsert({ lat: adirLat.value, long: adirLong.value}, track.value);
+            this.flightPlanService.temporaryInsert({ lat: adirLat.value, long: adirLong.value }, track.value).then((success) => {
+                if (!success) {
+                    this.setScratchpadMessage(NXSystemMessages.noNavIntercept);
+                }
+            });
             this.checkCostIndex(oldCostIndex);
             this.checkDestination(oldDestination);
             this.checkCruiseLevel(oldCruiseLevel);
