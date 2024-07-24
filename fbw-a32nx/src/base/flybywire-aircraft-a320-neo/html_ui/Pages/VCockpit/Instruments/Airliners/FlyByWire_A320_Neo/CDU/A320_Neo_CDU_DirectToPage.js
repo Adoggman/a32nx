@@ -333,22 +333,6 @@ class CDUDirectToPage {
                             });
                         }
                     }, mcdu.PageTimeout.Slow);
-                } else if (dirToMode === MODE_RADIAL_IN) {
-                    // If we've already calculated, do a slow refresh with a fresh waypoint at the end in case we've moved
-                    mcdu.page.SelfPtr = setTimeout(() => {
-                        if (mcdu.page.Current === mcdu.page.DirectToPage) {
-                            // Refresh temp plan when in direct to mode as T-P will change, don't clear predictions though as they are probably kinda right
-                            mcdu.eraseTemporaryFlightPlan(() => {
-                                mcdu.directToWaypoint(directWaypoint, radialValue).then(() => {
-                                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance });
-                                }).catch(err => {
-                                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, radialValue, { utc: calculatedUTC, dist: calculatedDistance }, true);
-                                    mcdu.setScratchpadMessage(NXSystemMessages.internalError);
-                                    console.error(err);
-                                });
-                            });
-                        }
-                    }, mcdu.PageTimeout.Slow);
                 }
             }
         }
