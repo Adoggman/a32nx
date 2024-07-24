@@ -338,7 +338,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
       segment,
       {
         procedureIdent: '',
-        type: LegType.CF,
+        type: LegType.CF, // TODO try LegType.CI
         overfly: false,
         waypoint: WaypointFactory.fromLocation('IN-BND', location),
         magneticCourse,
@@ -506,14 +506,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
       destination,
       magneticCourse,
     );
-    const distance = Avionics.Utils.computeGreatCircleDistance(currentLocation, interceptPosition);
-    const offsetInterceptPosition = Avionics.Utils.bearingDistanceToCoordinates(
-      reciprocal(currentHeading),
-      distance * 0.3,
-      interceptPosition.lat,
-      interceptPosition.long,
-    );
-    const waypoint = WaypointFactory.fromLocation('INTCPT', offsetInterceptPosition);
+    const waypoint = WaypointFactory.fromLocation('INTCPT', interceptPosition);
     return new FlightPlanLeg(
       segment,
       {
@@ -523,7 +516,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         waypoint: waypoint,
         magneticCourse: currentHeading,
       },
-      '',
+      'INTCPT',
       '',
       undefined,
     );
