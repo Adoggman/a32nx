@@ -106,7 +106,8 @@ const NXSystemMessages = {
     stepAboveMaxFl:         new TypeIIMessage("STEP ABOVE MAX FL"),
     stepAhead:              new TypeIIMessage("STEP AHEAD"),
     stepDeleted:            new TypeIIMessage("STEP DELETED"),
-    noNavIntercept:         new TypeIMessage("NO NAV INTERCEPT"),
+    noNavIntercept:         new TypeIIMessage("NO NAV INTERCEPT"),
+    adjustDesiredHdgTrk:    new TypeIIMessage("ADJUST DESIRED HDG/TRK", true)
 };
 
 const NXFictionalMessages = {
