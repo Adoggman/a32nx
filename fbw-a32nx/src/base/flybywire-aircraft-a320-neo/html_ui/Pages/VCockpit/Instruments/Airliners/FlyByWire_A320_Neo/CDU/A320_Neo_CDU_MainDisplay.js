@@ -206,7 +206,7 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
     // TODO this really belongs in the FMCMainDisplay, not the CDU
     setupFmgcTriggers() {
         Coherent.on('A32NX_FMGC_SEND_MESSAGE_TO_MCDU', (message) => {
-            this.addMessageToQueue(new TypeIIMessage(message.text, message.color === 'Amber'), () => false , () => {
+            this.addMessageToQueue(new TypeIIMessage(message.text, message.color === 'Amber'), () => false, () => {
                 if (message.clearable) {
                     Fmgc.recallMessageById(message.id);
                 }
