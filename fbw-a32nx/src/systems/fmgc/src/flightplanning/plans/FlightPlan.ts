@@ -190,7 +190,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.syncSegmentLegsChange(this.enrouteSegment);
     this.incrementVersion();
 
-    this.setActiveLegIndex(0);
+    this.setActiveLegIndex(1);
     return true;
   }
 
