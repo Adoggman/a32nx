@@ -10,6 +10,9 @@ const MODE_RADIAL_OUT = 4;
 class CDUDirectToPage {
 
     static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }, suppressRefresh = false) {
+        Fmgc.CDU.Pages.DirectTo.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions, suppressRefresh);
+        return;
+
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
         mcdu.returnPageCallback = () => {

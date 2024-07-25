@@ -23,6 +23,7 @@ import { NavigationDatabaseService } from './flightplanning/NavigationDatabaseSe
 import { SimBriefUplinkAdapter } from './flightplanning/uplink/SimBriefUplinkAdapter';
 import { A320FlightPlanPerformanceData } from './flightplanning/plans/performance/FlightPlanPerformanceData';
 import { A320AircraftConfig } from '@fmgc/flightplanning/A320AircraftConfig';
+import { CDU } from '@fmgc/cdu/CDU';
 
 function initFmgcLoop(
   baseInstrument: BaseInstrument,
@@ -66,4 +67,5 @@ export {
   EventBus,
   a320EfisRangeSettings,
   A320AircraftConfig,
+  CDU,
 };
