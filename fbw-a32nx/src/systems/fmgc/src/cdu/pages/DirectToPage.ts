@@ -70,11 +70,18 @@ export class DirectToPage {
         });
       };
       mcdu.onRightInput[5] = () => {
-        mcdu.insertTemporaryFlightPlan(() => { }, (success) => {
-          if (success) {
-              SimVar.SetSimVarValue("K:A32NX.FMGC_DIR_TO_TRIGGER", "number", 0);
+        mcdu.insertTemporaryFlightPlan(
+          () => {},
+          (success) => {
+            if (success) {
+              SimVar.SetSimVarValue('K:A32NX.FMGC_DIR_TO_TRIGGER', 'number', 0);
               (CDUFlightPlanPage as any).ShowPage(mcdu);
-          }
+            } else {
+              mcdu.addMessageToQueue(NXSystemMessages.adjustDesiredHdgTrk);
+              mcdu.addMessageToQueue(NXSystemMessages.noNavIntercept);
+            }
+          },
+        );
       };
     }
 
@@ -126,7 +133,7 @@ export class DirectToPage {
               mcdu
                 .directToWaypoint(w)
                 .then(() => {
-                  DirectToPage.ShowPage(mcdu, w, wptsListIndex);
+                  DirectToPage.ShowPage(mcdu, w, wptsListIndex, DirToMode.Direct);
                 })
                 .catch((err) => {
                   mcdu.setScratchpadMessage(NXFictionalMessages.internalError);

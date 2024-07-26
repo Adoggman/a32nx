@@ -464,7 +464,7 @@ declare class FMCMainDisplay {
   ): any;
   toggleWaypointOverfly(index: any, fpIndex: any, forAlternate: any, callback?: any): any;
   eraseTemporaryFlightPlan(callback?: any): void;
-  insertTemporaryFlightPlan(callback?: any, afterInsert: (succes: boolean) => {}): void;
+  insertTemporaryFlightPlan(callback?: any, afterInsert: (succes: boolean) => void): void;
   checkCostIndex(oldCostIndex: any): void;
   checkDestination(oldDestination: any): void;
   checkCruiseLevel(oldCruiseLevel: any): void;

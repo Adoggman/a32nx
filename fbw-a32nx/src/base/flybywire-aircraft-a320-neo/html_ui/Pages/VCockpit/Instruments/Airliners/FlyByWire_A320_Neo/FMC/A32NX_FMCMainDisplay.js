@@ -2579,10 +2579,6 @@ class FMCMainDisplay extends BaseAirliners {
             const adirLong = ADIRS.getLongitude();
             const track = ADIRS.getTrueTrack();
             this.flightPlanService.temporaryInsert({ lat: adirLat.value, long: adirLong.value }, track.value).then((success) => {
-                if (!success) {
-                    this.addMessageToQueue(NXSystemMessages.adjustDesiredHdgTrk);
-                    this.addMessageToQueue(NXSystemMessages.noNavIntercept);
-                }
                 afterInsert(success);
             });
             this.checkCostIndex(oldCostIndex);

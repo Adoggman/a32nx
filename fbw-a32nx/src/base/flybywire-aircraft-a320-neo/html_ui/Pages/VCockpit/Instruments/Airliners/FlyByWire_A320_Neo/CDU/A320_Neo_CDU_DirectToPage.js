@@ -53,8 +53,11 @@ class CDUDirectToPage {
             mcdu.onRightInput[5] = () => {
                 mcdu.insertTemporaryFlightPlan(() => { }, (success) => {
                     if (success) {
-                        SimVar.SetSimVarValue("K:A32NX.FMGC_DIR_TO_TRIGGER", "number", 0);
+                        SimVar.SetSimVarValue('K:A32NX.FMGC_DIR_TO_TRIGGER', 'number', 0);
                         CDUFlightPlanPage.ShowPage(mcdu);
+                    } else {
+                        mcdu.addMessageToQueue(NXSystemMessages.adjustDesiredHdgTrk);
+                        mcdu.addMessageToQueue(NXSystemMessages.noNavIntercept);
                     }
                 });
             };
