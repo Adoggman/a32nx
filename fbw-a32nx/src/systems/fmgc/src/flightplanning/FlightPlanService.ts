@@ -137,16 +137,27 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     ) {
       // inserting radial in
       console.log('AJH Inserting radial in');
-      successfulIntercept = temporaryPlan.interceptCourse(
+      successfulIntercept = temporaryPlan.interceptRadialInCourse(
         currentPosition,
         currentHeading,
         activeLeg.definition.waypoint,
         activeLeg.definition.magneticCourse,
       );
-    }
-
-    // Update T-P
-    if (fromLeg?.isDiscontinuity === false && fromLeg.flags & FlightPlanLegFlags.DirectToTurningPoint) {
+    } else if (
+      fromLeg?.isDiscontinuity === false &&
+      activeLeg.isDiscontinuity === false &&
+      fromLeg.flags & FlightPlanLegFlags.RadialOut
+    ) {
+      console.log('AJH Inserting radial out');
+      successfulIntercept = temporaryPlan.interceptRadialOutCourse(
+        currentPosition,
+        currentHeading,
+        activeLeg.definition.waypoint,
+        activeLeg.definition.magneticCourse,
+        temporaryPlan.activeLegIndex,
+      );
+    } else if (fromLeg?.isDiscontinuity === false && fromLeg.flags & FlightPlanLegFlags.DirectToTurningPoint) {
+      // inserting direct to
       fromLeg.definition.waypoint.location = currentPosition;
     }
 
@@ -424,6 +435,20 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     const plan = this.flightPlanManager.get(finalIndex);
 
     plan.directToWaypoint(ppos, trueTrack, waypoint, withAbeam, radial);
+  }
+
+  async radialOut(
+    ppos: Coordinates,
+    trueTrack: Degrees,
+    waypoint: Fix,
+    radial: Degrees,
+    planIndex = FlightPlanIndex.Active,
+  ) {
+    const finalIndex = this.prepareDestructiveModification(planIndex);
+
+    const plan = this.flightPlanManager.get(finalIndex);
+
+    plan.radialOut(ppos, trueTrack, waypoint, radial);
   }
 
   async directToLeg(

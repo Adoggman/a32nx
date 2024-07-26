@@ -49,6 +49,7 @@ export interface SerializedFlightPlanLeg {
 export enum FlightPlanLegFlags {
   DirectToTurningPoint = 1 << 0,
   Origin = 1 << 1,
+  RadialOut = 1 << 2,
 }
 
 export interface LegCalculations {
@@ -331,8 +332,8 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     return new FlightPlanLeg(
       segment,
       {
-        procedureIdent: 'MANUAL',
-        type: LegType.VM,
+        procedureIdent: '',
+        type: LegType.FM,
         overfly: false,
         waypoint: WaypointFactory.fromLocation('MANUAL', location),
         magneticCourse: magneticCourse,
@@ -345,26 +346,9 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
 
   static interceptPoint(
     segment: FlightPlanSegment,
-    currentLocation: Coordinates,
     currentHeading: DegreesMagnetic,
-    destination: Coordinates,
-    magneticCourse: DegreesMagnetic,
+    interceptPosition: Coordinates,
   ): FlightPlanLeg {
-    const interceptPosition = A32NX_Util.greatCircleIntersection(
-      currentLocation,
-      currentHeading,
-      destination,
-      magneticCourse,
-    );
-
-    const distance = Avionics.Utils.computeGreatCircleDistance(currentLocation, interceptPosition);
-    const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(interceptPosition, destination);
-
-    // Couldn't find a close enough intercept, give up
-    if (distance > this.maxRadialInDistance || Math.abs(reciprocal(headingAfterIntercept) - magneticCourse) > 90) {
-      throw new Error('[FPM] No intercept found');
-    }
-
     const waypoint = WaypointFactory.fromLocation('INTCPT', interceptPosition);
     return new FlightPlanLeg(
       segment,
@@ -393,6 +377,21 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         length: 500,
       },
       waypoint.ident,
+      '',
+      undefined,
+    );
+  }
+
+  static radialOutIF(segment: FlightPlanSegment, waypoint: Fix): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.IF,
+        overfly: false,
+        waypoint: waypoint,
+      },
+      '',
       '',
       undefined,
     );
@@ -456,6 +455,22 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         magneticCourse,
       },
       'IN-BND',
+      '',
+      undefined,
+    );
+  }
+
+  static outboundPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
+    return new FlightPlanLeg(
+      segment,
+      {
+        procedureIdent: '',
+        type: LegType.IF,
+        overfly: false,
+        waypoint: WaypointFactory.fromLocation('OUT-BND', location),
+        magneticCourse,
+      },
+      'OUT-BND',
       '',
       undefined,
     );

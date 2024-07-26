@@ -5041,7 +5041,6 @@ class FMCMainDisplay extends BaseAirliners {
      * @param radial: false | Degrees
      */
     async directToWaypoint(waypoint, radial = false) {
-        // FIXME fm pos
         const adirLat = ADIRS.getLatitude();
         const adirLong = ADIRS.getLongitude();
         const trueTrack = ADIRS.getTrueTrack();
@@ -5056,10 +5055,35 @@ class FMCMainDisplay extends BaseAirliners {
         };
 
         if (radial) {
-            console.log("AJH FMC trying to radial " + radial.toFixed(0));
+            console.log("AJH FMC trying to radial in " + radial.toFixed(0));
         }
 
         await this.flightPlanService.directToWaypoint(ppos, trueTrack.value, waypoint, false, Fmgc.FlightPlanIndex.Active, radial);
+    }
+
+    /**
+     * @param Fix waypoint
+     * @param Degrees radial
+     */
+    async radialOut(waypoint, radial) {
+        const adirLat = ADIRS.getLatitude();
+        const adirLong = ADIRS.getLongitude();
+        const trueTrack = ADIRS.getTrueTrack();
+
+        if (!adirLat.isNormalOperation() || !adirLong.isNormalOperation() || !trueTrack.isNormalOperation()) {
+            return;
+        }
+
+        const ppos = {
+            lat: adirLat.value,
+            long: adirLong.value,
+        };
+
+        if (radial) {
+            console.log("AJH FMC trying to radial out " + radial.toFixed(0));
+        }
+
+        await this.flightPlanService.radialOut(ppos, trueTrack.value, waypoint, radial);
     }
 
     /**
