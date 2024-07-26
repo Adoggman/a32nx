@@ -215,15 +215,16 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     const inboundLeg = FlightPlanLeg.outboundPoint(this.enrouteSegment, ppos, trueTrack);
     const interceptLeg = FlightPlanLeg.interceptPoint(this.enrouteSegment, trueTrack, interceptPosition);
     const manualLeg = FlightPlanLeg.manual(this.enrouteSegment, interceptPosition, radial);
-    newFlightPlanElements = [inboundLeg, interceptLeg, manualLeg];
+    newFlightPlanElements = [inboundLeg, interceptLeg, manualLeg, { isDiscontinuity: true }];
 
-    // Remove disco, insert new legs
-    this.enrouteSegment.allLegs.splice(activeLegIndex - 1, 1, ...newFlightPlanElements);
+    this.enrouteSegment.allLegs.splice(0, activeLegIndex + 1, ...newFlightPlanElements);
+
     this.syncSegmentLegsChange(this.enrouteSegment);
     this.incrementVersion();
 
     const newActiveLegIndex = this.allLegs.findIndex((it) => it === interceptLeg);
     this.setActiveLegIndex(newActiveLegIndex);
+    this.cleanUpAfterDiscontinuity(newActiveLegIndex + 2);
     return true;
   }
 
