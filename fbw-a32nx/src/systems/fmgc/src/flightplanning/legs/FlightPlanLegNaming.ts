@@ -91,3 +91,5 @@ export const turningPointIdent = 'T-P';
 export const inboundPointIdent = 'IN-BND';
 
 export const outboundPointIdent = 'OUT-BND';
+
+export const interceptIdent = 'INTCPT';
