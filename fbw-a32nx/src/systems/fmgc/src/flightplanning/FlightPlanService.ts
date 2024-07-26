@@ -409,20 +409,6 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     plan.startAirwayEntry(at);
   }
 
-  // async interceptCourse(
-  //   ppos: Coordinates,
-  //   trueTrack: Degrees,
-  //   waypoint: Fix,
-  //   planIndex = FlightPlanIndex.Active,
-  //   radial: Degrees,
-  // ) {
-  //   const finalIndex = this.prepareDestructiveModification(planIndex);
-
-  //   const plan = this.flightPlanManager.get(finalIndex);
-
-  //   plan.interceptCourse(ppos, trueTrack, waypoint, radial);
-  // }
-
   async directToWaypoint(
     ppos: Coordinates,
     trueTrack: Degrees,

@@ -17,6 +17,7 @@ import { Coordinates } from 'msfs-geo';
 import { FlightPlanLegDefinition } from '@fmgc/flightplanning/legs/FlightPlanLegDefinition';
 import {
   inboundPointIdent,
+  interceptIdent,
   outboundPointIdent,
   procedureLegIdentAndAnnotation,
   turningPointIdent,
@@ -325,10 +326,10 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         procedureIdent: '',
         type: LegType.CI,
         overfly: false,
-        waypoint: WaypointFactory.fromLocation('INTCPT', location),
+        waypoint: WaypointFactory.fromLocation(interceptIdent, location),
         magneticCourse: magTrack,
       },
-      'INTCPT',
+      interceptIdent,
       '',
       undefined,
     );
@@ -355,7 +356,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     currentHeading: DegreesMagnetic,
     interceptPosition: Coordinates,
   ): FlightPlanLeg {
-    const waypoint = WaypointFactory.fromLocation('INTCPT', interceptPosition);
+    const waypoint = WaypointFactory.fromLocation(interceptIdent, interceptPosition);
     return new FlightPlanLeg(
       segment,
       {
@@ -365,7 +366,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         waypoint: waypoint,
         magneticCourse: currentHeading,
       },
-      'INTCPT',
+      interceptIdent,
       '',
       undefined,
     );
