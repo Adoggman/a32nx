@@ -2585,8 +2585,8 @@ class FMCMainDisplay extends BaseAirliners {
             this.checkDestination(oldDestination);
             this.checkCruiseLevel(oldCruiseLevel);
 
-            SimVar.SetSimVarValue("L:FMC_FLIGHT_PLAN_IS_TEMPORARY", "number", 0);
-            SimVar.SetSimVarValue("L:MAP_SHOW_TEMPORARY_FLIGHT_PLAN", "number", 0);
+            SimVar.SetSimVarValue("L:FMC_FLIGHT_PLAN_IS_TEMPORARY", "number", 1);
+            SimVar.SetSimVarValue("L:MAP_SHOW_TEMPORARY_FLIGHT_PLAN", "number", 1);
 
             this.guidanceController.vnavDriver.invalidateFlightPlanProfile();
             callback();
