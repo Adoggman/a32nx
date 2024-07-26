@@ -6,7 +6,7 @@
 import { FlightPlanIndex, FlightPlanManager } from '@fmgc/flightplanning/FlightPlanManager';
 import { FpmConfig, FpmConfigs } from '@fmgc/flightplanning/FpmConfig';
 import { FlightPlanLeg, FlightPlanLegFlags } from '@fmgc/flightplanning/legs/FlightPlanLeg';
-import { Fix, LegType, NXDataStore, Waypoint } from '@flybywiresim/fbw-sdk';
+import { Fix, NXDataStore, Waypoint } from '@flybywiresim/fbw-sdk';
 import { NavigationDatabase } from '@fmgc/NavigationDatabase';
 import { Coordinates, Degrees } from 'msfs-geo';
 import { EventBus } from '@microsoft/msfs-sdk';
@@ -133,7 +133,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     if (
       fromLeg.isDiscontinuity === true &&
       activeLeg.isDiscontinuity === false &&
-      activeLeg.definition.type === LegType.CF
+      activeLeg.flags & FlightPlanLegFlags.RadialIn
     ) {
       // inserting radial in
       console.log('AJH Inserting radial in');

@@ -279,6 +279,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
       newFlightPlanElements = [turningPoint, turnEnd];
     } else {
       const radialInLeg = FlightPlanLeg.radialIn(this.enrouteSegment, waypoint, radial);
+      radialInLeg.flags |= FlightPlanLegFlags.RadialIn;
       toBeActiveLeg = radialInLeg;
       newFlightPlanElements = [{ isDiscontinuity: true }, radialInLeg];
     }
