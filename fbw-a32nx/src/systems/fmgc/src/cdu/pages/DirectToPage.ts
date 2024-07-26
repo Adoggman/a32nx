@@ -70,10 +70,11 @@ export class DirectToPage {
         });
       };
       mcdu.onRightInput[5] = () => {
-        mcdu.insertTemporaryFlightPlan(() => {
-          SimVar.SetSimVarValue('K:A32NX.FMGC_DIR_TO_TRIGGER', 'number', 0);
-          (CDUFlightPlanPage as any).ShowPage(mcdu);
-        });
+        mcdu.insertTemporaryFlightPlan(() => { }, (success) => {
+          if (success) {
+              SimVar.SetSimVarValue("K:A32NX.FMGC_DIR_TO_TRIGGER", "number", 0);
+              (CDUFlightPlanPage as any).ShowPage(mcdu);
+          }
       };
     }
 

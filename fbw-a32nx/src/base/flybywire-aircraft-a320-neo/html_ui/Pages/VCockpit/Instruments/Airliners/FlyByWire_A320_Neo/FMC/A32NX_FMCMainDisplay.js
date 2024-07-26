@@ -2567,8 +2567,8 @@ class FMCMainDisplay extends BaseAirliners {
     }
 
     /**
-     * @param {() => {}} callback
-     * @param {(success: boolean) => {}} afterInsert
+     * @param {() => void} callback
+     * @param {(success: boolean) => void} afterInsert
      */
     insertTemporaryFlightPlan(callback = EmptyCallback.Void, afterInsert = (success) => { }) {
         if (this.flightPlanService.hasTemporary) {
