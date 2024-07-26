@@ -49,7 +49,8 @@ export interface SerializedFlightPlanLeg {
 export enum FlightPlanLegFlags {
   DirectToTurningPoint = 1 << 0,
   Origin = 1 << 1,
-  RadialOut = 1 << 2,
+  RadialIn = 1 << 2,
+  RadialOut = 1 << 3,
 }
 
 export interface LegCalculations {
