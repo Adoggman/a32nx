@@ -96,6 +96,6 @@ export class IFLeg extends XFLeg {
   }
 
   get repr(): string {
-    return `IF AT ${this.fix.ident}`;
+    return `IF AT ${this.fix?.ident ?? '<none>'}`;
   }
 }
