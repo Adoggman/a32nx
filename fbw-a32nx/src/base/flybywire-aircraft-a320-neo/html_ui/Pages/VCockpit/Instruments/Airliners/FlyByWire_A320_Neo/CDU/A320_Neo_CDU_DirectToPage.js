@@ -182,9 +182,51 @@ class CDUDirectToPage {
             return;
         };
         // RADIAL OUT
-        mcdu.onRightInput[4] = () => {
-            mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_OUT);
+        mcdu.onRightInput[4] = (value, scratchpadCallback) => {
+            // If no waypoint entered, don't do anything
+            if (!hasTemporary) {
+                return;
+            }
+
+            // Clear the radial out, go back to normal direct to
+            if (dirToMode === MODE_RADIAL_OUT && value === FMCMainDisplay.clrValue) {
+                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
+            }
+
+            // If none of the above, make sure we have a valid heading
+            if (value.match(/^[0-9]{1,3}$/) === null) {
+                mcdu.setScratchpadMessage(NXSystemMessages.formatError);
+                scratchpadCallback();
+                return;
+            }
+            const magCourse = parseInt(value);
+            if (magCourse > 360 || magCourse < 0) {
+                mcdu.setScratchpadMessage(NXSystemMessages.entryOutOfRange);
+                scratchpadCallback();
+                return;
+            }
+
+            mcdu.eraseTemporaryFlightPlan(() => {
+                mcdu
+                    .radialOut(directWaypoint, magCourse)
+                    .then(() => {
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_OUT, magCourse);
+                    })
+                    .catch((err) => {
+                        CDUDirectToPage.ShowPage(
+                            mcdu,
+                            directWaypoint,
+                            wptsListIndex,
+                            MODE_RADIAL_OUT,
+                            magCourse,
+                            cachedPredictions,
+                            true,
+                        );
+                        mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                        console.error(err);
+                    });
+            });
+            return;
         };
 
         const plan = mcdu.flightPlanService.active;
@@ -289,7 +331,15 @@ class CDUDirectToPage {
                 radialInCell = "[\xa0]°\xa0[color]cyan";
             }
         }
-        const radialOutCell = "[\xa0]°\xa0[color]" + (dirToMode === MODE_RADIAL_OUT ? colorForHasTemporary : "cyan");
+        let radialOutCell = '[\xa0]°\xa0[color]cyan';
+        if (dirToMode === MODE_RADIAL_OUT) {
+            if (radialValue === false) {
+                console.log('AJH Radial out selected with no heading');
+                radialOutCell = '[\xa0]°\xa0[color]yellow';
+            } else {
+                radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+            }
+        }
 
         mcdu.setTemplate([
             ["DIR TO[color]" + colorForHasTemporary],
