@@ -168,8 +168,8 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     this.setActiveLegIndex(turnEndLegIndexInPlan);
   }
 
-  private static maxRadialInDistance = 500;
-  interceptCourse(ppos: Coordinates, trueTrack: DegreesTrue, waypoint: Fix, radial: Degrees): boolean {
+  private static maxInterceptDistance = 500;
+  interceptRadialInCourse(ppos: Coordinates, trueTrack: DegreesTrue, waypoint: Fix, radial: Degrees): boolean {
     let newFlightPlanElements: FlightPlanElement[] = [];
 
     const interceptPosition = A32NX_Util.greatCircleIntersection(ppos, trueTrack, waypoint.location, radial);
@@ -177,7 +177,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
     const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(interceptPosition, waypoint.location);
 
     // Couldn't find an intercept, give up
-    if (distance > FlightPlan.maxRadialInDistance || Math.abs(headingAfterIntercept - radial) > 90) {
+    if (distance > FlightPlan.maxInterceptDistance || Math.abs(headingAfterIntercept - radial) > 90) {
       return false;
     }
 
@@ -192,6 +192,59 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
 
     this.setActiveLegIndex(1);
     return true;
+  }
+
+  interceptRadialOutCourse(
+    ppos: Coordinates,
+    trueTrack: DegreesTrue,
+    waypoint: Fix,
+    radial: Degrees,
+    activeLegIndex: number,
+  ): boolean {
+    let newFlightPlanElements: FlightPlanElement[] = [];
+
+    const interceptPosition = A32NX_Util.greatCircleIntersection(ppos, trueTrack, waypoint.location, radial);
+    const distance = Avionics.Utils.computeGreatCircleDistance(ppos, waypoint.location);
+    const headingAfterIntercept = Avionics.Utils.computeGreatCircleHeading(waypoint.location, interceptPosition);
+
+    // Couldn't find an intercept, give up
+    if (distance > FlightPlan.maxInterceptDistance || Math.abs(headingAfterIntercept - radial) > 90) {
+      return false;
+    }
+
+    const inboundLeg = FlightPlanLeg.outboundPoint(this.enrouteSegment, ppos, trueTrack);
+    const interceptLeg = FlightPlanLeg.interceptPoint(this.enrouteSegment, trueTrack, interceptPosition);
+    const manualLeg = FlightPlanLeg.manual(this.enrouteSegment, interceptPosition, radial);
+    newFlightPlanElements = [inboundLeg, interceptLeg, manualLeg];
+
+    // Remove disco, insert new legs
+    this.enrouteSegment.allLegs.splice(activeLegIndex - 1, 1, ...newFlightPlanElements);
+    this.syncSegmentLegsChange(this.enrouteSegment);
+    this.incrementVersion();
+
+    const newActiveLegIndex = this.allLegs.findIndex((it) => it === interceptLeg);
+    this.setActiveLegIndex(newActiveLegIndex);
+    return true;
+  }
+
+  radialOut(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, radial: Degrees) {
+    const initialLeg = FlightPlanLeg.radialOutIF(this.enrouteSegment, waypoint);
+    initialLeg.flags |= FlightPlanLegFlags.RadialOut;
+    const manualLeg = FlightPlanLeg.manual(this.enrouteSegment, waypoint.location, radial);
+    const newFlightPlanElements: FlightPlanElement[] = [
+      { isDiscontinuity: true },
+      initialLeg,
+      manualLeg,
+      { isDiscontinuity: true },
+    ];
+
+    this.enrouteSegment.allLegs.splice(0, 0, ...newFlightPlanElements);
+    this.incrementVersion();
+    this.syncSegmentLegsChange(this.enrouteSegment);
+
+    const activeLegIndexInPlan = this.allLegs.findIndex((it) => it === manualLeg);
+    this.cleanUpAfterDiscontinuity(activeLegIndexInPlan + 1);
+    this.setActiveLegIndex(activeLegIndexInPlan);
   }
 
   directToWaypoint(ppos: Coordinates, trueTrack: Degrees, waypoint: Fix, withAbeam = false, radial: false | Degrees) {

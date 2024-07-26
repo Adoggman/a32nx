@@ -1,3 +1,5 @@
+import { Fix } from '@flybywiresim/fbw-sdk';
+
 declare class FMCMainDisplay {
   /**
    * Rounds a number to the nearest multiple
@@ -814,6 +816,8 @@ declare class FMCMainDisplay {
    * @param radial: false | Degrees
    */
   directToWaypoint(waypoint: any, radial?: false | Degrees): Promise<void>;
+  radialOut(waypoint: Fix, radial: Degrees);
+  //manualAtWaypoint(waypoint: Fix, radialOut: Degrees): Promise<void>;
   /**
    * Modifies the active flight plan to go direct to a specific leg
    * @param {number} legIndex index of leg to go direct to

@@ -240,9 +240,54 @@ export class DirectToPage {
       return;
     };
     // RADIAL OUT
-    mcdu.onRightInput[4] = () => {
-      mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-      DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.RadialOut);
+    mcdu.onRightInput[4] = (value, scratchpadCallback) => {
+      // mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+      // DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.RadialOut);
+
+      // If no waypoint entered, don't do anything
+      if (!hasTemporary) {
+        return;
+      }
+
+      // Clear the radial out, go back to normal direct to
+      if (dirToMode === DirToMode.RadialOut && value === CDU.clrValue) {
+        DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Direct);
+      }
+
+      // If none of the above, make sure we have a valid heading
+      if (value.match(/^[0-9]{1,3}$/) === null) {
+        mcdu.setScratchpadMessage(NXSystemMessages.formatError);
+        scratchpadCallback();
+        return;
+      }
+      const magCourse = parseInt(value);
+      if (magCourse > 360 || magCourse < 0) {
+        mcdu.setScratchpadMessage(NXSystemMessages.entryOutOfRange);
+        scratchpadCallback();
+        return;
+      }
+
+      mcdu.eraseTemporaryFlightPlan(() => {
+        mcdu
+          .radialOut(directWaypoint, magCourse)
+          .then(() => {
+            DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.RadialOut, magCourse);
+          })
+          .catch((err) => {
+            DirectToPage.ShowPage(
+              mcdu,
+              directWaypoint,
+              wptsListIndex,
+              DirToMode.RadialOut,
+              magCourse,
+              cachedPredictions,
+              true,
+            );
+            mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+            console.error(err);
+          });
+      });
+      return;
     };
 
     const plan = mcdu.flightPlanService.active;
@@ -370,7 +415,15 @@ export class DirectToPage {
         radialInCell = '[\xa0]°\xa0[color]cyan';
       }
     }
-    const radialOutCell = '[\xa0]°\xa0[color]' + (dirToMode === DirToMode.RadialOut ? colorForHasTemporary : 'cyan');
+    let radialOutCell = '[\xa0]°\xa0[color]cyan';
+    if (dirToMode === DirToMode.RadialOut) {
+      if (radialValue === false) {
+        console.log('AJH Radial out selected with no heading');
+        radialOutCell = '[\xa0]°\xa0[color]yellow';
+      } else {
+        radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+      }
+    }
 
     mcdu.setTemplate([
       ['DIR TO[color]' + colorForHasTemporary],
