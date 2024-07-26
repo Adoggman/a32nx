@@ -2566,7 +2566,11 @@ class FMCMainDisplay extends BaseAirliners {
         }
     }
 
-    insertTemporaryFlightPlan(callback = EmptyCallback.Void) {
+    /**
+     * @param {() => {}} callback
+     * @param {(success: boolean) => {}} afterInsert
+     */
+    insertTemporaryFlightPlan(callback = EmptyCallback.Void, afterInsert = (success) => { }) {
         if (this.flightPlanService.hasTemporary) {
             const oldCostIndex = this.costIndex;
             const oldDestination = this.currFlightPlanService.active.destinationAirport.ident;
@@ -2579,6 +2583,7 @@ class FMCMainDisplay extends BaseAirliners {
                     this.addMessageToQueue(NXSystemMessages.adjustDesiredHdgTrk);
                     this.addMessageToQueue(NXSystemMessages.noNavIntercept);
                 }
+                afterInsert(success);
             });
             this.checkCostIndex(oldCostIndex);
             this.checkDestination(oldDestination);
