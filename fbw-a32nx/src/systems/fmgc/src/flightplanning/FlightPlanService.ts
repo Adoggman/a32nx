@@ -118,7 +118,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
    */
   async temporaryInsert(currentPosition: Coordinates, currentHeading: DegreesTrue): Promise<boolean> {
     const temporaryPlan = this.flightPlanManager.get(FlightPlanIndex.Temporary);
-    let successfulIntercept = true;
+    let success = true;
     if (temporaryPlan.pendingAirways) {
       temporaryPlan.pendingAirways.finalize();
     }
@@ -137,7 +137,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
     ) {
       // inserting radial in
       console.log('AJH Inserting radial in');
-      successfulIntercept = temporaryPlan.interceptRadialInCourse(
+      success = temporaryPlan.interceptRadialInCourse(
         currentPosition,
         currentHeading,
         activeLeg.definition.waypoint,
@@ -149,7 +149,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
       fromLeg.flags & FlightPlanLegFlags.RadialOut
     ) {
       console.log('AJH Inserting radial out');
-      successfulIntercept = temporaryPlan.interceptRadialOutCourse(
+      success = temporaryPlan.interceptRadialOutCourse(
         currentPosition,
         currentHeading,
         activeLeg.definition.waypoint,
@@ -161,10 +161,12 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
       fromLeg.definition.waypoint.location = currentPosition;
     }
 
-    this.flightPlanManager.copy(FlightPlanIndex.Temporary, FlightPlanIndex.Active, CopyOptions.IncludeFixInfos);
-    this.flightPlanManager.delete(FlightPlanIndex.Temporary);
+    if (success) {
+      this.flightPlanManager.copy(FlightPlanIndex.Temporary, FlightPlanIndex.Active, CopyOptions.IncludeFixInfos);
+      this.flightPlanManager.delete(FlightPlanIndex.Temporary);
+    }
 
-    return successfulIntercept;
+    return success;
   }
 
   async temporaryDelete(): Promise<void> {
