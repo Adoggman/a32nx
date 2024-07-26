@@ -1,9 +1,11 @@
-// Copyright (c) 2020, 2022 FlyByWire Simulations
+// Copyright (c) 2024 FlyByWire Simulations
 // SPDX-License-Identifier: GPL-3.0
 
 import { Fix } from '@flybywiresim/fbw-sdk';
-import { FMS } from '@fmgc/cdu/CDU';
 import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
+import { FMS } from '@fmgc/cdu/FMS';
+import { CDU } from '@fmgc/cdu/CDU';
+import { FMCMainDisplay } from '@fmgc/cdu/FMSMainDisplay.d';
 
 // TODO this whole thing is thales layout...
 
@@ -29,7 +31,7 @@ export class DirectToPage {
     cachedPredictions: Predictions = { utc: false, dist: false },
     suppressRefresh: boolean = false,
   ) {
-    console.log('AJH Test TypeScript');
+    console.log('AJH Showing direct to page');
     mcdu.clearDisplay();
     mcdu.page.Current = mcdu.page.DirectToPage;
     mcdu.returnPageCallback = () => {
@@ -109,7 +111,7 @@ export class DirectToPage {
     }
 
     mcdu.onLeftInput[0] = (value) => {
-      if (value === FMCMainDisplay.clrValue) {
+      if (value === CDU.clrValue) {
         mcdu.eraseTemporaryFlightPlan(() => {
           DirectToPage.ShowPage(mcdu, undefined, wptsListIndex);
         });
@@ -198,7 +200,7 @@ export class DirectToPage {
         return;
       }
 
-      if (dirToMode === DirToMode.RadialIn && value === FMCMainDisplay.clrValue) {
+      if (dirToMode === DirToMode.RadialIn && value === CDU.clrValue) {
         DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Direct);
       }
 
@@ -209,7 +211,7 @@ export class DirectToPage {
         return;
       }
       const magCourse = parseInt(value);
-      if (magCourse > 360) {
+      if (magCourse > 360 || magCourse < 0) {
         mcdu.setScratchpadMessage(NXSystemMessages.entryOutOfRange);
         scratchpadCallback();
         return;

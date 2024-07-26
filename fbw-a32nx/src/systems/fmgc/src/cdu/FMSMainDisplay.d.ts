@@ -10,6 +10,9 @@ declare class FMCMainDisplay {
   static secondsTohhmm(seconds: any): string;
   static minuteToSeconds(minutes: any): number;
   static hhmmToSeconds(hhmm: any): number;
+  static clrValue: string;
+  static ovfyValue: string;
+  static _AvailableKeys: string;
   /**
    * Computes hour and minutes when given minutes
    * @param {number} minutes - minutes used to make the conversion
@@ -821,11 +824,6 @@ declare class FMCMainDisplay {
    * @returns {import('msfs-navdata').DatabaseIdent | null}.
    */
   getNavDatabaseIdent(): any | null;
-}
-declare namespace FMCMainDisplay {
-  let clrValue: string;
-  let ovfyValue: string;
-  let _AvailableKeys: string;
 }
 declare const FlightPlans: Readonly<{
   Active: 0;

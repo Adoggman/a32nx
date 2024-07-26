@@ -1,8 +1,6 @@
 import { Fix } from '@flybywiresim/fbw-sdk';
-import { DirectToPage, DirToMode, Predictions } from '@fmgc/cdu/pages/DirectToPage';
-import { A320_Neo_CDU_MainDisplay } from '@fmgc/cdu/CDUMainDisplay';
-
-export type FMS = A320_Neo_CDU_MainDisplay & FMCMainDisplay; // & DataInterface & DisplayInterface;
+import { DirectToPage, DirToMode, Predictions } from './pages/DirectToPage';
+import { FMS } from '@fmgc/cdu/FMS';
 
 // export abstract class CDUPage {
 //   static ShowPage(_mcdu: FMS, ..._params) {
@@ -34,4 +32,8 @@ export class CDU {
       suppressRefresh,
     );
   }
+
+  static clrValue = '\xa0\xa0\xa0\xa0\xa0CLR';
+  static ovfyValue = '\u0394';
+  static _AvailableKeys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 }
