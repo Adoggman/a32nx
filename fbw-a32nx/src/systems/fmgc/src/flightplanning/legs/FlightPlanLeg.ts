@@ -15,7 +15,12 @@ import {
 } from '@flybywiresim/fbw-sdk';
 import { Coordinates } from 'msfs-geo';
 import { FlightPlanLegDefinition } from '@fmgc/flightplanning/legs/FlightPlanLegDefinition';
-import { procedureLegIdentAndAnnotation } from '@fmgc/flightplanning/legs/FlightPlanLegNaming';
+import {
+  inboundPointIdent,
+  outboundPointIdent,
+  procedureLegIdentAndAnnotation,
+  turningPointIdent,
+} from '@fmgc/flightplanning/legs/FlightPlanLegNaming';
 import { WaypointFactory } from '@fmgc/flightplanning/waypoints/WaypointFactory';
 import { FlightPlanSegment } from '@fmgc/flightplanning/segments/FlightPlanSegment';
 import { EnrouteSegment } from '@fmgc/flightplanning/segments/EnrouteSegment';
@@ -452,10 +457,10 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         procedureIdent: '',
         type: LegType.IF, // TODO was CF
         overfly: false,
-        waypoint: WaypointFactory.fromLocation('IN-BND', location),
+        waypoint: WaypointFactory.fromLocation(inboundPointIdent, location),
         magneticCourse,
       },
-      'IN-BND',
+      inboundPointIdent,
       '',
       undefined,
     );
@@ -468,10 +473,10 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         procedureIdent: '',
         type: LegType.IF,
         overfly: false,
-        waypoint: WaypointFactory.fromLocation('OUT-BND', location),
+        waypoint: WaypointFactory.fromLocation(outboundPointIdent, location),
         magneticCourse,
       },
-      'OUT-BND',
+      outboundPointIdent,
       '',
       undefined,
     );
@@ -484,10 +489,10 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         procedureIdent: '',
         type: LegType.CF,
         overfly: false,
-        waypoint: WaypointFactory.fromLocation('T-P', location),
+        waypoint: WaypointFactory.fromLocation(turningPointIdent, location),
         magneticCourse,
       },
-      'T-P',
+      turningPointIdent,
       '',
       undefined,
     );
@@ -502,7 +507,7 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
         procedureIdent: '',
         type: LegType.FC,
         overfly: false,
-        waypoint: WaypointFactory.fromPlaceBearingDistance('T-P', location, 0.1, bearing),
+        waypoint: WaypointFactory.fromPlaceBearingDistance(turningPointIdent, location, 0.1, bearing),
         magneticCourse: A32NX_Util.trueToMagnetic(bearing, magVar),
         length: 0.1,
       },
