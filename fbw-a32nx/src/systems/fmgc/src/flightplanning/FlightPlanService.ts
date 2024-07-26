@@ -136,7 +136,6 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
       activeLeg.flags & FlightPlanLegFlags.RadialIn
     ) {
       // inserting radial in
-      console.log('AJH Inserting radial in');
       success = temporaryPlan.interceptRadialInCourse(
         currentPosition,
         currentHeading,
@@ -148,7 +147,7 @@ export class FlightPlanService<P extends FlightPlanPerformanceData = FlightPlanP
       activeLeg.isDiscontinuity === false &&
       fromLeg.flags & FlightPlanLegFlags.RadialOut
     ) {
-      console.log('AJH Inserting radial out');
+      // inserting radial out
       success = temporaryPlan.interceptRadialOutCourse(
         currentPosition,
         currentHeading,

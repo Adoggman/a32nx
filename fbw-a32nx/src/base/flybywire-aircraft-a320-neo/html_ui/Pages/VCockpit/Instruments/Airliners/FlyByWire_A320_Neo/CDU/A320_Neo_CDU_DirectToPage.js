@@ -342,7 +342,8 @@ class CDUDirectToPage {
         let radialOutCell = '[\xa0]°\xa0[color]cyan';
         if (dirToMode === MODE_RADIAL_OUT) {
             if (radialValue === false) {
-                console.log('AJH Radial out selected with no heading');
+                mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
+                console.log('Radial out selected with no heading');
                 radialOutCell = '[\xa0]°\xa0[color]yellow';
             } else {
                 radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';

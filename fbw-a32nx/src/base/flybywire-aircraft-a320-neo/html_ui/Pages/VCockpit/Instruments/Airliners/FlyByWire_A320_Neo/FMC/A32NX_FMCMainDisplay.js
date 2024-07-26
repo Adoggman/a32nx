@@ -5055,10 +5055,6 @@ class FMCMainDisplay extends BaseAirliners {
             long: adirLong.value,
         };
 
-        if (radial) {
-            console.log("AJH FMC trying to radial in " + radial.toFixed(0));
-        }
-
         await this.flightPlanService.directToWaypoint(ppos, trueTrack.value, waypoint, false, Fmgc.FlightPlanIndex.Active, radial);
     }
 
@@ -5079,10 +5075,6 @@ class FMCMainDisplay extends BaseAirliners {
             lat: adirLat.value,
             long: adirLong.value,
         };
-
-        if (radial) {
-            console.log("AJH FMC trying to radial out " + radial.toFixed(0));
-        }
 
         await this.flightPlanService.radialOut(ppos, trueTrack.value, waypoint, radial);
     }
