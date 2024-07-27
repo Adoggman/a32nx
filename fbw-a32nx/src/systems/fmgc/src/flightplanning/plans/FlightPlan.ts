@@ -258,7 +258,7 @@ export class FlightPlan<P extends FlightPlanPerformanceData = FlightPlanPerforma
 
     // If we already have this waypoint, go directly there
     const foundInRoute = existingLegIndex !== -1;
-    if (existingLegIndex !== -1 && existingLegIndex < this.firstMissedApproachLegIndex) {
+    if (foundInRoute && existingLegIndex < this.firstMissedApproachLegIndex) {
       if (radial === false) {
         this.directToLeg(ppos, trueTrack, existingLegIndex, withAbeam);
         return;
