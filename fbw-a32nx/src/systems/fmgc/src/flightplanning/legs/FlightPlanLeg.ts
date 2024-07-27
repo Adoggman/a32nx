@@ -404,53 +404,6 @@ export class FlightPlanLeg implements ReadonlyFlightPlanLeg {
     );
   }
 
-  static maxRadialInDistance = 20;
-  static radialInStart(segment: FlightPlanSegment, waypoint: Fix, radial: Degrees): FlightPlanLeg {
-    const startWaypoint = WaypointFactory.fromPlaceBearingDistance(
-      'INBOUND',
-      waypoint.location,
-      this.maxRadialInDistance,
-      radial,
-    );
-    return new FlightPlanLeg(
-      segment,
-      {
-        procedureIdent: '',
-        type: LegType.IF,
-        overfly: false,
-        waypoint: startWaypoint,
-        magneticCourse: reciprocal(radial),
-      },
-      'INBOUND',
-      '',
-      undefined,
-    );
-  }
-
-  static toRadial(
-    segment: EnrouteSegment,
-    location: Coordinates,
-    magneticCourse: DegreesMagnetic,
-    radial: DegreesMagnetic,
-    radialWaypoint: Fix,
-  ): FlightPlanLeg {
-    return new FlightPlanLeg(
-      segment,
-      {
-        procedureIdent: '',
-        type: LegType.CR,
-        overfly: false,
-        waypoint: WaypointFactory.fromLocation('C-R', location),
-        magneticCourse,
-        recommendedNavaid: radialWaypoint,
-        theta: radial,
-      },
-      'C-R',
-      '',
-      undefined,
-    );
-  }
-
   static inboundPoint(segment: EnrouteSegment, location: Coordinates, magneticCourse: DegreesMagnetic): FlightPlanLeg {
     return new FlightPlanLeg(
       segment,
