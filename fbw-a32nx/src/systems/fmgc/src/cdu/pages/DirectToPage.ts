@@ -29,7 +29,7 @@ export class DirectToPage {
     cachedPredictions: Predictions = { utc: false, dist: false },
     suppressRefresh: boolean = false,
   ) {
-    console.log('AJH Showing direct to page');
+    console.log('AJH Showing direct to page TypeScript version');
     mcdu.clearDisplay();
     mcdu.page.Current = mcdu.page.DirectToPage;
     mcdu.returnPageCallback = () => {
@@ -373,13 +373,16 @@ export class DirectToPage {
     if (hasTemporary && activeLegCalculated) {
       calculatedDistance = activeLegCalculated.distance;
     }
-    const distanceLabel =
-      hasTemporary && dirToMode === DirToMode.Direct && calculatedDistance
-        ? calculatedDistance.toFixed(0)
-        : '\xa0\xa0\xa0';
-    const distanceCell = hasTemporary ? distanceLabel + '\xa0[color]yellow' : '---\xa0';
 
-    let utcCell = '----';
+    let distanceDisplay = '---';
+    if (hasTemporary) {
+      distanceDisplay = '\xa0\xa0\xa0';
+      if (dirToMode === DirToMode.Direct && calculatedDistance) {
+        distanceDisplay = calculatedDistance.toFixed(0).padStart(3, '\xa0');
+      }
+    }
+
+    let utcDisplay = '----';
     let calculatedUTC = cachedPredictions.utc;
     if (hasTemporary) {
       const mcduProfile = mcdu.guidanceController.vnavDriver.mcduProfile;
@@ -395,8 +398,11 @@ export class DirectToPage {
         const secondsFromPresent = mcduProfile.tempPredictions.get(1).secondsFromPresent;
         calculatedUTC = utcTime + secondsFromPresent;
       }
-      utcCell = calculatedUTC ? CDU.secondsToUTC(calculatedUTC) + '[color]yellow' : '\xa0\xa0\xa0\xa0[color]yellow';
+      utcDisplay = calculatedUTC ? CDU.secondsToUTC(calculatedUTC).padStart(4, '\xa0') : '\xa0\xa0\xa0\xa0';
     }
+    const predictionCell =
+      utcDisplay + '\xa0\xa0\xa0' + distanceDisplay + '\xa0\xa0[color]' + (hasTemporary ? 'yellow' : 'white');
+
     const directToCell =
       'DIRECT TO\xa0' +
       (hasTemporary && dirToMode !== DirToMode.Direct ? '}' : '\xa0') +
@@ -432,8 +438,8 @@ export class DirectToPage {
 
     mcdu.setTemplate([
       ['DIR TO[color]' + colorForHasTemporary],
-      ['WAYPOINT', 'DIST\xa0', '\xa0UTC'],
-      [directWaypointCell, distanceCell, utcCell],
+      ['WAYPOINT', 'UTC\xa0\xa0DIST\xa0\xa0'],
+      [directWaypointCell, predictionCell],
       ['F-PLN WPTS'],
       [waypointsCell[0], directToCell],
       ['', 'WITH\xa0\xa0\xa0\xa0\xa0\xa0\xa0'],

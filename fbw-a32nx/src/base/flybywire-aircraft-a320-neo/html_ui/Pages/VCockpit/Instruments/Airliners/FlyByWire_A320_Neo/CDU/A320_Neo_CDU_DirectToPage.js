@@ -309,10 +309,16 @@ class CDUDirectToPage {
         if (hasTemporary && activeLegCalculated) {
             calculatedDistance = activeLegCalculated.distance;
         }
-        const distanceLabel = (hasTemporary && dirToMode === MODE_DIRECT && calculatedDistance) ? calculatedDistance.toFixed(0) : "\xa0\xa0\xa0";
-        const distanceCell = hasTemporary ? (distanceLabel + "\xa0[color]yellow") : "---\xa0";
 
-        let utcCell = "----";
+        let distanceDisplay = '---';
+        if (hasTemporary) {
+            distanceDisplay = '\xa0\xa0\xa0';
+            if (dirToMode === MODE_DIRECT && calculatedDistance) {
+                distanceDisplay = calculatedDistance.toFixed(0).padStart(3, '\xa0');
+            }
+        }
+
+        let utcDisplay = '----';
         let calculatedUTC = cachedPredictions.utc;
         if (hasTemporary) {
             const mcduProfile = mcdu.guidanceController.vnavDriver.mcduProfile;
@@ -321,8 +327,11 @@ class CDUDirectToPage {
                 const secondsFromPresent = mcduProfile.tempPredictions.get(1).secondsFromPresent;
                 calculatedUTC = utcTime + secondsFromPresent;
             }
-            utcCell = calculatedUTC ? FMCMainDisplay.secondsToUTC(calculatedUTC) + "[color]yellow" : "\xa0\xa0\xa0\xa0[color]yellow";
+            utcDisplay = calculatedUTC ? FMCMainDisplay.secondsToUTC(calculatedUTC).padStart(4, "\xa0") : "\xa0\xa0\xa0\xa0";
         }
+
+        const predictionCell = utcDisplay + "\xa0\xa0\xa0" + distanceDisplay + "\xa0\xa0[color]" + (hasTemporary ? "yellow" : "white");
+
         const directToCell = "DIRECT TO\xa0" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0" + (hasTemporary ? "}" : "\xa0") + "[color]cyan";
@@ -353,8 +362,8 @@ class CDUDirectToPage {
 
         mcdu.setTemplate([
             ["DIR TO[color]" + colorForHasTemporary],
-            ["WAYPOINT", "DIST\xa0", "\xa0UTC"],
-            [directWaypointCell, distanceCell, utcCell],
+            ["WAYPOINT", "UTC\xa0\xa0DIST\xa0\xa0"],
+            [directWaypointCell, predictionCell],
             ["F-PLN WPTS"],
             [waypointsCell[0], directToCell],
             ["", "WITH\xa0\xa0\xa0\xa0\xa0\xa0\xa0"],
