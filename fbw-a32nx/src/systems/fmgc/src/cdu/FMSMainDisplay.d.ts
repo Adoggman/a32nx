@@ -1,4 +1,5 @@
 import { Fix } from '@flybywiresim/fbw-sdk';
+import { GuidanceController } from '@fmgc/guidance/GuidanceController';
 
 declare class FMCMainDisplay {
   /**
@@ -256,7 +257,7 @@ declare class FMCMainDisplay {
     L: any;
     R: any;
   };
-  guidanceController: any;
+  guidanceController: GuidanceController;
   navigation: any;
   tempCurve: any;
   casToMachManualCrossoverCurve: any;

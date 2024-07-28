@@ -5,7 +5,6 @@ import { Fix } from '@flybywiresim/fbw-sdk';
 import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 import { FMS } from '@fmgc/cdu/FMS';
 import { CDU } from '@fmgc/cdu/CDU';
-import { FMCMainDisplay } from '@fmgc/cdu/FMSMainDisplay.d';
 
 // TODO this whole thing is thales layout...
 
@@ -17,8 +16,8 @@ export enum DirToMode {
 }
 
 export interface Predictions {
-  utc: false | Number;
-  dist: false | Number;
+  utc: false | number;
+  dist: false | number;
 }
 
 export class DirectToPage {
@@ -395,13 +394,11 @@ export class DirectToPage {
         mcduProfile.tempPredictions &&
         mcduProfile.tempPredictions.size > 0
       ) {
-        const utcTime = SimVar.GetGlobalVarValue('ZULU TIME', 'seconds');
+        const utcTime = SimVar.GetGlobalVarValue('ZULU TIME', 'seconds') as number;
         const secondsFromPresent = mcduProfile.tempPredictions.get(1).secondsFromPresent;
         calculatedUTC = utcTime + secondsFromPresent;
       }
-      utcCell = calculatedUTC
-        ? FMCMainDisplay.secondsToUTC(calculatedUTC) + '[color]yellow'
-        : '\xa0\xa0\xa0\xa0[color]yellow';
+      utcCell = calculatedUTC ? CDU.secondsToUTC(calculatedUTC) + '[color]yellow' : '\xa0\xa0\xa0\xa0[color]yellow';
     }
     const directToCell =
       'DIRECT TO' +

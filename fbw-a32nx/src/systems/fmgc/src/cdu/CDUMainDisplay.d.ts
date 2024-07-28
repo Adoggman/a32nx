@@ -2,6 +2,24 @@ import { FlightPlanService } from '../flightplanning/FlightPlanService';
 
 type ButtonCallback = (value?: string, callback?: VoidCallback) => void;
 
+type ExportElement = string | CDU_Field;
+type ValidTemplate = [
+  [title: string, pageCurrent?: number | string, pageCount?: number | string, titleLeft?: string],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [ExportElement, ExportElement?, ExportElement?, ExportElement?],
+  [scratchpad: string]?,
+];
+
 declare class A320_Neo_CDU_MainDisplay {
   constructor(...args: any[]);
 
@@ -244,7 +262,7 @@ declare class A320_Neo_CDU_MainDisplay {
    * @param {boolean} websocketDraw
    */
   setLine(content: string | CDU_Field, row: number, col?: number, websocketDraw?: boolean): void;
-  setTemplate(template: any, large?: boolean): void;
+  setTemplate(template: ValidTemplate, large?: boolean): void;
   /**
    * Sets what arrows will be displayed in the corner of the screen. Arrows are removed when clearDisplay() is called.
    * @param {boolean} up - whether the up arrow will be displayed
