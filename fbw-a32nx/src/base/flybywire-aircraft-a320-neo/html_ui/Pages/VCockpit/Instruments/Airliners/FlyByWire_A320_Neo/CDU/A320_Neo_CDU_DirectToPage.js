@@ -3,7 +3,6 @@
 
 // TODO this whole thing is thales layout...
 const MODE_DIRECT = 1;
-const MODE_ABEAM = 2;
 const MODE_RADIAL_IN = 3;
 const MODE_RADIAL_OUT = 4;
 
@@ -137,7 +136,6 @@ class CDUDirectToPage {
         // ABEAM
         mcdu.onRightInput[2] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-            //CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_ABEAM);
         };
         // RADIAL IN
         mcdu.onRightInput[3] = (value, scratchpadCallback) => {
@@ -147,8 +145,8 @@ class CDUDirectToPage {
                 return;
             }
 
-            // If no input and bearing already exists, add calculated bearing
-            if (value.length === 0 && hasTemporary && !!directWaypoint && defaultHeading) {
+            // If no input and bearing already exists, add calculated bearing (unless we already have a radial value)
+            if (radialValue === false && value.length === 0 && hasTemporary && !!directWaypoint && defaultHeading) {
                 mcdu.eraseTemporaryFlightPlan(() => {
                     mcdu.directToWaypoint(directWaypoint, defaultHeading).then(() => {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading);
@@ -327,7 +325,7 @@ class CDUDirectToPage {
         }
         const directToCell = "DIRECT TO\xa0" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
-        const abeamPtsCell = "ABEAM PTS\xa0\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
+        const abeamPtsCell = "ABEAM PTS\xa0" + (hasTemporary ? "}" : "\xa0") + "[color]cyan";
 
         let radialInCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
         if (hasTemporary) {

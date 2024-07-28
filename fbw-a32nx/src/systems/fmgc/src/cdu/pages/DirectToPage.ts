@@ -10,7 +10,6 @@ import { CDU } from '@fmgc/cdu/CDU';
 
 export enum DirToMode {
   Direct = 1,
-  Abeam = 2,
   RadialIn = 3,
   RadialOut = 4,
 }
@@ -173,7 +172,6 @@ export class DirectToPage {
     // ABEAM
     mcdu.onRightInput[2] = () => {
       mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-      //DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Abeam);
     };
     // RADIAL IN
     mcdu.onRightInput[3] = (value, scratchpadCallback) => {
@@ -182,8 +180,8 @@ export class DirectToPage {
         return;
       }
 
-      // If no input and bearing already exists, add calculated bearing
-      if (value.length === 0 && hasTemporary && !!directWaypoint && defaultHeading) {
+      // If no input and bearing already exists, add calculated bearing (unless we already have a radial value)
+      if (radialValue === false && value.length === 0 && hasTemporary && !!directWaypoint && defaultHeading) {
         mcdu.eraseTemporaryFlightPlan(() => {
           mcdu
             .directToWaypoint(directWaypoint, defaultHeading)
@@ -249,9 +247,6 @@ export class DirectToPage {
     };
     // RADIAL OUT
     mcdu.onRightInput[4] = (value, scratchpadCallback) => {
-      // mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-      // DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.RadialOut);
-
       // If no waypoint entered, don't do anything
       if (!hasTemporary) {
         return;
@@ -408,7 +403,7 @@ export class DirectToPage {
       '[color]' +
       (dirToMode === DirToMode.Direct ? colorForHasTemporary : 'cyan');
     // TODO: support abeam
-    const abeamPtsCell = 'ABEAM PTS\xa0[color]' + (dirToMode === DirToMode.Abeam ? colorForHasTemporary : 'cyan');
+    const abeamPtsCell = 'ABEAM PTS\xa0' + (hasTemporary ? '}' : '\xa0') + '[color]cyan';
 
     let radialInCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
     if (hasTemporary) {
