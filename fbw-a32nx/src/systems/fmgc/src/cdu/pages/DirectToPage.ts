@@ -209,6 +209,7 @@ export class DirectToPage {
 
       if (dirToMode === DirToMode.RadialIn && value === CDU.clrValue) {
         DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Direct);
+        return;
       }
 
       // If none of the above, make sure we have a valid heading
@@ -259,6 +260,7 @@ export class DirectToPage {
       // Clear the radial out, go back to normal direct to
       if (dirToMode === DirToMode.RadialOut && value === CDU.clrValue) {
         DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Direct);
+        return;
       }
 
       // If none of the above, make sure we have a valid heading
@@ -425,6 +427,7 @@ export class DirectToPage {
     let radialOutCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
     if (dirToMode === DirToMode.RadialOut) {
       if (radialValue === false) {
+        mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
         console.log('Radial out selected with no heading');
         radialOutCell = '[\xa0]°\xa0\xa0[color]yellow';
       } else {

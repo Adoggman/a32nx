@@ -163,6 +163,7 @@ class CDUDirectToPage {
 
             if (dirToMode === MODE_RADIAL_IN && value === FMCMainDisplay.clrValue) {
                 CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
+                return;
             }
 
             // If none of the above, make sure we have a valid heading
@@ -199,6 +200,7 @@ class CDUDirectToPage {
             // Clear the radial out, go back to normal direct to
             if (dirToMode === MODE_RADIAL_OUT && value === FMCMainDisplay.clrValue) {
                 CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_DIRECT);
+                return;
             }
 
             // If none of the above, make sure we have a valid heading
