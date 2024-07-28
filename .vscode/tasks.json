@@ -2,17 +2,13 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build A32NX",
+      "label": "Setup",
       "type": "shell",
       "command": "${workspaceFolder}/scripts/dev-env/run.sh",
-      "args": [
-        "./scripts/setup.sh"
-      ],
+      "args": ["./scripts/setup.sh"],
       "windows": {
-        "command": "./scripts/dev-env/run.cmd",
-        "args": [
-          "./scripts/build_a32nx.sh"
-        ]
+        "command": "${workspaceFolder}/scripts/dev-env/run.cmd",
+        "args": ["./scripts/setup.sh"]
       },
       "options": {
         "cwd": "${workspaceFolder}"
@@ -24,24 +20,21 @@
       }
     },
     {
-      "label": "Build A32NX (no cache)",
+      "label": "Build",
       "type": "shell",
       "command": "${workspaceFolder}/scripts/dev-env/run.sh",
-      "args": [
-        "./scripts/setup.sh"
-      ],
+      "args": ["./scripts/build.sh"],
       "windows": {
-        "command": "./scripts/dev-env/run.cmd",
-        "args": [
-          "./scripts/build_a32nx.sh --no-cache"
-        ]
+        "command": "${workspaceFolder}/scripts/dev-env/run.cmd",
+        "args": ["./scripts/build.sh"]
       },
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
       "group": {
-        "kind": "build"
+        "kind": "build",
+        "isDefault": true
       }
     }
   ]
