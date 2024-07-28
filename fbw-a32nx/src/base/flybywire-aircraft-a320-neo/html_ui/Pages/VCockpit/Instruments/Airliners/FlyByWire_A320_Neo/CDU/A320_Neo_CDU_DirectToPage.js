@@ -169,7 +169,7 @@ class CDUDirectToPage {
                 return;
             }
             const magCourse = parseInt(value);
-            if (magCourse > 360) {
+            if (magCourse > 360 || magCourse < 0) {
                 mcdu.setScratchpadMessage(NXSystemMessages.entryOutOfRange);
                 scratchpadCallback();
                 return;
@@ -285,14 +285,14 @@ class CDUDirectToPage {
         if (wptsListIndex < totalWaypointsCount - 5) {
             mcdu.onUp = () => {
                 wptsListIndex++;
-                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
+                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions);
             };
             up = true;
         }
         if (wptsListIndex > 0) {
             mcdu.onDown = () => {
                 wptsListIndex--;
-                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
+                CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions);
             };
             down = true;
         }
@@ -300,7 +300,7 @@ class CDUDirectToPage {
 
         const colorForHasTemporary = hasTemporary ? "yellow" : "cyan";
 
-        const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "[\xa0\xa0\xa0\xa0\xa0][color]cyan";
+        const directWaypointCell = directWaypointIdent ? directWaypointIdent + "[color]yellow" : "{small}[\xa0\xa0\xa0\xa0\xa0]{end}[color]cyan";
         let calculatedDistance = cachedPredictions.dist;
         const activeLegCalculated = hasTemporary ? mcdu.flightPlanService.temporary.activeLeg.calculated : false;
         if (hasTemporary && activeLegCalculated) {
@@ -320,31 +320,31 @@ class CDUDirectToPage {
             }
             utcCell = calculatedUTC ? FMCMainDisplay.secondsToUTC(calculatedUTC) + "[color]yellow" : "\xa0\xa0\xa0\xa0[color]yellow";
         }
-        const directToCell = "DIRECT TO" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
+        const directToCell = "DIRECT TO\xa0" + ((hasTemporary && dirToMode !== MODE_DIRECT) ? "}" : "\xa0") + "[color]" + (dirToMode === MODE_DIRECT ? colorForHasTemporary : "cyan");
         // TODO: support abeam
-        const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
+        const abeamPtsCell = "ABEAM PTS\xa0\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
 
-        let radialInCell = '{small}[\xa0]°{end}\xa0[color]cyan';
+        let radialInCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
         if (hasTemporary) {
             if (dirToMode === MODE_RADIAL_IN) {
                 if (radialValue === false) {
                     console.log('Radial in selected with no heading');
-                    radialInCell = '[\xa0]°\xa0[color]yellow';
+                    radialInCell = '[\xa0]°\xa0\xa0[color]yellow';
                 } else {
-                    radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+                    radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0\xa0[color]yellow';
                 }
             } else if (defaultHeading) {
-                radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}}[color]cyan';
+                radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}\xa0}[color]cyan';
             }
         }
-        let radialOutCell = '{small}[\xa0]°{end}\xa0[color]cyan';
+        let radialOutCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
         if (dirToMode === MODE_RADIAL_OUT) {
             if (radialValue === false) {
                 mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                 console.log('Radial out selected with no heading');
-                radialOutCell = '[\xa0]°\xa0[color]yellow';
+                radialOutCell = '[\xa0]°\xa0\xa0[color]yellow';
             } else {
-                radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+                radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0\xa0[color]yellow';
             }
         }
 
@@ -354,9 +354,9 @@ class CDUDirectToPage {
             [directWaypointCell, distanceCell, utcCell],
             ["F-PLN WPTS"],
             [waypointsCell[0], directToCell],
-            ["", "WITH\xa0"],
+            ["", "WITH\xa0\xa0\xa0\xa0\xa0\xa0\xa0"],
             [waypointsCell[1], abeamPtsCell],
-            ["", "RADIAL IN\xa0"],
+            ["", "RADIAL IN\xa0\xa0"],
             [waypointsCell[2], radialInCell],
             ["", "RADIAL OUT\xa0"],
             [waypointsCell[3], radialOutCell],
