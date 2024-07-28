@@ -368,7 +368,7 @@ export class DirectToPage {
 
     const directWaypointCell = directWaypointIdent
       ? directWaypointIdent + '[color]yellow'
-      : '[\xa0\xa0\xa0\xa0\xa0][color]cyan';
+      : '{small}[\xa0\xa0\xa0\xa0\xa0]{end}[color]cyan';
     let calculatedDistance = cachedPredictions.dist;
     const activeLeg = hasTemporary ? mcdu.flightPlanService.temporary.activeLeg : false;
     const activeLegCalculated =
@@ -401,34 +401,34 @@ export class DirectToPage {
       utcCell = calculatedUTC ? CDU.secondsToUTC(calculatedUTC) + '[color]yellow' : '\xa0\xa0\xa0\xa0[color]yellow';
     }
     const directToCell =
-      'DIRECT TO' +
+      'DIRECT TO\xa0' +
       (hasTemporary && dirToMode !== DirToMode.Direct ? '}' : '\xa0') +
       '[color]' +
       (dirToMode === DirToMode.Direct ? colorForHasTemporary : 'cyan');
     // TODO: support abeam
     const abeamPtsCell = 'ABEAM PTS\xa0[color]' + (dirToMode === DirToMode.Abeam ? colorForHasTemporary : 'cyan');
 
-    let radialInCell = '{small}[\xa0]°{end}\xa0[color]cyan';
+    let radialInCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
     if (hasTemporary) {
       if (dirToMode === DirToMode.RadialIn) {
         if (radialValue === false) {
           console.log('Radial in selected with no heading');
-          radialInCell = '[\xa0]°\xa0[color]yellow';
+          radialInCell = '[\xa0]°\xa0\xa0[color]yellow';
         } else {
-          radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+          radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0\xa0[color]yellow';
         }
       } else if (defaultHeading) {
-        radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}}[color]cyan';
+        radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}\xa0}[color]cyan';
       }
     }
 
-    let radialOutCell = '{small}[\xa0]°{end}\xa0[color]cyan';
+    let radialOutCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
     if (dirToMode === DirToMode.RadialOut) {
       if (radialValue === false) {
         console.log('Radial out selected with no heading');
-        radialOutCell = '[\xa0]°\xa0[color]yellow';
+        radialOutCell = '[\xa0]°\xa0\xa0[color]yellow';
       } else {
-        radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+        radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0\xa0[color]yellow';
       }
     }
 
@@ -438,9 +438,9 @@ export class DirectToPage {
       [directWaypointCell, distanceCell, utcCell],
       ['F-PLN WPTS'],
       [waypointsCell[0], directToCell],
-      ['', 'WITH\xa0'],
+      ['', 'WITH\xa0\xa0\xa0\xa0\xa0\xa0\xa0'],
       [waypointsCell[1], abeamPtsCell],
-      ['', 'RADIAL IN\xa0'],
+      ['', 'RADIAL IN\xa0\xa0'],
       [waypointsCell[2], radialInCell],
       ['', 'RADIAL OUT\xa0'],
       [waypointsCell[3], radialOutCell],
