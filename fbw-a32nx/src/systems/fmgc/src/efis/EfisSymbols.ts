@@ -468,6 +468,7 @@ export class EfisSymbols<T extends number> {
           type: pwp.efisSymbolFlag,
           // When in HDG/TRK, this defines where on the track line the PWP lies
           distanceFromAirplane: pwp.distanceFromStart,
+          isEnergyCircle: pwp.isEnergyCircle,
         });
       }
 

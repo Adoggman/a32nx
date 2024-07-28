@@ -304,18 +304,18 @@ export class CanvasMap extends DisplayComponent<CanvasMapProps> {
     const pseudoWaypoints = this.symbols.filter(
       (it) =>
         it.type &
-        (NdSymbolTypeFlags.PwpStartOfClimb |
-          NdSymbolTypeFlags.PwpClimbLevelOff |
-          NdSymbolTypeFlags.PwpTopOfDescent |
-          NdSymbolTypeFlags.PwpDescentLevelOff |
-          NdSymbolTypeFlags.PwpInterceptProfile |
-          NdSymbolTypeFlags.PwpCdaFlap1 |
-          NdSymbolTypeFlags.PwpCdaFlap2 |
-          NdSymbolTypeFlags.PwpDecel |
-          NdSymbolTypeFlags.PwpTimeMarker |
-          NdSymbolTypeFlags.PwpSpeedChange |
-          NdSymbolTypeFlags.CourseReversalLeft |
-          NdSymbolTypeFlags.CourseReversalRight),
+          (NdSymbolTypeFlags.PwpStartOfClimb |
+            NdSymbolTypeFlags.PwpClimbLevelOff |
+            NdSymbolTypeFlags.PwpTopOfDescent |
+            NdSymbolTypeFlags.PwpDescentLevelOff |
+            NdSymbolTypeFlags.PwpInterceptProfile |
+            NdSymbolTypeFlags.PwpCdaFlap1 |
+            NdSymbolTypeFlags.PwpCdaFlap2 |
+            NdSymbolTypeFlags.PwpDecel |
+            NdSymbolTypeFlags.PwpTimeMarker |
+            NdSymbolTypeFlags.PwpSpeedChange |
+            NdSymbolTypeFlags.CourseReversalLeft |
+            NdSymbolTypeFlags.CourseReversalRight) || it.isEnergyCircle,
     );
 
     this.pwpLayer.data = pseudoWaypoints;

@@ -77,6 +77,7 @@ export interface NdSymbol {
   radials?: number[];
   radii?: number[];
   distanceFromAirplane?: number;
+  isEnergyCircle?: boolean;
 }
 
 /**

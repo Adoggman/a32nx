@@ -16,6 +16,8 @@ import { LateralMode } from '@shared/autopilot';
 import { FlightPlanService } from '@fmgc/flightplanning/FlightPlanService';
 import { VerticalCheckpoint, VerticalCheckpointReason } from '@fmgc/guidance/vnav/profile/NavGeometryProfile';
 import { AtmosphericConditions } from '@fmgc/guidance/vnav/AtmosphericConditions';
+import { getFlightPhaseManager } from '@fmgc/index';
+import { FmgcFlightPhase } from '@shared/flightphase';
 
 const PWP_IDENT_TOC = '(T/C)';
 const PWP_IDENT_STEP_CLIMB = '(S/C)';
@@ -167,6 +169,31 @@ export class PseudoWaypoints implements GuidanceComponent {
         displayedOnMcdu: false,
         displayedOnNd: true,
       });
+    }
+
+    if (!this.guidanceController.vnavDriver.isLatAutoControlActive()) {
+      const flightPhase = getFlightPhaseManager().phase;
+      if (flightPhase === FmgcFlightPhase.Descent || flightPhase === FmgcFlightPhase.Approach) {
+        // If we're in descent/approach mode and don't have lateral autopilot on, show energy circle
+        let [efisSymbolLla, distanceFromLegTermination, alongLegIndex] = [undefined, undefined, undefined];
+        const pwp = this.pointFromEndOfPath(geometry, wptCount, totalDistance);
+
+        if (pwp) {
+          [efisSymbolLla, distanceFromLegTermination, alongLegIndex] = pwp;
+        }
+
+        newPseudoWaypoints.push({
+          ident: 'Energy circle',
+          alongLegIndex,
+          distanceFromLegTermination,
+          efisSymbolFlag: NdSymbolTypeFlags.None,
+          efisSymbolLla,
+          distanceFromStart: totalDistance,
+          displayedOnMcdu: false,
+          displayedOnNd: true,
+          isEnergyCircle: true,
+        });
+      }
     }
 
     if (VnavConfig.DEBUG_PROFILE || VnavConfig.ALLOW_DEBUG_PARAMETER_INJECTION) {

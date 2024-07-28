@@ -80,6 +80,11 @@ export interface PseudoWaypoint {
    * Determines whether a PWP should show up as a symbol on the ND
    */
   displayedOnNd: boolean;
+
+  /**
+   * AJH True if this pseudo waypoint represents an energy circle
+   */
+  isEnergyCircle?: boolean;
 }
 
 export interface PseudoWaypointFlightPlanInfo {

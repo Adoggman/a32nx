@@ -27,6 +27,9 @@ const START_OF_DESCENT_PATH = new Path2D('M 0 0 h 22.2 l 19.8 16.2 m -6 0 h 6 v 
 const LEVEL_OFF_DESCENT_PATH = new Path2D('M -42 -16.2 l 19.8 16.2 h 22.2 m -4.2 -4.2 l 4.2 4.2 l -4.2 4.2');
 const INTERCEPT_PROFILE_PATH = new Path2D('M -38, 0 l 14, -17 v 34 l 14 -17 h10 m -5 -5 l 5 5 l -5 5');
 
+const DASHES = [15, 12];
+const NO_DASHES = [];
+
 export class PseudoWaypointLayer implements MapLayer<NdSymbol> {
   data: NdSymbol[] = [];
 
@@ -65,13 +68,13 @@ export class PseudoWaypointLayer implements MapLayer<NdSymbol> {
         context.translate(384, 620);
         context.rotate((rotate * Math.PI) / 180);
 
-        this.paintPseudoWaypoint(false, context, 0, -dy, symbol);
+        this.paintPseudoWaypoint(false, context, 0, -dy, symbol, mapParameters);
       } else {
         const [x, y] = mapParameters.coordinatesToXYy(symbol.location);
         const rx = x + mapWidth / 2;
         const ry = y + mapHeight / 2;
 
-        this.paintPseudoWaypoint(false, context, rx, ry, symbol);
+        this.paintPseudoWaypoint(false, context, rx, ry, symbol, mapParameters);
       }
       this.lastUpdateTime = Date.now();
     }
@@ -94,13 +97,13 @@ export class PseudoWaypointLayer implements MapLayer<NdSymbol> {
         context.translate(384, 620);
         context.rotate((rotate * Math.PI) / 180);
 
-        this.paintPseudoWaypoint(true, context, 0, -dy, symbol);
+        this.paintPseudoWaypoint(true, context, 0, -dy, symbol, mapParameters);
       } else {
         const [x, y] = mapParameters.coordinatesToXYy(symbol.location);
         const rx = x + mapWidth / 2;
         const ry = y + mapHeight / 2;
 
-        this.paintPseudoWaypoint(true, context, rx, ry, symbol);
+        this.paintPseudoWaypoint(true, context, rx, ry, symbol, mapParameters);
       }
     }
     this.lastUpdateTime = Date.now();
@@ -112,6 +115,7 @@ export class PseudoWaypointLayer implements MapLayer<NdSymbol> {
     x: number,
     y: number,
     symbol: NdSymbol,
+    mapParameters: MapParameters,
   ) {
     const color = isColorLayer ? typeFlagToColor(symbol.type) : '#000';
     context.strokeStyle = color;
@@ -138,6 +142,10 @@ export class PseudoWaypointLayer implements MapLayer<NdSymbol> {
       context.fillStyle = color;
       context.strokeStyle = 'none';
       this.paintSpeedChange(context, x, y);
+    } else if (symbol.isEnergyCircle) {
+      const [cx, cy] = mapParameters.coordinatesToXYy(mapParameters.centerCoordinates);
+      this.paintRadius(context, cx, cy, mapParameters.nmToPx * symbol.distanceFromAirplane, '#0f0', 2);
+      this.paintRadius(context, x, y, mapParameters.nmToPx * symbol.distanceFromAirplane, '#00f', 2);
     }
   }
 
@@ -164,6 +172,24 @@ export class PseudoWaypointLayer implements MapLayer<NdSymbol> {
     context.ellipse(x, y, 8, 8, 0, 0, Math.PI * 2);
     context.fill();
     context.closePath();
+  }
+
+  private paintRadius(
+    context: CanvasRenderingContext2D,
+    cx: number,
+    cy: number,
+    rPx: number,
+    color: string,
+    lineWidth: number,
+  ) {
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+
+    context.setLineDash(DASHES);
+    context.beginPath();
+    context.ellipse(cx, cy, rPx, rPx, 0, 0, Math.PI * 2);
+    context.stroke();
+    context.setLineDash(NO_DASHES);
   }
 }
 
