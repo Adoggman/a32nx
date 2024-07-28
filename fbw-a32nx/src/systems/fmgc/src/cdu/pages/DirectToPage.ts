@@ -351,14 +351,14 @@ export class DirectToPage {
     if (wptsListIndex < totalWaypointsCount - 5) {
       mcdu.onUp = () => {
         wptsListIndex++;
-        DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
+        DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions);
       };
       up = true;
     }
     if (wptsListIndex > 0) {
       mcdu.onDown = () => {
         wptsListIndex--;
-        DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode);
+        DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions);
       };
       down = true;
     }
