@@ -174,7 +174,7 @@ export class DirectToPage {
     // ABEAM
     mcdu.onRightInput[2] = () => {
       mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-      DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Abeam);
+      //DirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, DirToMode.Abeam);
     };
     // RADIAL IN
     mcdu.onRightInput[3] = (value, scratchpadCallback) => {
@@ -411,22 +411,24 @@ export class DirectToPage {
     // TODO: support abeam
     const abeamPtsCell = 'ABEAM PTS\xa0[color]' + (dirToMode === DirToMode.Abeam ? colorForHasTemporary : 'cyan');
 
-    let radialInCell = '';
-    if (!hasTemporary) {
-      radialInCell = '[\xa0]°\xa0[color]cyan';
-    } else if (dirToMode === DirToMode.RadialIn && radialValue !== false) {
-      radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
-    } else {
-      if (!!directWaypoint && defaultHeading) {
-        radialInCell = defaultHeading.toFixed(0).padStart(3, '0') + '°}[color]cyan';
-      } else {
-        radialInCell = '[\xa0]°\xa0[color]cyan';
+    let radialInCell = '{small}[\xa0]°{end}\xa0[color]cyan';
+    if (hasTemporary) {
+      if (dirToMode === DirToMode.RadialIn) {
+        if (radialValue === false) {
+          console.log('Radial in selected with no heading');
+          radialInCell = '[\xa0]°\xa0[color]yellow';
+        } else {
+          radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+        }
+      } else if (defaultHeading) {
+        radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}}[color]cyan';
       }
     }
-    let radialOutCell = '[\xa0]°\xa0[color]cyan';
+
+    let radialOutCell = '{small}[\xa0]°{end}\xa0[color]cyan';
     if (dirToMode === DirToMode.RadialOut) {
       if (radialValue === false) {
-        console.log('AJH Radial out selected with no heading');
+        console.log('Radial out selected with no heading');
         radialOutCell = '[\xa0]°\xa0[color]yellow';
       } else {
         radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';

@@ -10,8 +10,8 @@ const MODE_RADIAL_OUT = 4;
 class CDUDirectToPage {
 
     static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }, suppressRefresh = false) {
-        //Fmgc.CDU.Pages.DirectTo.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions, suppressRefresh);
-        //return;
+        Fmgc.CDU.Pages.DirectTo.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions, suppressRefresh);
+        return;
 
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
@@ -137,7 +137,7 @@ class CDUDirectToPage {
         // ABEAM
         mcdu.onRightInput[2] = () => {
             mcdu.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
-            CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_ABEAM);
+            //CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_ABEAM);
         };
         // RADIAL IN
         mcdu.onRightInput[3] = (value, scratchpadCallback) => {
@@ -327,19 +327,20 @@ class CDUDirectToPage {
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0[color]" + (dirToMode === MODE_ABEAM ? colorForHasTemporary : "cyan");
 
-        let radialInCell = "";
-        if (!hasTemporary) {
-            radialInCell = "[\xa0]°\xa0[color]cyan";
-        } else if (dirToMode === MODE_RADIAL_IN) {
-            radialInCell = radialValue.toFixed(0).padStart(3, "0") + "°\xa0[color]yellow";
-        } else {
-            if (!!directWaypoint && defaultHeading) {
-                radialInCell = defaultHeading.toFixed(0).padStart(3, "0") + "°}[color]cyan";
-            } else {
-                radialInCell = "[\xa0]°\xa0[color]cyan";
+        let radialInCell = '{small}[\xa0]°{end}\xa0[color]cyan';
+        if (hasTemporary) {
+            if (dirToMode === MODE_RADIAL_IN) {
+                if (radialValue === false) {
+                    console.log('Radial in selected with no heading');
+                    radialInCell = '[\xa0]°\xa0[color]yellow';
+                } else {
+                    radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0[color]yellow';
+                }
+            } else if (defaultHeading) {
+                radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}}[color]cyan';
             }
         }
-        let radialOutCell = '[\xa0]°\xa0[color]cyan';
+        let radialOutCell = '{small}[\xa0]°{end}\xa0[color]cyan';
         if (dirToMode === MODE_RADIAL_OUT) {
             if (radialValue === false) {
                 mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
