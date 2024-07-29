@@ -20,7 +20,7 @@ class CDUDirectToPage {
 
         const hasTemporary = mcdu.flightPlanService.hasTemporary;
 
-        mcdu.activeSystem = 'FMGC';
+        mcdu.activeSystem = "FMGC";
 
         let directWaypointIdent = "";
         if (directWaypoint) {
@@ -52,7 +52,7 @@ class CDUDirectToPage {
             mcdu.onRightInput[5] = () => {
                 mcdu.insertTemporaryFlightPlan(() => { }, (success) => {
                     if (success) {
-                        SimVar.SetSimVarValue('K:A32NX.FMGC_DIR_TO_TRIGGER', 'number', 0);
+                        SimVar.SetSimVarValue("K:A32NX.FMGC_DIR_TO_TRIGGER", "number", 0);
                         CDUFlightPlanPage.ShowPage(mcdu);
                     } else {
                         mcdu.addMessageToQueue(NXSystemMessages.adjustDesiredHdgTrk);
@@ -310,15 +310,15 @@ class CDUDirectToPage {
             calculatedDistance = activeLegCalculated.distance;
         }
 
-        let distanceDisplay = '---';
+        let distanceDisplay = "---";
         if (hasTemporary) {
-            distanceDisplay = '\xa0\xa0\xa0';
+            distanceDisplay = "\xa0\xa0\xa0";
             if (dirToMode === MODE_DIRECT && calculatedDistance) {
-                distanceDisplay = calculatedDistance.toFixed(0).padStart(3, '\xa0');
+                distanceDisplay = calculatedDistance.toFixed(0).padStart(3, "\xa0");
             }
         }
 
-        let utcDisplay = '----';
+        let utcDisplay = "----";
         let calculatedUTC = cachedPredictions.utc;
         if (hasTemporary) {
             const mcduProfile = mcdu.guidanceController.vnavDriver.mcduProfile;
@@ -336,27 +336,27 @@ class CDUDirectToPage {
         // TODO: support abeam
         const abeamPtsCell = "ABEAM PTS\xa0" + (hasTemporary ? "}" : "\xa0") + "[color]cyan";
 
-        let radialInCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
+        let radialInCell = "{small}[\xa0]°{end}\xa0\xa0[color]cyan";
         if (hasTemporary) {
             if (dirToMode === MODE_RADIAL_IN) {
                 if (radialValue === false) {
-                    console.log('Radial in selected with no heading');
-                    radialInCell = '[\xa0]°\xa0\xa0[color]yellow';
+                    console.log("Radial in selected with no heading");
+                    radialInCell = "[\xa0]°\xa0\xa0[color]yellow";
                 } else {
-                    radialInCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0\xa0[color]yellow';
+                    radialInCell = radialValue.toFixed(0).padStart(3, "0") + "°\xa0\xa0[color]yellow";
                 }
             } else if (defaultHeading) {
-                radialInCell = '{small}' + defaultHeading.toFixed(0).padStart(3, '0') + '°{end}\xa0}[color]cyan';
+                radialInCell = "{small}" + defaultHeading.toFixed(0).padStart(3, "0") + "°{end}\xa0}[color]cyan";
             }
         }
-        let radialOutCell = '{small}[\xa0]°{end}\xa0\xa0[color]cyan';
+        let radialOutCell = "{small}[\xa0]°{end}\xa0\xa0[color]cyan";
         if (dirToMode === MODE_RADIAL_OUT) {
             if (radialValue === false) {
                 mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
-                console.log('Radial out selected with no heading');
-                radialOutCell = '[\xa0]°\xa0\xa0[color]yellow';
+                console.log("Radial out selected with no heading");
+                radialOutCell = "[\xa0]°\xa0\xa0[color]yellow";
             } else {
-                radialOutCell = radialValue.toFixed(0).padStart(3, '0') + '°\xa0\xa0[color]yellow';
+                radialOutCell = radialValue.toFixed(0).padStart(3, "0") + "°\xa0\xa0[color]yellow";
             }
         }
 
