@@ -3,8 +3,8 @@
 
 // TODO this whole thing is thales layout...
 const MODE_DIRECT = 1;
-const MODE_RADIAL_IN = 3;
-const MODE_RADIAL_OUT = 4;
+const MODE_RADIAL_IN = 2;
+const MODE_RADIAL_OUT = 3;
 
 class CDUDirectToPage {
 
