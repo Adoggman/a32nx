@@ -1,0 +1,14 @@
+.startup-text {
+  position: absolute;
+  left: 80px !important;
+  top: 80px !important;
+  width: 3936px;
+  height: 2912px;
+
+  text {
+    fill: rgb(0,255,0);
+    font-size: 240px;
+    text-anchor: middle;
+    font-family: dcdu-normal-green;
+  }
+}

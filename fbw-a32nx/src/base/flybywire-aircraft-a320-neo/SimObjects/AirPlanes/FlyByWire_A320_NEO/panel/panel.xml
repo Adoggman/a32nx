@@ -57,6 +57,14 @@
   </Instrument>
 
   <Instrument>
+    <Name>A32NX_CDU</Name>
+    <Electric>
+		<Simvar name="CIRCUIT ON:56" unit="Boolean"/>
+    </Electric>
+		<AlwaysUpdate>True</AlwaysUpdate>
+  </Instrument>
+
+  <Instrument>
     <Name>A320_Neo_FCU</Name>
     <Electric>
 		<Simvar name="CIRCUIT ON:57" unit="Boolean"/>
