@@ -148,7 +148,7 @@ class CDUDirectToPage {
                     mcdu.directToWaypoint(directWaypoint, defaultHeading).then(() => {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading);
                     }).catch(err => {
-                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading, cachedPredictions, true);
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading, cachedPredictions);
                         mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                         console.error(err);
                     });
@@ -178,7 +178,7 @@ class CDUDirectToPage {
                 mcdu.directToWaypoint(directWaypoint, magCourse).then(() => {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse);
                 }).catch(err => {
-                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions, true);
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions);
                     mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                     console.error(err);
                 });
@@ -225,7 +225,6 @@ class CDUDirectToPage {
                             MODE_RADIAL_OUT,
                             magCourse,
                             cachedPredictions,
-                            true,
                         );
                         mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                         console.error(err);
@@ -374,7 +373,7 @@ class CDUDirectToPage {
         ]);
 
         // regular update due to showing dynamic data on this page (distance/UTC)
-        if (hasTemporary && !suppressRefresh) {
+        if (hasTemporary) {
 
             // Medium refresh until we have calcluated distances
             if (!activeLegCalculated) {
