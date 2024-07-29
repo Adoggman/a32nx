@@ -27,7 +27,6 @@ export class DirectToPage {
     dirToMode: DirToMode = DirToMode.Direct,
     radialValue: Degrees | false = false,
     cachedPredictions: Predictions = { utc: false, dist: false },
-    suppressRefresh: boolean = false,
   ) {
     console.log('AJH Showing direct to page TypeScript version');
     mcdu.clearDisplay();
@@ -196,7 +195,6 @@ export class DirectToPage {
                 DirToMode.RadialIn,
                 defaultHeading,
                 cachedPredictions,
-                true,
               );
               mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
               console.error(err);
@@ -237,7 +235,6 @@ export class DirectToPage {
               DirToMode.RadialIn,
               magCourse,
               cachedPredictions,
-              true,
             );
             mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
             console.error(err);
@@ -285,7 +282,6 @@ export class DirectToPage {
               DirToMode.RadialOut,
               magCourse,
               cachedPredictions,
-              true,
             );
             mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
             console.error(err);
@@ -453,7 +449,7 @@ export class DirectToPage {
     ]);
 
     // regular update due to showing dynamic data on this page (distance/UTC)
-    if (hasTemporary && !suppressRefresh) {
+    if (hasTemporary) {
       // Medium refresh until we have calcluated distances
       if (!activeLegCalculated) {
         mcdu.page.SelfPtr = setTimeout(() => {

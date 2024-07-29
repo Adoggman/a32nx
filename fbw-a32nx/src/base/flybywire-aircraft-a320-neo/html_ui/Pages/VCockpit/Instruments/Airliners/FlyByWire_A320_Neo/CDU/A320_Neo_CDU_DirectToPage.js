@@ -8,9 +8,9 @@ const MODE_RADIAL_OUT = 4;
 
 class CDUDirectToPage {
 
-    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }, suppressRefresh = false) {
-        //Fmgc.CDU.Pages.DirectTo.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions, suppressRefresh);
-        //return;
+    static ShowPage(mcdu, directWaypoint, wptsListIndex = 0, dirToMode = MODE_DIRECT, radialValue = false, cachedPredictions = { utc: false, dist: false }) {
+        Fmgc.CDU.Pages.DirectTo.ShowPage(mcdu, directWaypoint, wptsListIndex, dirToMode, radialValue, cachedPredictions);
+        return;
 
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.DirectToPage;
@@ -151,7 +151,7 @@ class CDUDirectToPage {
                     mcdu.directToWaypoint(directWaypoint, defaultHeading).then(() => {
                         CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading);
                     }).catch(err => {
-                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading, cachedPredictions, true);
+                        CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, defaultHeading, cachedPredictions);
                         mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                         console.error(err);
                     });
@@ -181,7 +181,7 @@ class CDUDirectToPage {
                 mcdu.directToWaypoint(directWaypoint, magCourse).then(() => {
                     CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse);
                 }).catch(err => {
-                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions, true);
+                    CDUDirectToPage.ShowPage(mcdu, directWaypoint, wptsListIndex, MODE_RADIAL_IN, magCourse, cachedPredictions);
                     mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                     console.error(err);
                 });
@@ -228,7 +228,6 @@ class CDUDirectToPage {
                             MODE_RADIAL_OUT,
                             magCourse,
                             cachedPredictions,
-                            true,
                         );
                         mcdu.setScratchpadMessage(NXFictionalMessages.internalError);
                         console.error(err);
@@ -377,7 +376,7 @@ class CDUDirectToPage {
         ]);
 
         // regular update due to showing dynamic data on this page (distance/UTC)
-        if (hasTemporary && !suppressRefresh) {
+        if (hasTemporary) {
 
             // Medium refresh until we have calcluated distances
             if (!activeLegCalculated) {
