@@ -1,4 +1,4 @@
-import { ComponentProps, DisplayComponent, EventBus, FSComponent, VNode } from '@microsoft/msfs-sdk';
+import { ComponentProps, DisplayComponent, EventBus, FSComponent, Subject, VNode } from '@microsoft/msfs-sdk';
 import { DisplayUnit } from '../MsfsAvionicsCommon/displayUnit';
 
 import './style.scss';
@@ -11,18 +11,23 @@ interface CDUProps extends ComponentProps {
 }
 
 class CDUComponent extends DisplayComponent<CDUProps> {
+  private displayFailed = Subject.create(false);
+  private displayPowered = Subject.create(true);
+  private brightness = Subject.create(1);
+
   render(): VNode {
     console.log('Rendering TypeScript CDU');
     return (
-      <DisplayUnit bus={this.props.bus} normDmc={this.props.side}>
-        <svg className="startup-text">
-          <text x="1968" y="1360">
-            SELF TEST IN PROGRESS (SIDE {this.props.side})
-          </text>
-          <text x="1968" y="1680">
-            (MAX 10 SECONDS)
-          </text>
-        </svg>
+      <DisplayUnit
+        bus={this.props.bus}
+        normDmc={this.props.side}
+        powered={this.displayPowered}
+        brightness={this.brightness}
+        failed={this.displayFailed}
+      >
+        <div id="CDU_container">
+          <text>CDU goes here</text>
+        </div>
       </DisplayUnit>
     );
   }
@@ -33,6 +38,9 @@ class CDUComponent extends DisplayComponent<CDUProps> {
 }
 
 class A32NX_CDU extends BaseInstrument {
+  private powered = Subject.create(true);
+  private brightness = Subject.create(1);
+
   private bus: EventBus;
 
   // 0 = Error, 1 = Left, 2 = Right
