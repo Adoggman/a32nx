@@ -119739,6 +119739,12 @@
 			}
 		},
 		{
+            "name": "$CDU2",
+            "pbrMetallicRoughness": {
+                "metallicFactor": 0
+            }
+        },
+		{
 			"name": "INPUTS02",
 			"normalTexture": {
 				"index": 8
