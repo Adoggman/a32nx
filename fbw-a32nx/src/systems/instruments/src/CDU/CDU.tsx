@@ -7,6 +7,8 @@ import {
   VNode,
   HEvent,
 } from '@microsoft/msfs-sdk';
+import { CDU } from 'instruments/src/CDU/model/CDU';
+
 //import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
 export type Side = 1 | 2;
@@ -44,6 +46,7 @@ export namespace CDUDisplay {
 export class CDUComponent extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
+  private cdu: CDU;
   private showing: boolean = true;
 
   switchCDUVersion(): void {
@@ -64,6 +67,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
 
   render(): VNode {
     this.side = this.props.side;
+    this.cdu = new CDU(this.side);
     console.log('AJH Rendering TypeScript CDU ' + this.side.toString());
     const result = <div id="Mainframe" ref={this.containerRef} />;
 
@@ -79,19 +83,28 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   initializeKeyHandlers(): void {
     const hEventsSub = this.props.bus.getSubscriber<HEvent>();
     hEventsSub.on('hEvent').handle((eventName) => {
-      switch (eventName) {
-        case `A320_Neo_CDU_${this.side}_BTN_OVFY`:
-          this.setScratchpad(CDUDisplay.ovfyValue);
-          break;
-        case `A320_Neo_CDU_${this.side}_BTN_CLR`:
-          this.setScratchpad(CDUDisplay.clrValue);
-          break;
-        case `A32NX_CHRONO_RST`:
-          this.switchCDUVersion();
-          break;
-        default:
-          break;
-      }
+      this.handleKey(eventName);
     });
+  }
+
+  handleKey(eventName: string): void {
+    if (!this.cdu.isPowered()) {
+      console.log(`Ignoring ${eventName} because CDU ${this.side} is powered off`);
+      return;
+    }
+
+    switch (eventName) {
+      case `A320_Neo_CDU_${this.side}_BTN_OVFY`:
+        this.setScratchpad(CDUDisplay.ovfyValue);
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_CLR`:
+        this.setScratchpad(CDUDisplay.clrValue);
+        break;
+      case `A32NX_CHRONO_RST`:
+        this.switchCDUVersion();
+        break;
+      default:
+        break;
+    }
   }
 }
