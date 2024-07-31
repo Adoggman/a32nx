@@ -1,6 +1,15 @@
-import { EventBus, DisplayComponent, ComponentProps, NodeReference, FSComponent, VNode } from '@microsoft/msfs-sdk';
+import {
+  EventBus,
+  DisplayComponent,
+  ComponentProps,
+  NodeReference,
+  FSComponent,
+  VNode,
+  HEvent,
+} from '@microsoft/msfs-sdk';
+//import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
-type Side = 1 | 2;
+export type Side = 1 | 2;
 
 interface CDUProps extends ComponentProps {
   bus: EventBus;
@@ -25,12 +34,19 @@ const MCDUMenuHTML = `\
   <div class="line"><span id="line-5-left" class="fmc-block line line-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="line-5-right" class="fmc-block line line-right"></span><span id="line-5-center" class="fmc-block line line-center"></span></div>\
   <div class="line"><span id="in-out" class="white">SELECT DESIRED SYSTEM</span><span id="arrow-vertical" style="opacity: 0;">↓&nbsp;&nbsp;</span></div>"`;
 
+export namespace CDUDisplay {
+  export const clrValue = '\xa0\xa0\xa0\xa0\xa0CLR';
+  export const ovfyValue = '\u0394';
+  export const _AvailableKeys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  export const nbSpace = '\xa0';
+}
+
 export class CDUComponent extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
 
-  setDebug(msg: string) {
-    document.getElementById('mcduTitle').innerHTML = msg;
+  setScratchpad(msg: string) {
+    this.containerRef.instance.querySelector('#in-out').innerHTML = msg.toUpperCase();
   }
 
   render(): VNode {
@@ -44,5 +60,22 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
 
   onAfterRender(node: VNode): void {
     super.onAfterRender(node);
+    this.initializeKeyHandlers();
+  }
+
+  initializeKeyHandlers(): void {
+    const hEventsSub = this.props.bus.getSubscriber<HEvent>();
+    hEventsSub.on('hEvent').handle((eventName) => {
+      switch (eventName) {
+        case `A320_Neo_CDU_${this.side}_BTN_OVFY`:
+          this.setScratchpad(CDUDisplay.ovfyValue);
+          break;
+        case `A320_Neo_CDU_${this.side}_BTN_CLR`:
+          this.setScratchpad(CDUDisplay.clrValue);
+          break;
+        default:
+          break;
+      }
+    });
   }
 }

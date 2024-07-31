@@ -1,34 +1,44 @@
-import { EventBus, FSComponent } from '@microsoft/msfs-sdk';
-//import { DisplayUnit } from '../MsfsAvionicsCommon/displayUnit';
+import { EventBus, FSComponent, HEventPublisher } from '@microsoft/msfs-sdk';
 
 import './style.scss';
-import { CDUComponent } from 'instruments/src/CDU/CDU';
+import { CDUComponent, Side } from 'instruments/src/CDU/CDU';
 
 const contentElementId = 'CDU_CONTENT';
 
 class A32NX_CDU extends BaseInstrument {
-  private bus: EventBus;
+  private bus = new EventBus();
+  private readonly hEventPublisher: HEventPublisher;
 
   // 0 = Error, 1 = Left, 2 = Right
   private side: number;
 
   constructor() {
     super();
-    this.bus = new EventBus();
 
     console.log('[CDU] Created TypeScript CDU instrument');
+    this.hEventPublisher = new HEventPublisher(this.bus);
+  }
+
+  public onInteractionEvent(args: string[]): void {
+    this.hEventPublisher.dispatchHEvent(args[0]);
   }
 
   public connectedCallback(): void {
     super.connectedCallback();
+
     console.log('[CDU] Rendering TypeScript CDU instrument');
     this.side = this.getDisplayIndex();
-    if (this.side === 1 || this.side === 2) {
-      FSComponent.render(<CDUComponent bus={this.bus} side={this.side} />, document.getElementById(contentElementId));
-    } else {
+    if (!this.isValidSide(this.side)) {
       console.log('[CDU] Cannot create CDU with side ' + this.side);
       return;
     }
+
+    this.hEventPublisher.startPublish();
+
+    FSComponent.render(
+      <CDUComponent bus={this.bus} side={this.side as Side} />,
+      document.getElementById(contentElementId),
+    );
 
     // Remove "instrument didn't load" text
     document.getElementById(contentElementId).querySelector(':scope > h1').remove();
@@ -37,6 +47,7 @@ class A32NX_CDU extends BaseInstrument {
   }
 
   private getDisplayIndex(): number {
+    // TODO very naive handling of url parameter
     try {
       const url = document.querySelector('vcockpit-panel > a32nx-cdu').getAttribute('url');
       return url ? parseInt(url.substring(url.length - 1), 10) : 0;
@@ -44,6 +55,11 @@ class A32NX_CDU extends BaseInstrument {
       console.log('[CDU] Could not get URL to find index');
       return 0;
     }
+  }
+
+  private isValidSide(side: number): boolean {
+    // Should match CDUIndex in ./model/CDU.ts
+    return side === 1 || side === 2;
   }
 
   get templateID(): string {
