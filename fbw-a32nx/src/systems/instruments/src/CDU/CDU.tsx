@@ -9,6 +9,8 @@ import {
 } from '@microsoft/msfs-sdk';
 import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
+import { MCDUMenu } from 'instruments/src/CDU/model/pages/MCDUMenu';
+import { CDUPage } from 'instruments/src/CDU/Page';
 
 //import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
@@ -19,6 +21,7 @@ interface CDUProps extends ComponentProps {
   side: Side;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MCDUMenuHTML = `\
   <div class="s-text" id="title-left"></div>\
   <div id="header"><span id="title"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="mcduTitle" class="white">MCDU&nbsp;MENU&nbsp;TS</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="arrow-horizontal" style="opacity: 0;">←&nbsp;&nbsp;</span></div>\
@@ -73,9 +76,11 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
     this.side = this.props.side;
     this.cdu = new CDU(this.side);
     console.log('AJH Rendering TypeScript CDU ' + this.side.toString());
-    const result = <div id="Mainframe" ref={this.containerRef} />;
-
-    this.containerRef.instance.innerHTML = MCDUMenuHTML;
+    const result = (
+      <div id="Mainframe" ref={this.containerRef}>
+        <CDUPage page={new MCDUMenu()} />
+      </div>
+    );
     return result;
   }
 
@@ -92,7 +97,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         .on('acEssIsPowered')
         .whenChanged()
         .handle((acEssIsPowered) => {
-          console.log(`CDU ${this.side} powered: ${acEssIsPowered}`);
+          console.log(`[CDU] ${this.side} powered: ${acEssIsPowered}`);
           this.cdu.powered = acEssIsPowered;
         });
     } else if (this.side === 2) {
@@ -100,7 +105,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         .on('ac2IsPowered')
         .whenChanged()
         .handle((ac2IsPowered) => {
-          console.log(`CDU ${this.side} powered: ${ac2IsPowered}`);
+          console.log(`[CDU] ${this.side} powered: ${ac2IsPowered}`);
           this.cdu.powered = ac2IsPowered;
         });
     }

@@ -46,17 +46,6 @@ text {
   fill: none;
 }
 
-/* change from PageTitle */
-.PageTitle {
-  fill: var(--displayWhite);
-  font-size: 25px;
-  text-decoration: underline;
-}
-#PageTitle {
-  fill: var(--displayWhite);
-  font-size: 25px;
-  text-decoration: underline;
-}
 .ECAMTitle {
   fill: var(--displayWhite);
   font-size: 25px;
@@ -203,13 +192,6 @@ text {
   font-weight: 900;
 }
 
-#highlight {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  z-index: 10;
-}
-
 @keyframes TemporaryShow {
   0%,
   100% {
@@ -222,16 +204,6 @@ text {
   100% {
     visibility: hidden;
   }
-}
-
-#SystemTesting {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
 }
 
 #BackglowCDU {
@@ -247,6 +219,11 @@ text {
 #Mainframe {
   width: 100%;
   height: 100%;
+}
+
+#CDU_Page {
+  height: 100%;
+  width: 100%;
 }
 
 span:empty:before {
@@ -331,7 +308,7 @@ fmc-main-display::before {
   pointer-events: none;
 }
 
-#header {
+#cdu-header {
   height: 8.1%;
   margin-top: 7.5%;
   margin-bottom: -3%;
@@ -339,7 +316,7 @@ fmc-main-display::before {
   text-align: center;
 }
 
-#page-info {
+#cdu-page-info {
   display: block;
   text-align: right;
   position: absolute;
@@ -347,7 +324,7 @@ fmc-main-display::before {
   right: 5%;
 }
 
-#title-left {
+#cdu-title-left {
   display: block;
   text-align: right;
   position: absolute;
@@ -436,15 +413,15 @@ span .s-text {
   text-align: center;
 }
 
-#in-out {
+#cdu-in-out {
   padding-left: 4%;
 }
 
-#arrow-vertical {
+#cdu-arrow-vertical {
   float: right;
 }
 
-#arrow-horizontal {
+#cdu-arrow-horizontal {
   position: absolute;
   right: 1%;
   width: 100%;
