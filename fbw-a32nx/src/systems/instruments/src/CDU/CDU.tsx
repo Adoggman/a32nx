@@ -44,6 +44,19 @@ export namespace CDUDisplay {
 export class CDUComponent extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
+  private showing: boolean = true;
+
+  switchCDUVersion(): void {
+    // Hide old JS
+    this.showing = !this.showing;
+    if (this.showing) {
+      document.getElementById('panel').querySelector('a320-neo-cdu-main-display').classList.add('hidden');
+      document.getElementById('panel').querySelector('a32nx-cdu').classList.remove('hidden');
+    } else {
+      document.getElementById('panel').querySelector('a320-neo-cdu-main-display').classList.remove('hidden');
+      document.getElementById('panel').querySelector('a32nx-cdu').classList.add('hidden');
+    }
+  }
 
   setScratchpad(msg: string) {
     this.containerRef.instance.querySelector('#in-out').innerHTML = msg.toUpperCase();
@@ -72,6 +85,9 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
           break;
         case `A320_Neo_CDU_${this.side}_BTN_CLR`:
           this.setScratchpad(CDUDisplay.clrValue);
+          break;
+        case `A32NX_CHRONO_RST`:
+          this.switchCDUVersion();
           break;
         default:
           break;

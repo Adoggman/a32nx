@@ -43,7 +43,7 @@ class A32NX_CDU extends BaseInstrument {
     // Remove "instrument didn't load" text
     document.getElementById(contentElementId).querySelector(':scope > h1').remove();
     // Hide old JS
-    document.getElementById('panel').querySelector('a320-neo-cdu-main-display').setAttribute('style', 'display:none;');
+    document.getElementById('panel').querySelector('a320-neo-cdu-main-display').classList.add('hidden');
   }
 
   private getDisplayIndex(): number {
