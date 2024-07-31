@@ -9,7 +9,7 @@ import {
 } from '@microsoft/msfs-sdk';
 import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
-import { MCDUMenu } from 'instruments/src/CDU/model/pages/MCDUMenu';
+import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
 import { CDUPage } from 'instruments/src/CDU/Page';
 
 //import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
