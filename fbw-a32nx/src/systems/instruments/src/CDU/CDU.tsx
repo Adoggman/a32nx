@@ -8,6 +8,7 @@ import {
   HEvent,
 } from '@microsoft/msfs-sdk';
 import { CDU } from 'instruments/src/CDU/model/CDU';
+import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
 //import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
@@ -49,15 +50,18 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   private cdu: CDU;
   private showing: boolean = true;
 
-  switchCDUVersion(): void {
+  // For during development only. Should be removed once old CDU is no longer necessary.
+  debugSwitchCDUVersion(): void {
     // Hide old JS
     this.showing = !this.showing;
-    if (this.showing) {
-      document.getElementById('panel').querySelector('a320-neo-cdu-main-display').classList.add('hidden');
-      document.getElementById('panel').querySelector('a32nx-cdu').classList.remove('hidden');
-    } else {
-      document.getElementById('panel').querySelector('a320-neo-cdu-main-display').classList.remove('hidden');
-      document.getElementById('panel').querySelector('a32nx-cdu').classList.add('hidden');
+    if (this.side === 1) {
+      if (this.showing) {
+        document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.add('hidden');
+        document.getElementById('panel').querySelector('a32nx-cdu').classList?.remove('hidden');
+      } else {
+        document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.remove('hidden');
+        document.getElementById('panel').querySelector('a32nx-cdu')?.classList.add('hidden');
+      }
     }
   }
 
@@ -78,6 +82,28 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   onAfterRender(node: VNode): void {
     super.onAfterRender(node);
     this.initializeKeyHandlers();
+    this.initializeSimvarSubscribers();
+  }
+
+  initializeSimvarSubscribers(): void {
+    const sub = this.props.bus.getSubscriber<CDUSimvars>();
+    if (this.side === 1) {
+      sub
+        .on('acEssIsPowered')
+        .whenChanged()
+        .handle((acEssIsPowered) => {
+          console.log(`CDU ${this.side} powered: ${acEssIsPowered}`);
+          this.cdu.powered = acEssIsPowered;
+        });
+    } else if (this.side === 2) {
+      sub
+        .on('ac2IsPowered')
+        .whenChanged()
+        .handle((ac2IsPowered) => {
+          console.log(`CDU ${this.side} powered: ${ac2IsPowered}`);
+          this.cdu.powered = ac2IsPowered;
+        });
+    }
   }
 
   initializeKeyHandlers(): void {
@@ -88,8 +114,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   }
 
   handleKey(eventName: string): void {
-    if (!this.cdu.isPowered()) {
-      console.log(`Ignoring ${eventName} because CDU ${this.side} is powered off`);
+    if (!this.cdu.powered) {
       return;
     }
 
@@ -101,7 +126,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         this.setScratchpad(CDUDisplay.clrValue);
         break;
       case `A32NX_CHRONO_RST`:
-        this.switchCDUVersion();
+        this.debugSwitchCDUVersion();
         break;
       default:
         break;

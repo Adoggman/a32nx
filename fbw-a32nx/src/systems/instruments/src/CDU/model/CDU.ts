@@ -5,6 +5,7 @@ export enum CDUIndex {
 
 export class CDU {
   Index: CDUIndex;
+  powered: boolean;
 
   static initialized: boolean = false;
   static instances: Array<CDU>;
@@ -20,13 +21,14 @@ export class CDU {
 
   constructor(index: CDUIndex) {
     this.Index = index;
+    this.powered = this.getIsPowered();
   }
 
   toString(): string {
     return `CDU: ${this.Index.toString()}`;
   }
 
-  isPowered(): boolean {
+  private getIsPowered(): boolean {
     if (this.Index === CDUIndex.Left) {
       return SimVar.GetSimVarValue('L:A32NX_ELEC_AC_ESS_SHED_BUS_IS_POWERED', 'Number');
     } else if (this.Index === CDUIndex.Right) {

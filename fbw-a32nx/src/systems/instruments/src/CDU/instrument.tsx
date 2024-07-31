@@ -1,22 +1,34 @@
-import { EventBus, FSComponent, HEventPublisher } from '@microsoft/msfs-sdk';
+import { EventBus, FSComponent, HEventPublisher, InstrumentBackplane } from '@microsoft/msfs-sdk';
 
 import './style.scss';
 import { CDUComponent, Side } from 'instruments/src/CDU/CDU';
+import { CDUSimvarPublisher } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
 const contentElementId = 'CDU_CONTENT';
 
 class A32NX_CDU extends BaseInstrument {
   private bus = new EventBus();
-  private readonly hEventPublisher: HEventPublisher;
+  private readonly hEventPublisher = new HEventPublisher(this.bus);
+  private simVarPublisher = new CDUSimvarPublisher(this.bus);
+  private readonly backplane = new InstrumentBackplane();
 
   // 0 = Error, 1 = Left, 2 = Right
   private side: number;
+
+  /**
+   * "mainmenu" = 0
+   * "loading" = 1
+   * "briefing" = 2
+   * "ingame" = 3
+   */
+  private gameState = 0;
 
   constructor() {
     super();
 
     console.log('[CDU] Created TypeScript CDU instrument');
-    this.hEventPublisher = new HEventPublisher(this.bus);
+    this.backplane.addPublisher('cduSimVars', this.simVarPublisher);
+    this.backplane.init();
   }
 
   public onInteractionEvent(args: string[]): void {
@@ -43,7 +55,23 @@ class A32NX_CDU extends BaseInstrument {
     // Remove "instrument didn't load" text
     document.getElementById(contentElementId).querySelector(':scope > h1').remove();
     // Hide old JS
-    document.getElementById('panel').querySelector('a320-neo-cdu-main-display').classList.add('hidden');
+    document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.add('hidden');
+  }
+
+  public Update(): void {
+    super.Update();
+
+    this.backplane.onUpdate();
+
+    if (this.gameState !== 3) {
+      const gamestate = this.getGameState();
+      if (gamestate === 3) {
+        this.simVarPublisher.startPublish();
+      }
+      this.gameState = gamestate;
+    } else {
+      this.simVarPublisher.onUpdate();
+    }
   }
 
   private getDisplayIndex(): number {
