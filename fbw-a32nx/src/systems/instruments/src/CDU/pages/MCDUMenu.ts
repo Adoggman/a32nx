@@ -1,10 +1,13 @@
-import { CDUColor, CDUElement, CDULine, ICDUPage, makeLines } from 'instruments/src/CDU/model/CDUPage';
+import { CDUColor, CDUElement, CDULine, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
 
-export class MCDUMenu implements ICDUPage {
+export class MCDUMenu extends DisplayablePage {
   title = 'MCDU MENU TS';
   pageCurrent?: number;
   pageCount?: number;
   titleLeft?: string;
+
+  static readonly pageID: string = 'MCDU_MENU';
+  _pageID = MCDUMenu.pageID;
 
   lines = makeLines(
     new CDULine(
@@ -16,18 +19,6 @@ export class MCDUMenu implements ICDUPage {
     new CDULine(new CDUElement('<ATSU')),
     new CDULine(new CDUElement('<AIDS')),
     new CDULine(new CDUElement('<CFDS')),
-    new CDULine(
-      new CDUElement('TEST1', CDUColor.Inop),
-      new CDUElement('TEST2', CDUColor.White),
-      new CDUElement('TEST3', CDUColor.Green),
-      new CDUElement('TEST4', CDUColor.Yellow),
-    ),
-    new CDULine(
-      new CDUElement('TEST5', CDUColor.Cyan),
-      new CDUElement('TEST6', CDUColor.Amber),
-      new CDUElement('TEST7', CDUColor.Red),
-      new CDUElement('TEST8', CDUColor.Magenta),
-    ),
   );
   scratchpad = 'SELECT DESIRED SYSTEM';
 }

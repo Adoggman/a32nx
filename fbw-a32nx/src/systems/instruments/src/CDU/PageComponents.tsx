@@ -1,10 +1,17 @@
-import { DisplayComponent, FSComponent, VNode } from '@microsoft/msfs-sdk';
+import { DisplayComponent, FSComponent, VNode, Subscribable, SubscribableArray } from '@microsoft/msfs-sdk';
 import { CDUDisplay } from 'instruments/src/CDU/CDU';
-import { ICDULine, ICDUPage } from 'instruments/src/CDU/model/CDUPage';
-import { CDUPage } from 'instruments/src/CDU/Page';
+import { CDULine, DisplayablePage, ICDULine } from 'instruments/src/CDU/model/CDUPage';
 
-export interface PageProps {
-  page: ICDUPage;
+export interface PageProp {
+  page?: DisplayablePage;
+}
+
+export interface HeaderProps {
+  title?: Subscribable<string>;
+}
+
+export interface LinesProp {
+  lines: SubscribableArray<CDULine>;
 }
 
 export interface LineProps {
@@ -13,16 +20,18 @@ export interface LineProps {
 }
 
 export interface ScratchpadProps {
-  message: string;
-  showArrow?: boolean;
+  message: Subscribable<string>;
+  showArrow?: Subscribable<boolean>;
 }
 
-const padBefore = (text: string, width: number = CDUPage.columns) => {
+const columns = 24;
+
+const padBefore = (text: string, width: number = columns) => {
   const before = Math.floor((width - text.length) / 2);
   return CDUDisplay.nbSpace.repeat(before);
 };
 
-const padAfter = (text: string, width: number = CDUPage.columns) => {
+const padAfter = (text: string, width: number = columns) => {
   const before = Math.floor((width - text.length) / 2);
   const after = width - (text.length + before);
   return CDUDisplay.nbSpace.repeat(after);
@@ -32,15 +41,15 @@ const sanitize = (text?: string) => {
   return text ? text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
 };
 
-export class CDUHeader extends DisplayComponent<PageProps> {
+export class CDUHeader extends DisplayComponent<HeaderProps> {
   render(): VNode | null {
     return (
       <div id="cdu-header">
         <span id="cdu-title">
           <span class="white">
-            {padBefore(this.props.page.title)}
-            <span class="white">{this.props.page.title}</span>
-            {padAfter(this.props.page.title)}
+            {padBefore(this.props.title.get())}
+            <span class="white">{this.props.title}</span>
+            {padAfter(this.props.title.get())}
             <span class="s-text"></span>
             <span class="b-text"></span>
           </span>
@@ -53,7 +62,7 @@ export class CDUHeader extends DisplayComponent<PageProps> {
   }
 }
 
-export class CDUInfo extends DisplayComponent<PageProps> {
+export class CDUInfo extends DisplayComponent<PageProp> {
   render(): VNode | null {
     return (
       <div id="cdu-page-info" class="s-text">
@@ -61,6 +70,21 @@ export class CDUInfo extends DisplayComponent<PageProps> {
         <span id="cdu-page-slash"></span>
         <span id="cdu-page-count"></span>
       </div>
+    );
+  }
+}
+
+export class Lines extends DisplayComponent<PageProp> {
+  render(): VNode | null {
+    return (
+      <>
+        {this.props.page?.lines.map((line, index) => (
+          <>
+            <Labels line={line} lineIndex={index} />
+            <Line line={line} lineIndex={index} />
+          </>
+        ))}
+      </>
     );
   }
 }

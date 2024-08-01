@@ -6,14 +6,14 @@ import {
   FSComponent,
   VNode,
   HEvent,
+  Subject,
 } from '@microsoft/msfs-sdk';
 import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
-import { CDUPage } from 'instruments/src/CDU/Page';
-import { ICDUPage } from 'instruments/src/CDU/model/CDUPage';
-
-//import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
+import { DisplayablePage } from 'instruments/src/CDU/model/CDUPage';
+import { TestPage } from 'instruments/src/CDU/pages/TestPage';
+import { CDUHeader, CDUInfo, Lines, Scratchpad } from 'instruments/src/CDU/PageComponents';
 
 export type Side = 1 | 2;
 
@@ -21,7 +21,6 @@ interface CDUProps extends ComponentProps {
   bus: EventBus;
   side: Side;
 }
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MCDUMenuHTML = `\
   <div class="s-text" id="title-left"></div>\
@@ -53,12 +52,12 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   private side: Side;
   private cdu: CDU;
   private showing: boolean = true;
-  private currentPage: ICDUPage;
-  private scratchpad: string = '';
+  private currentPage: DisplayablePage = new MCDUMenu();
+  private titleSubject = Subject.create<string>(this.currentPage.title);
+  private scratchpad: Subject<string> = Subject.create<string>(this.currentPage.scratchpad);
 
   constructor(props: CDUProps) {
     super(props);
-    this.openPage(new MCDUMenu());
   }
 
   // For during development only. Should be removed once old CDU is no longer necessary.
@@ -76,29 +75,60 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
     }
   }
 
-  openPage(page: ICDUPage) {
+  openPage(page: DisplayablePage) {
     this.currentPage = page;
-    this.scratchpad = page.scratchpad ?? this.scratchpad;
+    this.titleSubject.set(page?.title ?? '');
+    this.setScratchpad(page.scratchpad ?? this.scratchpad.get());
+    this.refresh();
   }
 
-  setScratchpad(msg: string) {
-    this.containerRef.instance.querySelector('#in-out').innerHTML = msg.toUpperCase();
+  setScratchpad(text: string) {
+    this.scratchpad.set(text);
   }
 
   render(): VNode {
     this.side = this.props.side;
     this.cdu = new CDU(this.side);
     const result = (
-      <div id="Mainframe" ref={this.containerRef}>
-        <CDUPage page={this.currentPage} scratchpad={this.scratchpad} />
-      </div>
+      <>
+        <div id="BackglowCDU" />
+        <div id="Mainframe" ref={this.containerRef}>
+          <div class="s-text" id="cdu-title-left"></div>
+          <CDUHeader title={this.titleSubject} />
+          <CDUInfo />
+          <Lines page={this.currentPage} />
+          <Scratchpad message={this.scratchpad} />
+        </div>
+      </>
     );
     return result;
   }
 
+  refresh(): void {
+    if (this.containerRef?.instance) {
+      this.containerRef.instance.innerHTML = '';
+      FSComponent.render(
+        <>
+          <div class="s-text" id="cdu-title-left"></div>
+          <CDUHeader title={this.titleSubject} />
+          <CDUInfo />
+          <Lines page={this.currentPage} />
+          <Scratchpad message={this.scratchpad} />
+        </>,
+        this.containerRef.instance,
+      );
+    }
+  }
+
   onAfterRender(node: VNode): void {
     super.onAfterRender(node);
+    console.log('after render');
+
+    this.initializeBus();
     this.initializeKeyHandlers();
+  }
+
+  initializeBus(): void {
     this.initializeSimvarSubscribers();
   }
 
@@ -131,7 +161,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   }
 
   handleKey(eventName: string): void {
-    if (!this.cdu.powered) {
+    if (!this.cdu.powered || !this.showing) {
       return;
     }
 
@@ -141,6 +171,14 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         break;
       case `A320_Neo_CDU_${this.side}_BTN_CLR`:
         this.setScratchpad(CDUDisplay.clrValue);
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_MENU`:
+        console.log('MCDU Menu ' + this.currentPage.pageID);
+        if (this.currentPage.pageID === MCDUMenu.pageID) {
+          this.openPage(new TestPage());
+        } else {
+          this.openPage(new MCDUMenu());
+        }
         break;
       case `A32NX_CHRONO_RST`:
         this.debugSwitchCDUVersion();

@@ -12,13 +12,22 @@ export type CDULines = [
   CDULine | undefined,
 ];
 
-export interface ICDUPage {
+export abstract class DisplayablePage {
   title: string;
   pageCurrent?: number;
   pageCount?: number;
   titleLeft?: string;
   lines: CDULines;
   scratchpad?: string;
+  protected abstract _pageID: string;
+
+  public get pageID() {
+    return this._pageID;
+  }
+
+  public toString(): string {
+    return this._pageID;
+  }
 }
 
 export enum CDUColor {
