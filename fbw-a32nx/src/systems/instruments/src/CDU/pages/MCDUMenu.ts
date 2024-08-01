@@ -1,4 +1,4 @@
-import { CDULine, ICDULine, ICDUPage } from 'instruments/src/CDU/model/CDUPage';
+import { CDUColor, CDUElement, CDULine, ICDUPage, makeLines } from 'instruments/src/CDU/model/CDUPage';
 
 export class MCDUMenu implements ICDUPage {
   title = 'MCDU MENU TS';
@@ -6,17 +6,28 @@ export class MCDUMenu implements ICDUPage {
   pageCount?: number;
   titleLeft?: string;
 
-  private line1 = new CDULine('<FMGC', 'NAV B/UP>', undefined, 'SELECT\xa0');
-  private line2 = new CDULine('<ATSU');
-  private line3 = new CDULine('<AIDS');
-  private line4 = new CDULine('<CFDS');
-  lines = [this.line1, this.line2, this.line3, this.line4, undefined, undefined] as [
-    ICDULine | undefined,
-    ICDULine | undefined,
-    ICDULine | undefined,
-    ICDULine | undefined,
-    ICDULine | undefined,
-    ICDULine | undefined,
-  ];
+  lines = makeLines(
+    new CDULine(
+      new CDUElement('<FMGC', CDUColor.Green),
+      new CDUElement('NAV B/UP>', CDUColor.Inop),
+      undefined,
+      new CDUElement('SELECT\xa0', CDUColor.Inop),
+    ),
+    new CDULine(new CDUElement('<ATSU')),
+    new CDULine(new CDUElement('<AIDS')),
+    new CDULine(new CDUElement('<CFDS')),
+    new CDULine(
+      new CDUElement('TEST1', CDUColor.Inop),
+      new CDUElement('TEST2', CDUColor.White),
+      new CDUElement('TEST3', CDUColor.Green),
+      new CDUElement('TEST4', CDUColor.Yellow),
+    ),
+    new CDULine(
+      new CDUElement('TEST5', CDUColor.Cyan),
+      new CDUElement('TEST6', CDUColor.Amber),
+      new CDUElement('TEST7', CDUColor.Red),
+      new CDUElement('TEST8', CDUColor.Magenta),
+    ),
+  );
   scratchpad = 'SELECT DESIRED SYSTEM';
 }

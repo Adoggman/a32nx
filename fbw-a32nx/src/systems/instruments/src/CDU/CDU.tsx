@@ -11,6 +11,7 @@ import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
 import { CDUPage } from 'instruments/src/CDU/Page';
+import { ICDUPage } from 'instruments/src/CDU/model/CDUPage';
 
 //import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
@@ -52,6 +53,12 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   private side: Side;
   private cdu: CDU;
   private showing: boolean = true;
+  private currentPage: ICDUPage;
+
+  constructor(props: CDUProps) {
+    super(props);
+    this.currentPage = new MCDUMenu();
+  }
 
   // For during development only. Should be removed once old CDU is no longer necessary.
   debugSwitchCDUVersion(): void {
@@ -78,7 +85,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
     console.log('AJH Rendering TypeScript CDU ' + this.side.toString());
     const result = (
       <div id="Mainframe" ref={this.containerRef}>
-        <CDUPage page={new MCDUMenu()} />
+        <CDUPage page={this.currentPage} />
       </div>
     );
     return result;
