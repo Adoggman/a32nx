@@ -5,6 +5,7 @@ import { CDUHeader, CDUInfo, Labels, Line, Scratchpad } from 'instruments/src/CD
 
 export interface CDUPageProps {
   page: ICDUPage;
+  scratchpad?: string;
 }
 
 export class CDUPage extends DisplayComponent<CDUPageProps> {
@@ -28,7 +29,6 @@ export class CDUPage extends DisplayComponent<CDUPageProps> {
 
   render(): VNode | null {
     const page = this.props.page;
-    console.log('Line: ' + page.lines[0].textElements[0].text);
     return (
       <>
         <div class="s-text" id="cdu-title-left"></div>
@@ -40,7 +40,7 @@ export class CDUPage extends DisplayComponent<CDUPageProps> {
             <Line line={line} lineIndex={index} />
           </>
         ))}
-        <Scratchpad page={page} />
+        <Scratchpad message={this.props.scratchpad} />
       </>
     );
   }

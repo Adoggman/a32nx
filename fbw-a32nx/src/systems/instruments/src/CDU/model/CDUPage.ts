@@ -18,7 +18,7 @@ export interface ICDUPage {
   pageCount?: number;
   titleLeft?: string;
   lines: CDULines;
-  scratchpad: string;
+  scratchpad?: string;
 }
 
 export enum CDUColor {

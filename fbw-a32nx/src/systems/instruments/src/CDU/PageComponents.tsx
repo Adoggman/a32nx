@@ -12,6 +12,11 @@ export interface LineProps {
   lineIndex: number;
 }
 
+export interface ScratchpadProps {
+  message: string;
+  showArrow?: boolean;
+}
+
 const padBefore = (text: string, width: number = CDUPage.columns) => {
   const before = Math.floor((width - text.length) / 2);
   return CDUDisplay.nbSpace.repeat(before);
@@ -29,7 +34,6 @@ const sanitize = (text?: string) => {
 
 export class CDUHeader extends DisplayComponent<PageProps> {
   render(): VNode | null {
-    console.log('rendering header');
     return (
       <div id="cdu-header">
         <span id="cdu-title">
@@ -51,7 +55,6 @@ export class CDUHeader extends DisplayComponent<PageProps> {
 
 export class CDUInfo extends DisplayComponent<PageProps> {
   render(): VNode | null {
-    console.log('rendering header');
     return (
       <div id="cdu-page-info" class="s-text">
         <span id="cdu-page-current"></span>
@@ -64,7 +67,6 @@ export class CDUInfo extends DisplayComponent<PageProps> {
 
 export class Labels extends DisplayComponent<LineProps> {
   render(): VNode | null {
-    console.log('rendering labels for line ' + this.props.lineIndex);
     const lineNum = this.props.lineIndex;
     const leftElement = this.props.line?.labelElements[0];
     const rightElement = this.props.line?.labelElements[1];
@@ -84,7 +86,6 @@ export class Labels extends DisplayComponent<LineProps> {
 
 export class Line extends DisplayComponent<LineProps> {
   render(): VNode | null {
-    console.log('rendering line ' + this.props.lineIndex);
     const lineNum = this.props.lineIndex;
     const leftElement = this.props.line?.textElements[0];
     const rightElement = this.props.line?.textElements[1];
@@ -102,15 +103,14 @@ export class Line extends DisplayComponent<LineProps> {
   }
 }
 
-export class Scratchpad extends DisplayComponent<PageProps> {
+export class Scratchpad extends DisplayComponent<ScratchpadProps> {
   render(): VNode {
-    console.log('rendering scratchpad');
     return (
       <div class="line">
         <span id="cdu-in-out" class="white">
-          {this.props.page.scratchpad}
+          {this.props.message}
         </span>
-        <span id="cdu-arrow-vertical" style="opacity: 0;">
+        <span id="cdu-arrow-vertical" style={!this.props.showArrow ? 'opacity: 0;' : ''}>
           ↓&nbsp;&nbsp;
         </span>
       </div>

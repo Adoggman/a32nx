@@ -11,7 +11,7 @@ export class CDU {
   static instances: Array<CDU>;
 
   static init() {
-    console.log('[CDU] Initializing TS CDU');
+    console.log('[CDU] Initializing all CDU instances');
     CDU.instances = new Array<CDU>();
     CDU.instances[0] = undefined;
     CDU.instances[CDUIndex.Left] = new CDU(CDUIndex.Left);

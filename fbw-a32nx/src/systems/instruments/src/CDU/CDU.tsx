@@ -54,10 +54,11 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   private cdu: CDU;
   private showing: boolean = true;
   private currentPage: ICDUPage;
+  private scratchpad: string = '';
 
   constructor(props: CDUProps) {
     super(props);
-    this.currentPage = new MCDUMenu();
+    this.openPage(new MCDUMenu());
   }
 
   // For during development only. Should be removed once old CDU is no longer necessary.
@@ -67,12 +68,17 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
     if (this.side === 1) {
       if (this.showing) {
         document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.add('hidden');
-        document.getElementById('panel').querySelector('a32nx-cdu').classList?.remove('hidden');
+        document.getElementById('panel').querySelector('a32nx-cdu')?.classList.remove('hidden');
       } else {
         document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.remove('hidden');
         document.getElementById('panel').querySelector('a32nx-cdu')?.classList.add('hidden');
       }
     }
+  }
+
+  openPage(page: ICDUPage) {
+    this.currentPage = page;
+    this.scratchpad = page.scratchpad ?? this.scratchpad;
   }
 
   setScratchpad(msg: string) {
@@ -82,10 +88,9 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   render(): VNode {
     this.side = this.props.side;
     this.cdu = new CDU(this.side);
-    console.log('AJH Rendering TypeScript CDU ' + this.side.toString());
     const result = (
       <div id="Mainframe" ref={this.containerRef}>
-        <CDUPage page={this.currentPage} />
+        <CDUPage page={this.currentPage} scratchpad={this.scratchpad} />
       </div>
     );
     return result;
@@ -104,7 +109,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         .on('acEssIsPowered')
         .whenChanged()
         .handle((acEssIsPowered) => {
-          console.log(`[CDU] ${this.side} powered: ${acEssIsPowered}`);
+          console.log(`[CDU${this.side}] powered: ${acEssIsPowered}`);
           this.cdu.powered = acEssIsPowered;
         });
     } else if (this.side === 2) {
@@ -112,7 +117,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         .on('ac2IsPowered')
         .whenChanged()
         .handle((ac2IsPowered) => {
-          console.log(`[CDU] ${this.side} powered: ${ac2IsPowered}`);
+          console.log(`[CDU${this.side}] powered: ${ac2IsPowered}`);
           this.cdu.powered = ac2IsPowered;
         });
     }

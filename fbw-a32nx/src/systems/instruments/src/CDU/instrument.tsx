@@ -25,8 +25,6 @@ class A32NX_CDU extends BaseInstrument {
 
   constructor() {
     super();
-
-    console.log('[CDU] Created TypeScript CDU instrument');
     this.backplane.addPublisher('cduSimVars', this.simVarPublisher);
     this.backplane.init();
   }
@@ -38,7 +36,6 @@ class A32NX_CDU extends BaseInstrument {
   public connectedCallback(): void {
     super.connectedCallback();
 
-    console.log('[CDU] Rendering TypeScript CDU instrument');
     this.side = this.getDisplayIndex();
     if (!this.isValidSide(this.side)) {
       console.log('[CDU] Cannot create CDU with side ' + this.side);
