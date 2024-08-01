@@ -7,7 +7,7 @@ export interface PageProp {
 }
 
 export interface HeaderProps {
-  title?: Subscribable<string>;
+  page?: DisplayablePage;
 }
 
 export interface LinesProp {
@@ -47,9 +47,9 @@ export class CDUHeader extends DisplayComponent<HeaderProps> {
       <div id="cdu-header">
         <span id="cdu-title">
           <span class="white">
-            {padBefore(this.props.title.get())}
-            <span class="white">{this.props.title}</span>
-            {padAfter(this.props.title.get())}
+            {padBefore(this.props.page.title)}
+            <span class="white">{this.props.page.title}</span>
+            {padAfter(this.props.page.title)}
             <span class="s-text"></span>
             <span class="b-text"></span>
           </span>

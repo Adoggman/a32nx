@@ -53,7 +53,6 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
   private cdu: CDU;
   private showing: boolean = true;
   private currentPage: DisplayablePage = new MCDUMenu();
-  private titleSubject = Subject.create<string>(this.currentPage.title);
   private scratchpad: Subject<string> = Subject.create<string>(this.currentPage.scratchpad);
 
   constructor(props: CDUProps) {
@@ -77,7 +76,6 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
 
   openPage(page: DisplayablePage) {
     this.currentPage = page;
-    this.titleSubject.set(page?.title ?? '');
     this.setScratchpad(page.scratchpad ?? this.scratchpad.get());
     this.refresh();
   }
@@ -94,7 +92,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
         <div id="BackglowCDU" />
         <div id="Mainframe" ref={this.containerRef}>
           <div class="s-text" id="cdu-title-left"></div>
-          <CDUHeader title={this.titleSubject} />
+          <CDUHeader page={this.currentPage} />
           <CDUInfo />
           <Lines page={this.currentPage} />
           <Scratchpad message={this.scratchpad} />
@@ -110,7 +108,7 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
       FSComponent.render(
         <>
           <div class="s-text" id="cdu-title-left"></div>
-          <CDUHeader title={this.titleSubject} />
+          <CDUHeader page={this.currentPage} />
           <CDUInfo />
           <Lines page={this.currentPage} />
           <Scratchpad message={this.scratchpad} />
