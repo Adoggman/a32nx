@@ -95,12 +95,12 @@ export class Labels extends DisplayComponent<LineProps> {
     const leftElement = this.props.line?.labelElements[0];
     const rightElement = this.props.line?.labelElements[1];
     return (
-      <div class="label s-text">
+      <div class={'label s-text'}>
         <span id={`cdu-label-${lineNum}}-left`} class="fmc-block label label-left">
-          <span class={leftElement?.color}>{sanitize(leftElement?.text)}</span>
+          <span class={leftElement?.color + ' ' + leftElement?.size}>{sanitize(leftElement?.text)}</span>
         </span>
         <span id={`cdu-label-${lineNum}}-right`} class="fmc-block label label-right">
-          <span class={rightElement?.color}>{sanitize(rightElement?.text)}</span>
+          <span class={rightElement?.color + ' ' + rightElement?.size}>{sanitize(rightElement?.text)}</span>
         </span>
         <span id={`cdu-label-${lineNum}}-center`} class="fmc-block label label-center"></span>
       </div>
@@ -115,13 +115,13 @@ export class Line extends DisplayComponent<LineProps> {
     const rightElement = this.props.line?.textElements[1];
     return (
       <div class="line">
-        <span id={`cdu-line-${lineNum}}-left`} class="fmc-block line line-left">
-          <span class={leftElement?.color}>{sanitize(leftElement?.text)}</span>
+        <span id={`cdu-line-${lineNum}-left`} class="fmc-block line line-left">
+          <span class={leftElement?.color + ' ' + leftElement?.size}>{sanitize(leftElement?.text)}</span>
         </span>
-        <span id={`cdu-line-${lineNum}}-right`} class="fmc-block line line-right">
-          <span class={rightElement?.color}>{sanitize(rightElement?.text)}</span>
+        <span id={`cdu-line-${lineNum}-right`} class="fmc-block line line-right">
+          <span class={rightElement?.color + ' ' + rightElement?.size}>{sanitize(rightElement?.text)}</span>
         </span>
-        <span id={`cdu-line-${lineNum}}-center`} class="fmc-block line line-center"></span>
+        <span id={`cdu-line-${lineNum}-center `} class="fmc-block line line-center"></span>
       </div>
     );
   }

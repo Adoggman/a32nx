@@ -1,4 +1,11 @@
-import { CDUColor, CDUElement, CDULine, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
+import {
+  CDUColor,
+  CDUElement,
+  CDULine,
+  CDUTextSize,
+  DisplayablePage,
+  makeLines,
+} from 'instruments/src/CDU/model/CDUPage';
 
 export class TestPage extends DisplayablePage {
   static readonly pageID: string = 'TEST_PAGE';
@@ -22,6 +29,18 @@ export class TestPage extends DisplayablePage {
       new CDUElement('\xa0TEST7', CDUColor.Red),
       new CDUElement('TEST8\xa0', CDUColor.Magenta),
     ),
+    new CDULine(
+      new CDUElement('TEST9', CDUColor.Cyan, CDUTextSize.Large),
+      new CDUElement('TEST10', CDUColor.Amber, CDUTextSize.Large),
+      new CDUElement('TEST11', CDUColor.Red, CDUTextSize.Large),
+      new CDUElement('TEST12', CDUColor.Magenta, CDUTextSize.Large),
+    ),
+    new CDULine(
+      new CDUElement('TEST 13', undefined, CDUTextSize.Small),
+      new CDUElement('TEST 14', undefined, CDUTextSize.Small),
+      new CDUElement('TEST 15', undefined, CDUTextSize.Small),
+      new CDUElement('TEST 16', undefined, CDUTextSize.Small),
+    ),
   );
-  scratchpad = 'TEST SCREEN PLEASE IGNORE';
+  scratchpad = 'TEST SCREEN PLS IGNORE';
 }

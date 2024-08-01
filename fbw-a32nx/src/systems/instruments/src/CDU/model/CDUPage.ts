@@ -42,8 +42,8 @@ export enum CDUColor {
 }
 
 export enum CDUTextSize {
-  small = 's-text',
-  large = 'b-text',
+  Small = 's-text',
+  Large = 'b-text',
 }
 
 export const makeLines = (
