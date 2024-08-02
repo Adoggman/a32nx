@@ -1,3 +1,5 @@
+import { NXUnits } from '@flybywiresim/fbw-sdk';
+
 export enum CDUIndex {
   Left = 1,
   Right = 2,
@@ -50,11 +52,11 @@ export class CDU {
     perf: 0,
   };
 
-  Time = {
-    UTC: '0845',
-  };
+  getTimeUTC(): Seconds {
+    return Math.floor(SimVar.GetGlobalVarValue('ZULU TIME', 'seconds'));
+  }
 
   getFOB() {
-    return 2.3;
+    return NXUnits.poundsToUser(SimVar.GetSimVarValue('FUEL TOTAL QUANTITY WEIGHT', 'pound') / 1000);
   }
 }

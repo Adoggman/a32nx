@@ -22,6 +22,15 @@ export type Arrows = {
   right?: boolean;
 };
 
+export enum PageTimeout {
+  None = 0,
+  Fast = 500,
+  Medium = 1000,
+  Dyn = 1500,
+  Default = 2000,
+  Slow = 3000,
+}
+
 export abstract class DisplayablePage {
   title: string;
   pageCurrent?: number;
@@ -32,6 +41,7 @@ export abstract class DisplayablePage {
   arrows: Arrows = { up: false, down: false, left: false, right: false };
   display: CDUDisplay;
   protected abstract _pageID: string;
+  refreshRate: PageTimeout = PageTimeout.None;
 
   onUp(): void {}
   onDown(): void {}
@@ -53,6 +63,9 @@ export abstract class DisplayablePage {
   refresh(): void {
     this.display.refresh();
   }
+
+  // Easy refresh: just reopen the page in this function. Better performance: change individual parts of page
+  onRefresh(): void {}
 
   openPage(page: DisplayablePage) {
     this.display.openPage(page);

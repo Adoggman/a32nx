@@ -5,6 +5,7 @@ import {
   CDUTextSize,
   DisplayablePage,
   makeLines,
+  PageTimeout,
 } from 'instruments/src/CDU/model/CDUPage';
 import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOCMenu';
 
@@ -13,6 +14,7 @@ export class AOCInit extends DisplayablePage {
   titleLeft = 'AOC';
   pageCount = 2;
   pageCurrent = 1;
+  refreshRate = PageTimeout.Slow;
 
   static readonly pageID: string = 'AOC_INIT_MENU';
   _pageID = AOCInit.pageID;
@@ -21,7 +23,7 @@ export class AOCInit extends DisplayablePage {
     new CDULine(
       new CDUElement('_______', CDUColor.Amber),
       new CDUElement('\xa0FMC FLT NO'),
-      new CDUElement(this.CDU.Time.UTC, CDUColor.Green, CDUTextSize.Small),
+      new CDUElement(this.display.secondsTohhmm(this.CDU.getTimeUTC()), CDUColor.Green, CDUTextSize.Small),
       new CDUElement('GMT\xa0'),
     ),
     new CDULine(new CDUElement('____', CDUColor.Amber), new CDUElement('\xa0DEP')),
@@ -44,6 +46,10 @@ export class AOCInit extends DisplayablePage {
 
   onLSK6() {
     this.openPage(new AOCMenu(this.display));
+  }
+
+  onRefresh() {
+    this.openPage(new AOCInit(this.display));
   }
 }
 

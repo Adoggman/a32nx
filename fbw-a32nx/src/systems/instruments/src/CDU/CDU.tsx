@@ -35,6 +35,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private currentPage: DisplayablePage = new MCDUMenu(this);
   private scratchpadDisplayed: Subject<string> = Subject.create<string>(this.currentPage.defaultScratchpad);
   private scratchpadTyped: Subject<string> = Subject.create<string>('');
+  private refreshTimeout: NodeJS.Timeout;
 
   constructor(props: CDUProps) {
     super(props);
@@ -49,9 +50,16 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     return CDU.instances[this.side];
   }
 
+  secondsTohhmm(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds - h * 3600) / 60);
+    return h.toFixed(0).padStart(2, '0') + m.toFixed(0).padStart(2, '0');
+  }
+
   openPage(page: DisplayablePage) {
     this.currentPage = page;
     this.scratchpadDisplayed.set(page.defaultScratchpad ?? this.scratchpadTyped.get());
+    clearTimeout(this.refreshTimeout);
     this.refresh();
   }
 
@@ -95,6 +103,14 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     if (this.containerRef?.instance) {
       this.containerRef.instance.innerHTML = '';
       FSComponent.render(this.screen(), this.containerRef.instance);
+    }
+
+    if (this.currentPage.refreshRate) {
+      this.refreshTimeout = setTimeout(() => {
+        console.log('Refreshing');
+        this.currentPage.onRefresh();
+        this.refresh();
+      }, this.currentPage.refreshRate);
     }
   }
 
@@ -144,7 +160,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
   // #endregion
 
-  // #region Initialization
+  // #region Initialization (onAfterRender calls these)
   initializeBus(): void {
     this.initializeSimvarSubscribers();
   }
