@@ -12,7 +12,7 @@ import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
 import { DisplayablePage } from 'instruments/src/CDU/model/CDUPage';
-import { CDUHeader, CDUInfo, Lines, Scratchpad } from 'instruments/src/CDU/PageComponents';
+import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from 'instruments/src/CDU/PageComponents';
 
 export type Side = 1 | 2;
 
@@ -109,7 +109,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
           arrowLeft={this.currentPage.arrows.left}
           arrowRight={this.currentPage.arrows.right}
         />
-        <CDUInfo />
+        <CDUPageInfo page={this.currentPage} />
         <Lines page={this.currentPage} />
         <Scratchpad
           message={this.scratchpadDisplayed}

@@ -80,13 +80,14 @@ export class CDUHeader extends DisplayComponent<HeaderProps> {
   }
 }
 
-export class CDUInfo extends DisplayComponent<PageProp> {
+export class CDUPageInfo extends DisplayComponent<PageProp> {
   render(): VNode | null {
+    const showPage = this.props.page.pageCount || this.props.page.pageCurrent;
     return (
       <div id="cdu-page-info" class="s-text">
-        <span id="cdu-page-current"></span>
-        <span id="cdu-page-slash"></span>
-        <span id="cdu-page-count"></span>
+        <span id="cdu-page-current">{showPage ? this.props.page.pageCurrent?.toFixed(0) : ''}</span>
+        <span id="cdu-page-slash">{showPage ? '/' : ''}</span>
+        <span id="cdu-page-count">{showPage ? this.props.page.pageCount?.toFixed(0) : ''}</span>
       </div>
     );
   }

@@ -64,6 +64,16 @@ export class TestPage extends DisplayablePage {
     this.refresh();
   }
 
+  onRSK1() {
+    this.pageCurrent = this.pageCurrent ? 0 : 1;
+    this.refresh();
+  }
+
+  onRSK2() {
+    this.pageCount = this.pageCount ? 0 : 2;
+    this.refresh();
+  }
+
   onLSK3() {
     const newSize = this.l3Size === CDUTextSize.Small ? CDUTextSize.Large : CDUTextSize.Small;
     this.l3Size = newSize;

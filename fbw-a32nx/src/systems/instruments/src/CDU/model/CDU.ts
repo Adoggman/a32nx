@@ -49,4 +49,12 @@ export class CDU {
     idle: 0,
     perf: 0,
   };
+
+  Time = {
+    UTC: '0845',
+  };
+
+  getFOB() {
+    return 2.3;
+  }
 }

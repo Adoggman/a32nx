@@ -1,5 +1,7 @@
 import { CDUColor, CDUElement, CDULine, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
 import { AOCInflightMenu } from 'instruments/src/CDU/pages/ATSU/AOCInflightMenu';
+import { AOCInit } from 'instruments/src/CDU/pages/ATSU/AOCInit';
+import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
 
 export class AOCMenu extends DisplayablePage {
   title = 'AOC MENU';
@@ -15,6 +17,14 @@ export class AOCMenu extends DisplayablePage {
     new CDULine(undefined, undefined, new CDUElement('DIVERSION>', CDUColor.Inop)),
     new CDULine(new CDUElement('<RETURN'), new CDUElement('\xa0ATSU DLK'), new CDUElement('MISC>', CDUColor.Inop)),
   );
+
+  onLSK1() {
+    this.openPage(new AOCInit(this.display));
+  }
+
+  onLSK6() {
+    this.openPage(new ATSUMenu(this.display));
+  }
 
   onRSK6() {
     this.openPage(new AOCInflightMenu(this.display));
