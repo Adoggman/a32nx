@@ -1,13 +1,16 @@
 import { DisplayComponent, FSComponent, VNode, Subscribable, SubscribableArray } from '@microsoft/msfs-sdk';
-import { CDUDisplay } from 'instruments/src/CDU/CDU';
+import { CDUScratchpad } from 'instruments/src/CDU/CDU';
 import { CDULine, DisplayablePage, ICDULine } from 'instruments/src/CDU/model/CDUPage';
 
+// #region Properties
 export interface PageProp {
   page?: DisplayablePage;
 }
 
 export interface HeaderProps {
   page?: DisplayablePage;
+  arrowLeft?: boolean;
+  arrowRight?: boolean;
 }
 
 export interface LinesProp {
@@ -21,28 +24,43 @@ export interface LineProps {
 
 export interface ScratchpadProps {
   message: Subscribable<string>;
-  showArrow?: Subscribable<boolean>;
+  arrowUp?: boolean;
+  arrowDown?: boolean;
 }
 
+//#endregion
 const columns = 24;
 
+// #region Formatting
 const padBefore = (text: string, width: number = columns) => {
   const before = Math.floor((width - text.length) / 2);
-  return CDUDisplay.nbSpace.repeat(before);
+  return CDUScratchpad.nbSpace.repeat(before);
 };
 
 const padAfter = (text: string, width: number = columns) => {
   const before = Math.floor((width - text.length) / 2);
   const after = width - (text.length + before);
-  return CDUDisplay.nbSpace.repeat(after);
+  return CDUScratchpad.nbSpace.repeat(after);
 };
 
 const sanitize = (text?: string) => {
-  return text ? text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+  return text ? htmlEntities(text) : '';
 };
+
+function htmlEntities(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// #endregion
 
 export class CDUHeader extends DisplayComponent<HeaderProps> {
   render(): VNode | null {
+    let arrowContent = '←\xa0\xa0';
+    if (this.props.arrowLeft && this.props.arrowRight) {
+      arrowContent = '←→\xa0';
+    } else if (this.props.arrowRight) {
+      arrowContent = '\xa0→\xa0';
+    }
     return (
       <div id="cdu-header">
         <span id="cdu-title">
@@ -54,8 +72,8 @@ export class CDUHeader extends DisplayComponent<HeaderProps> {
             <span class="b-text"></span>
           </span>
         </span>
-        <span id="cdu-arrow-horizontal" style="opacity: 0;">
-          ←&nbsp;&nbsp;
+        <span id="cdu-arrow-horizontal" style={!this.props.arrowLeft && !this.props.arrowRight ? 'opacity: 0;' : ''}>
+          {arrowContent}
         </span>
       </div>
     );
@@ -129,13 +147,19 @@ export class Line extends DisplayComponent<LineProps> {
 
 export class Scratchpad extends DisplayComponent<ScratchpadProps> {
   render(): VNode {
+    let arrowContents = '↓\xa0\xa0';
+    if (this.props.arrowUp && this.props.arrowDown) {
+      arrowContents = '↓↑\xa0';
+    } else if (this.props.arrowUp) {
+      arrowContents = '\xa0↑\xa0';
+    }
     return (
       <div class="line">
         <span id="cdu-in-out" class="white">
           {this.props.message}
         </span>
-        <span id="cdu-arrow-vertical" style={!this.props.showArrow ? 'opacity: 0;' : ''}>
-          ↓&nbsp;&nbsp;
+        <span id="cdu-arrow-vertical" style={!this.props.arrowUp && !this.props.arrowDown ? 'opacity: 0;' : ''}>
+          {arrowContents}
         </span>
       </div>
     );

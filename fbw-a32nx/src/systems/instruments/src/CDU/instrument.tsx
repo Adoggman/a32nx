@@ -1,7 +1,7 @@
 import { EventBus, FSComponent, HEventPublisher, InstrumentBackplane } from '@microsoft/msfs-sdk';
 
 import './style.scss';
-import { CDUComponent, Side } from 'instruments/src/CDU/CDU';
+import { CDUDisplay, Side } from 'instruments/src/CDU/CDU';
 import { CDUSimvarPublisher } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
 const contentElementId = 'CDU_CONTENT';
@@ -45,7 +45,7 @@ class A32NX_CDU extends BaseInstrument {
     this.hEventPublisher.startPublish();
 
     FSComponent.render(
-      <CDUComponent bus={this.bus} side={this.side as Side} />,
+      <CDUDisplay bus={this.bus} side={this.side as Side} />,
       document.getElementById(contentElementId),
     );
 

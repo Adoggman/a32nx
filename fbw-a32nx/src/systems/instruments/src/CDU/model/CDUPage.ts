@@ -1,3 +1,5 @@
+import { CDUDisplay } from 'instruments/src/CDU/CDU';
+
 export interface ICDULine {
   labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
   textElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
@@ -12,6 +14,13 @@ export type CDULines = [
   CDULine | undefined,
 ];
 
+export type Arrows = {
+  up?: boolean;
+  down?: boolean;
+  left?: boolean;
+  right?: boolean;
+};
+
 export abstract class DisplayablePage {
   title: string;
   pageCurrent?: number;
@@ -19,7 +28,38 @@ export abstract class DisplayablePage {
   titleLeft?: string;
   lines: CDULines;
   scratchpad?: string;
+  arrows: Arrows = { up: false, down: false, left: false, right: false };
+  display: CDUDisplay;
   protected abstract _pageID: string;
+
+  onUp(): void {}
+  onDown(): void {}
+  onLeft(): void {}
+  onRight(): void {}
+  onLSK1(): void {}
+  onLSK2(): void {}
+  onLSK3(): void {}
+  onLSK4(): void {}
+  onLSK5(): void {}
+  onLSK6(): void {}
+  onRSK1(): void {}
+  onRSK2(): void {}
+  onRSK3(): void {}
+  onRSK4(): void {}
+  onRSK5(): void {}
+  onRSK6(): void {}
+
+  refresh(): void {
+    this.display.refresh();
+  }
+
+  openPage(page: DisplayablePage) {
+    this.display.openPage(page);
+  }
+
+  constructor(display: CDUDisplay) {
+    this.display = display;
+  }
 
   public get pageID() {
     return this._pageID;

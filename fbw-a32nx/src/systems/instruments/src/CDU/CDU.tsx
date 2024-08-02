@@ -12,7 +12,6 @@ import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
 import { DisplayablePage } from 'instruments/src/CDU/model/CDUPage';
-import { TestPage } from 'instruments/src/CDU/pages/TestPage';
 import { CDUHeader, CDUInfo, Lines, Scratchpad } from 'instruments/src/CDU/PageComponents';
 
 export type Side = 1 | 2;
@@ -21,42 +20,84 @@ interface CDUProps extends ComponentProps {
   bus: EventBus;
   side: Side;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const MCDUMenuHTML = `\
-  <div class="s-text" id="title-left"></div>\
-  <div id="header"><span id="title"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="mcduTitle" class="white">MCDU&nbsp;MENU&nbsp;TS</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="arrow-horizontal" style="opacity: 0;">←&nbsp;&nbsp;</span></div>\
-  <div id="page-info" class="s-text"><span id="page-current"></span><span id="page-slash"></span><span id="page-count"></span></div>\
-  <div class="label s-text"><span id="label-0-left" class="fmc-block label label-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="inop">SELECT</span>&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="label-0-right" class="fmc-block label label-right"></span><span id="label-0-center" class="fmc-block label label-center"></span></div>\
-  <div class="line"><span id="line-0-left" class="fmc-block line line-left"><span class="white"><span class="green">&lt;FMGC&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="inop">NAV&nbsp;B/UP&gt;</span><span class="s-text"></span><span class="b-text"></span></span></span><span id="line-0-right" class="fmc-block line line-right"></span><span id="line-0-center" class="fmc-block line line-center"></span></div>\
-  <div class="label s-text"><span id="label-1-left" class="fmc-block label label-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="label-1-right" class="fmc-block label label-right"></span><span id="label-1-center" class="fmc-block label label-center"></span></div>\
-  <div class="line"><span id="line-1-left" class="fmc-block line line-left"><span class="white"><span class="white">&lt;ATSU&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="line-1-right" class="fmc-block line line-right"></span><span id="line-1-center" class="fmc-block line line-center"></span></div>\
-  <div class="label s-text"><span id="label-2-left" class="fmc-block label label-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="label-2-right" class="fmc-block label label-right"></span><span id="label-2-center" class="fmc-block label label-center"></span></div>\
-  <div class="line"><span id="line-2-left" class="fmc-block line line-left"><span class="white"><span class="white">&lt;AIDS&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="line-2-right" class="fmc-block line line-right"></span><span id="line-2-center" class="fmc-block line line-center"></span></div>\
-  <div class="label s-text"><span id="label-3-left" class="fmc-block label label-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="label-3-right" class="fmc-block label label-right"></span><span id="label-3-center" class="fmc-block label label-center"></span></div>\
-  <div class="line"><span id="line-3-left" class="fmc-block line line-left"><span class="white"><span class="white">&lt;CFDS&nbsp;</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="line-3-right" class="fmc-block line line-right"></span><span id="line-3-center" class="fmc-block line line-center"></span></div>\
-  <div class="label s-text"><span id="label-4-left" class="fmc-block label label-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="label-4-right" class="fmc-block label label-right"></span><span id="label-4-center" class="fmc-block label label-center"></span></div>\
-  <div class="line"><span id="line-4-left" class="fmc-block line line-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="line-4-right" class="fmc-block line line-right"></span><span id="line-4-center" class="fmc-block line line-center"></span></div>\
-  <div class="label s-text"><span id="label-5-left" class="fmc-block label label-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="label-5-right" class="fmc-block label label-right"></span><span id="label-5-center" class="fmc-block label label-center"></span></div>\
-  <div class="line"><span id="line-5-left" class="fmc-block line line-left"><span class="white">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s-text"></span><span class="b-text"></span></span></span><span id="line-5-right" class="fmc-block line line-right"></span><span id="line-5-center" class="fmc-block line line-center"></span></div>\
-  <div class="line"><span id="in-out" class="white">SELECT DESIRED SYSTEM</span><span id="arrow-vertical" style="opacity: 0;">↓&nbsp;&nbsp;</span></div>"`;
 
-export namespace CDUDisplay {
+export namespace CDUScratchpad {
   export const clrValue = '\xa0\xa0\xa0\xa0\xa0CLR';
   export const ovfyValue = '\u0394';
   export const _AvailableKeys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   export const nbSpace = '\xa0';
 }
 
-export class CDUComponent extends DisplayComponent<CDUProps> {
+export class CDUDisplay extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
   private cdu: CDU;
   private showing: boolean = true;
-  private currentPage: DisplayablePage = new MCDUMenu();
+  private currentPage: DisplayablePage = new MCDUMenu(this);
   private scratchpad: Subject<string> = Subject.create<string>(this.currentPage.scratchpad);
 
   constructor(props: CDUProps) {
     super(props);
+  }
+
+  openPage(page: DisplayablePage) {
+    this.currentPage = page;
+    this.setScratchpad(page.scratchpad ?? this.scratchpad.get());
+    this.refresh();
+  }
+
+  setScratchpad(text: string) {
+    this.scratchpad.set(text);
+  }
+
+  // #region Rendering
+
+  render(): VNode {
+    this.side = this.props.side;
+    this.cdu = new CDU(this.side);
+    const result = (
+      <>
+        <div id="BackglowCDU" />
+        <div id="Mainframe" ref={this.containerRef}>
+          {this.screen()}
+        </div>
+      </>
+    );
+    return result;
+  }
+
+  refresh(): void {
+    if (this.containerRef?.instance) {
+      this.containerRef.instance.innerHTML = '';
+      FSComponent.render(this.screen(), this.containerRef.instance);
+    }
+  }
+
+  screen(): VNode {
+    return (
+      <>
+        <div class="s-text" id="cdu-title-left" text={this.currentPage.titleLeft}></div>
+        <CDUHeader
+          page={this.currentPage}
+          arrowLeft={this.currentPage.arrows.left}
+          arrowRight={this.currentPage.arrows.right}
+        />
+        <CDUInfo />
+        <Lines page={this.currentPage} />
+        <Scratchpad
+          message={this.scratchpad}
+          arrowUp={this.currentPage.arrows.up}
+          arrowDown={this.currentPage.arrows.down}
+        />
+      </>
+    );
+  }
+
+  onAfterRender(node: VNode): void {
+    super.onAfterRender(node);
+
+    this.initializeBus();
+    this.initializeKeyHandlers();
   }
 
   // For during development only. Should be removed once old CDU is no longer necessary.
@@ -74,58 +115,9 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
     }
   }
 
-  openPage(page: DisplayablePage) {
-    this.currentPage = page;
-    this.setScratchpad(page.scratchpad ?? this.scratchpad.get());
-    this.refresh();
-  }
+  // #endregion
 
-  setScratchpad(text: string) {
-    this.scratchpad.set(text);
-  }
-
-  render(): VNode {
-    this.side = this.props.side;
-    this.cdu = new CDU(this.side);
-    const result = (
-      <>
-        <div id="BackglowCDU" />
-        <div id="Mainframe" ref={this.containerRef}>
-          <div class="s-text" id="cdu-title-left"></div>
-          <CDUHeader page={this.currentPage} />
-          <CDUInfo />
-          <Lines page={this.currentPage} />
-          <Scratchpad message={this.scratchpad} />
-        </div>
-      </>
-    );
-    return result;
-  }
-
-  refresh(): void {
-    if (this.containerRef?.instance) {
-      this.containerRef.instance.innerHTML = '';
-      FSComponent.render(
-        <>
-          <div class="s-text" id="cdu-title-left"></div>
-          <CDUHeader page={this.currentPage} />
-          <CDUInfo />
-          <Lines page={this.currentPage} />
-          <Scratchpad message={this.scratchpad} />
-        </>,
-        this.containerRef.instance,
-      );
-    }
-  }
-
-  onAfterRender(node: VNode): void {
-    super.onAfterRender(node);
-    console.log('after render');
-
-    this.initializeBus();
-    this.initializeKeyHandlers();
-  }
-
+  // #region Initialization
   initializeBus(): void {
     this.initializeSimvarSubscribers();
   }
@@ -158,31 +150,81 @@ export class CDUComponent extends DisplayComponent<CDUProps> {
     });
   }
 
+  // #endregion
+
+  // #region Event handlers
   handleKey(eventName: string): void {
+    // Debugging only, remove
+    if (eventName === `A32NX_CHRONO_RST`) {
+      this.debugSwitchCDUVersion();
+      return;
+    }
+
     if (!this.cdu.powered || !this.showing) {
       return;
     }
 
     switch (eventName) {
       case `A320_Neo_CDU_${this.side}_BTN_OVFY`:
-        this.setScratchpad(CDUDisplay.ovfyValue);
+        this.setScratchpad(CDUScratchpad.ovfyValue);
         break;
       case `A320_Neo_CDU_${this.side}_BTN_CLR`:
-        this.setScratchpad(CDUDisplay.clrValue);
+        this.setScratchpad(CDUScratchpad.clrValue);
         break;
       case `A320_Neo_CDU_${this.side}_BTN_MENU`:
-        console.log('MCDU Menu ' + this.currentPage.pageID);
-        if (this.currentPage.pageID === MCDUMenu.pageID) {
-          this.openPage(new TestPage());
-        } else {
-          this.openPage(new MCDUMenu());
-        }
+        this.openPage(new MCDUMenu(this));
         break;
-      case `A32NX_CHRONO_RST`:
-        this.debugSwitchCDUVersion();
+      case `A320_Neo_CDU_${this.side}_BTN_UP`:
+        this.currentPage.onUp();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_DOWN`:
+        this.currentPage.onDown();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_NEXTPAGE`:
+        this.currentPage.onRight();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_PREVPAGE`:
+        this.currentPage.onLeft();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_L1`:
+        this.currentPage.onLSK1();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_L2`:
+        this.currentPage.onLSK2();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_L3`:
+        this.currentPage.onLSK3();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_L4`:
+        this.currentPage.onLSK4();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_L5`:
+        this.currentPage.onLSK5();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_L6`:
+        this.currentPage.onLSK6();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_R1`:
+        this.currentPage.onRSK1();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_R2`:
+        this.currentPage.onRSK2();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_R3`:
+        this.currentPage.onRSK3();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_R4`:
+        this.currentPage.onRSK4();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_R5`:
+        this.currentPage.onRSK5();
+        break;
+      case `A320_Neo_CDU_${this.side}_BTN_R6`:
+        this.currentPage.onRSK6();
         break;
       default:
         break;
     }
   }
+  //#endregion
 }

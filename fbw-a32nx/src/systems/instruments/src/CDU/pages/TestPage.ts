@@ -15,6 +15,7 @@ export class TestPage extends DisplayablePage {
   pageCurrent?: number;
   pageCount?: number;
   titleLeft = 'LEFT';
+  l3Size = CDUTextSize.Large;
 
   lines = makeLines(
     new CDULine(
@@ -42,5 +43,38 @@ export class TestPage extends DisplayablePage {
       new CDUElement('TEST 16', undefined, CDUTextSize.Small),
     ),
   );
+
+  onDown() {
+    this.arrows.down = !this.arrows.down;
+    this.refresh();
+  }
+
+  onUp() {
+    this.arrows.up = !this.arrows.up;
+    this.refresh();
+  }
+
+  onLeft() {
+    this.arrows.left = !this.arrows.left;
+    this.refresh();
+  }
+
+  onRight() {
+    this.arrows.right = !this.arrows.right;
+    this.refresh();
+  }
+
+  onLSK3() {
+    const newSize = this.l3Size === CDUTextSize.Small ? CDUTextSize.Large : CDUTextSize.Small;
+    this.l3Size = newSize;
+    this.lines[2] = new CDULine(
+      new CDUElement('TEST9', CDUColor.Cyan, newSize),
+      new CDUElement('TEST10', CDUColor.Amber, newSize),
+      new CDUElement('TEST11', CDUColor.Red, newSize),
+      new CDUElement('TEST12', CDUColor.Magenta, newSize),
+    );
+    this.refresh();
+  }
+
   scratchpad = 'TEST SCREEN PLS IGNORE';
 }
