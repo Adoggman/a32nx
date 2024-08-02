@@ -1,7 +1,7 @@
 import { CDUColor, CDUElement, CDULine, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
 import { TestPage } from 'instruments/src/CDU/pages/TestPage';
 import { FMGCMenu } from 'instruments/src/CDU/pages/FMGCMenu';
-import { ATSUMenu } from 'instruments/src/CDU/pages/ATSUMenu';
+import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
 
 export class MCDUMenu extends DisplayablePage {
   title = 'MCDU MENU';
