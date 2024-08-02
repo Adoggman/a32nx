@@ -20,20 +20,20 @@ export class TestPage extends DisplayablePage {
   lines = makeLines(
     new CDULine(
       new CDUElement('<TEST1', CDUColor.Green),
-      new CDUElement('TEST2>', CDUColor.White),
-      new CDUElement('\xa0TEST3', CDUColor.Inop),
+      new CDUElement('\xa0TEST2', CDUColor.Inop),
+      new CDUElement('TEST3>', CDUColor.White),
       new CDUElement('TEST4\xa0', CDUColor.Yellow),
     ),
     new CDULine(
       new CDUElement('{TEST5', CDUColor.Cyan),
-      new CDUElement('TEST6}', CDUColor.Amber),
-      new CDUElement('\xa0TEST7', CDUColor.Red),
+      new CDUElement('\xa0TEST6', CDUColor.Red),
+      new CDUElement('TEST7}', CDUColor.Amber),
       new CDUElement('TEST8\xa0', CDUColor.Magenta),
     ),
     new CDULine(
       new CDUElement('TEST9', CDUColor.Cyan, CDUTextSize.Large),
-      new CDUElement('TEST10', CDUColor.Amber, CDUTextSize.Large),
-      new CDUElement('TEST11', CDUColor.Red, CDUTextSize.Large),
+      new CDUElement('TEST10', CDUColor.Red, CDUTextSize.Large),
+      new CDUElement('TEST11', CDUColor.Amber, CDUTextSize.Large),
       new CDUElement('TEST12', CDUColor.Magenta, CDUTextSize.Large),
     ),
     new CDULine(
@@ -69,8 +69,8 @@ export class TestPage extends DisplayablePage {
     this.l3Size = newSize;
     this.lines[2] = new CDULine(
       new CDUElement('TEST9', CDUColor.Cyan, newSize),
-      new CDUElement('TEST10', CDUColor.Amber, newSize),
-      new CDUElement('TEST11', CDUColor.Red, newSize),
+      new CDUElement('TEST10', CDUColor.Red, newSize),
+      new CDUElement('TEST11', CDUColor.Amber, newSize),
       new CDUElement('TEST12', CDUColor.Magenta, newSize),
     );
     this.refresh();

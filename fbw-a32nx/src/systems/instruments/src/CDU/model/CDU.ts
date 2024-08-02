@@ -11,6 +11,10 @@ export class CDU {
   static instances: Array<CDU>;
 
   static init() {
+    if (CDU.initialized) {
+      console.log('[CDU] Already initialized');
+      return;
+    }
     console.log('[CDU] Initializing all CDU instances');
     CDU.instances = new Array<CDU>();
     CDU.instances[0] = undefined;
@@ -37,4 +41,12 @@ export class CDU {
       throw new Error('Checking power on invalid index: ' + this.Index);
     }
   }
+
+  Info = {
+    engine: 'LEAP-1A26',
+    navCycleDates: '11JUL-08AUG',
+    navSerial: 'MS24070001',
+    idle: 0,
+    perf: 0,
+  };
 }

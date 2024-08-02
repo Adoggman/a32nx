@@ -31,13 +31,20 @@ export namespace CDUScratchpad {
 export class CDUDisplay extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
-  private cdu: CDU;
   private showing: boolean = true;
   private currentPage: DisplayablePage = new MCDUMenu(this);
   private scratchpad: Subject<string> = Subject.create<string>(this.currentPage.scratchpad);
 
   constructor(props: CDUProps) {
     super(props);
+  }
+
+  public get Side() {
+    return this.side;
+  }
+
+  private get CDU() {
+    return CDU.instances[this.side];
   }
 
   openPage(page: DisplayablePage) {
@@ -54,7 +61,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
   render(): VNode {
     this.side = this.props.side;
-    this.cdu = new CDU(this.side);
+    CDU.init();
     const result = (
       <>
         <div id="BackglowCDU" />
@@ -76,7 +83,9 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   screen(): VNode {
     return (
       <>
-        <div class="s-text" id="cdu-title-left" text={this.currentPage.titleLeft}></div>
+        <div class="s-text" id="cdu-title-left">
+          {this.currentPage.titleLeft}
+        </div>
         <CDUHeader
           page={this.currentPage}
           arrowLeft={this.currentPage.arrows.left}
@@ -130,7 +139,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         .whenChanged()
         .handle((acEssIsPowered) => {
           console.log(`[CDU${this.side}] powered: ${acEssIsPowered}`);
-          this.cdu.powered = acEssIsPowered;
+          this.CDU.powered = acEssIsPowered;
         });
     } else if (this.side === 2) {
       sub
@@ -138,7 +147,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         .whenChanged()
         .handle((ac2IsPowered) => {
           console.log(`[CDU${this.side}] powered: ${ac2IsPowered}`);
-          this.cdu.powered = ac2IsPowered;
+          this.CDU.powered = ac2IsPowered;
         });
     }
   }
@@ -160,7 +169,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
       return;
     }
 
-    if (!this.cdu.powered || !this.showing) {
+    if (!this.CDU.powered || !this.showing) {
       return;
     }
 

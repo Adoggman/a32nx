@@ -1,4 +1,5 @@
 import { CDUDisplay } from 'instruments/src/CDU/CDU';
+import { CDU } from 'instruments/src/CDU/model/CDU';
 
 export interface ICDULine {
   labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
@@ -65,6 +66,10 @@ export abstract class DisplayablePage {
     return this._pageID;
   }
 
+  public get CDU() {
+    return CDU.instances[this.display.Side];
+  }
+
   public toString(): string {
     return this._pageID;
   }
@@ -113,7 +118,7 @@ export class CDULine implements ICDULine {
   labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
   textElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
 
-  constructor(left?: CDUElement, right?: CDUElement, leftLabel?: CDUElement, rightLabel?: CDUElement) {
+  constructor(left?: CDUElement, leftLabel?: CDUElement, right?: CDUElement, rightLabel?: CDUElement) {
     this.labelElements = [leftLabel, rightLabel, undefined, undefined];
     this.textElements = [left, right, undefined, undefined];
   }
