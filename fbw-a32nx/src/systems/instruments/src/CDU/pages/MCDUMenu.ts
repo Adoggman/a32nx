@@ -4,9 +4,6 @@ import { FMGCMenu } from 'instruments/src/CDU/pages/FMGCMenu';
 
 export class MCDUMenu extends DisplayablePage {
   title = 'MCDU MENU TS';
-  pageCurrent?: number;
-  pageCount?: number;
-  titleLeft?: string;
 
   static readonly pageID: string = 'MCDU_MENU';
   _pageID = MCDUMenu.pageID;

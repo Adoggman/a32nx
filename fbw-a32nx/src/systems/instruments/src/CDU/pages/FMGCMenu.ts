@@ -9,9 +9,6 @@ import {
 
 export class FMGCMenu extends DisplayablePage {
   title = 'A320-200';
-  pageCurrent?: number;
-  pageCount?: number;
-  titleLeft?: string;
   scratchpad = '';
 
   static readonly pageID: string = 'FMGC_MENU';
@@ -43,22 +40,3 @@ export class FMGCMenu extends DisplayablePage {
 const formatNum = (num: number): string => {
   return num < 0 ? num.toFixed(1) : '+' + num.toFixed(1);
 };
-
-//\xa0SECOND\xa0NAV\xa0DATA\xa0BASE
-
-// ["A320-200"], //This aircraft code is correct and does not include the engine type.
-// ["\xa0ENG"],
-// ["LEAP-1A26[color]green"],
-// ["\xa0ACTIVE NAV DATA BASE"],
-// [
-// 	`{cyan}\xa0${navCycleDates}{end}`,
-// 	`{green}${navSerial}{end}`,
-// ],
-// \xa0SECOND\xa0NAV\xa0DATA\xa0BASE
-// navCycleDates
-// ["", storedTitleCell],
-// ["", storedRoutesRunwaysCell],
-// ["CHG CODE", storedWaypointsNavaidsCell],
-// ["{small}[  ]{end}[color]inop", storedDeleteCell],
-// ["IDLE/PERF", "SOFTWARE"],
-// ["+0.0/+0.0[color]green", "STATUS/XLOAD>[color]inop"],
