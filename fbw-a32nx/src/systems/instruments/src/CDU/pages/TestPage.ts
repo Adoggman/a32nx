@@ -76,5 +76,5 @@ export class TestPage extends DisplayablePage {
     this.refresh();
   }
 
-  scratchpad = 'TEST SCREEN PLS IGNORE';
+  defaultScratchpad = 'TEST SCREEN PLS IGNORE';
 }

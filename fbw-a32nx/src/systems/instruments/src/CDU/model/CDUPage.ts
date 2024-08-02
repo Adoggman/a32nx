@@ -28,7 +28,7 @@ export abstract class DisplayablePage {
   pageCount?: number;
   titleLeft?: string;
   lines: CDULines;
-  scratchpad?: string;
+  defaultScratchpad?: string;
   arrows: Arrows = { up: false, down: false, left: false, right: false };
   display: CDUDisplay;
   protected abstract _pageID: string;

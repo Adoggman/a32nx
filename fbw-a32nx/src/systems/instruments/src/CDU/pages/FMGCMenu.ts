@@ -9,7 +9,7 @@ import {
 
 export class FMGCMenu extends DisplayablePage {
   title = 'A320-200';
-  scratchpad = '';
+  defaultScratchpad = '';
 
   static readonly pageID: string = 'FMGC_MENU';
   _pageID = FMGCMenu.pageID;

@@ -33,10 +33,12 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private side: Side;
   private showing: boolean = true;
   private currentPage: DisplayablePage = new MCDUMenu(this);
-  private scratchpad: Subject<string> = Subject.create<string>(this.currentPage.scratchpad);
+  private scratchpadDisplayed: Subject<string> = Subject.create<string>(this.currentPage.defaultScratchpad);
+  private scratchpadTyped: Subject<string> = Subject.create<string>('');
 
   constructor(props: CDUProps) {
     super(props);
+    this.scratchpadTyped.sub((newValue) => this.scratchpadDisplayed.set(newValue));
   }
 
   public get Side() {
@@ -49,12 +51,28 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
   openPage(page: DisplayablePage) {
     this.currentPage = page;
-    this.setScratchpad(page.scratchpad ?? this.scratchpad.get());
+    this.scratchpadDisplayed.set(page.defaultScratchpad ?? this.scratchpadTyped.get());
     this.refresh();
   }
 
-  setScratchpad(text: string) {
-    this.scratchpad.set(text);
+  typeCharacter(text: string) {
+    const currentContents = this.scratchpadTyped.get();
+    // Handle if we're on CLR
+    if (currentContents === CDUScratchpad.clrValue) {
+      this.scratchpadTyped.set(text === CDUScratchpad.clrValue ? '' : text);
+      return;
+    }
+    // Handle if we're not showing the typed message and hit clr to get rid of it
+    if (text === CDUScratchpad.clrValue && this.scratchpadDisplayed.get() !== this.scratchpadTyped.get()) {
+      this.scratchpadDisplayed.set(this.scratchpadTyped.get());
+      return;
+    }
+    // Handle if we hit CLR and there is text to erase
+    if (text === CDUScratchpad.clrValue && !(currentContents.length === 0)) {
+      this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1));
+      return;
+    }
+    this.scratchpadTyped.set(currentContents + text);
   }
 
   // #region Rendering
@@ -94,7 +112,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         <CDUInfo />
         <Lines page={this.currentPage} />
         <Scratchpad
-          message={this.scratchpad}
+          message={this.scratchpadDisplayed}
           arrowUp={this.currentPage.arrows.up}
           arrowDown={this.currentPage.arrows.down}
         />
@@ -175,10 +193,10 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
     switch (eventName) {
       case `A320_Neo_CDU_${this.side}_BTN_OVFY`:
-        this.setScratchpad(CDUScratchpad.ovfyValue);
+        this.typeCharacter(CDUScratchpad.ovfyValue);
         break;
       case `A320_Neo_CDU_${this.side}_BTN_CLR`:
-        this.setScratchpad(CDUScratchpad.clrValue);
+        this.typeCharacter(CDUScratchpad.clrValue);
         break;
       case `A320_Neo_CDU_${this.side}_BTN_MENU`:
         this.openPage(new MCDUMenu(this));
