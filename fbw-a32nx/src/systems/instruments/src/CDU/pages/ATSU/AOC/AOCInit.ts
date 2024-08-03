@@ -82,8 +82,8 @@ export class AOCInit extends DisplayablePage {
           new CDUElement('-------'),
           new CDUElement('LDG PILOT\xa0'),
         ),
-        new CDULine(new CDUElement('*AUTOLAND <N>', CDUColor.Cyan)),
-        new CDULine(new CDUElement('<AOC MENU'), undefined, undefined, new CDUElement('ADVISORY\xa0')),
+        CDULine.EmptyLine,
+        new CDULine(new CDUElement('<AOC MENU')),
       );
     }
   }
