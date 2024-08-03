@@ -34,7 +34,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private side: Side;
   private showing: boolean = true;
   private currentPage: DisplayablePage = new MCDUMenu(this);
-  private scratchpadDisplayed: Subject<string> = Subject.create<string>(this.currentPage.defaultScratchpad);
+  private scratchpadDisplayed: Subject<string> = Subject.create<string>(this.currentPage.defaultMessage.getText());
   private scratchpadColor: Subject<string> = Subject.create<string>(CDUColor.White);
   private scratchpadTyped: Subject<string> = Subject.create<string>('');
   private refreshTimeout: NodeJS.Timeout;
@@ -65,7 +65,12 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
   openPage(page: DisplayablePage) {
     this.currentPage = page;
-    this.scratchpadDisplayed.set(page.defaultScratchpad ?? this.scratchpadTyped.get());
+    if (page.defaultMessage) {
+      this.setMessage(page.defaultMessage);
+    } else {
+      this.scratchpadDisplayed.set(this.scratchpadTyped.get());
+      this.scratchpadColor.set(CDUColor.White);
+    }
     clearTimeout(this.refreshTimeout);
     this.refresh();
   }

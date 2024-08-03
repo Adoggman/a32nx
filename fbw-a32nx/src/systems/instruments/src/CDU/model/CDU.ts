@@ -1,7 +1,9 @@
 import { NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDUDisplay } from 'instruments/src/CDU/CDU';
 import { AOCTimes } from 'instruments/src/CDU/model/AOCTimes';
-import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
+import { NXFictionalMessages, TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
+import { Simbrief } from 'instruments/src/CDU/model/Simbrief';
+import { ISimbriefData } from '../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief/simbriefInterface';
 
 export enum CDUIndex {
   Left = 1,
@@ -13,6 +15,8 @@ export class CDU {
   Powered: boolean;
   AOCTimes = new AOCTimes();
   Display: CDUDisplay;
+  SimbriefData: ISimbriefData;
+  SimbriefStatus: Simbrief.Status = Simbrief.Status.Ready;
 
   private timeBetweenUpdates: number = 100;
   private updateTimeout: NodeJS.Timeout;
@@ -82,6 +86,42 @@ export class CDU {
 
   getFOB() {
     return NXUnits.poundsToUser(SimVar.GetSimVarValue('FUEL TOTAL QUANTITY WEIGHT', 'pound') / 1000);
+  }
+
+  simbriefInit(): void {
+    if (this.SimbriefStatus === Simbrief.Status.Requesting) {
+      console.log(`[CDU${this.Index}] Ignoring new simbrief request, request already in progress`);
+      return;
+    }
+    this.SimbriefStatus = Simbrief.Status.Requesting;
+    const errCode = Simbrief.getOFP(this.Index, CDU.updateSimbrief, CDU.updateSimbriefError);
+    if (errCode) {
+      this.SimbriefStatus = Simbrief.Status.Ready;
+      if (errCode === Simbrief.ErrorCode.NoNavigraphUsername) {
+        this.setScratchpadMessage(NXFictionalMessages.noNavigraphUser);
+      } else if (errCode === Simbrief.ErrorCode.Unknown) {
+        this.setScratchpadMessage(NXFictionalMessages.internalError);
+      }
+    }
+  }
+
+  static updateSimbrief(index: CDUIndex, data: ISimbriefData, _simbriefObject: {}): void {
+    CDU.instances[index].updateSimbrief(data, _simbriefObject);
+  }
+
+  updateSimbrief(data: ISimbriefData, _simbriefObject: {}): void {
+    this.SimbriefData = data;
+    this.SimbriefStatus = Simbrief.Status.Done;
+    this.setScratchpadMessage(NXFictionalMessages.emptyMessage);
+  }
+
+  static updateSimbriefError(index: CDUIndex): void {
+    CDU.instances[index].updateSimbriefError();
+  }
+
+  updateSimbriefError(): void {
+    this.setScratchpadMessage(NXFictionalMessages.internalError);
+    this.SimbriefStatus = Simbrief.Status.Ready;
   }
 
   update() {

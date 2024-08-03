@@ -1,5 +1,6 @@
 import { CDUDisplay } from 'instruments/src/CDU/CDU';
 import { CDU } from 'instruments/src/CDU/model/CDU';
+import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 
 export interface ICDULine {
   labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
@@ -37,7 +38,7 @@ export abstract class DisplayablePage {
   pageCount?: number;
   titleLeft?: string;
   lines: CDULines;
-  defaultScratchpad?: string;
+  defaultMessage?: TypeIMessage;
   arrows: Arrows = { up: false, down: false, left: false, right: false };
   display: CDUDisplay;
   protected abstract _pageID: string;

@@ -104,5 +104,5 @@ export class TestPage extends DisplayablePage {
     this.refresh();
   }
 
-  defaultScratchpad = 'TEST SCREEN PLS IGNORE';
+  defaultMessage = NXTestMessages.type1;
 }

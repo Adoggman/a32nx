@@ -8,6 +8,7 @@ import {
   makeLines,
   PageTimeout,
 } from 'instruments/src/CDU/model/CDUPage';
+import { Simbrief } from 'instruments/src/CDU/model/Simbrief';
 import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
 
 export class AOCInit extends DisplayablePage {
@@ -24,16 +25,29 @@ export class AOCInit extends DisplayablePage {
 
   getLines(): CDULines {
     if (this.pageCurrent === 1) {
+      const simbriefData = this.CDU.SimbriefData;
       return makeLines(
         new CDULine(
-          new CDUElement('_______', CDUColor.Amber),
+          new CDUElement(
+            simbriefData?.flightNumber ?? '_______',
+            simbriefData?.flightNumber ? CDUColor.Green : CDUColor.Amber,
+          ),
           new CDUElement('\xa0FMC FLT NO'),
           new CDUElement(this.display.secondsTohhmm(this.CDU.getTimeUTC()), CDUColor.Green, CDUTextSize.Small),
           new CDUElement('GMT\xa0'),
         ),
-        new CDULine(new CDUElement('____', CDUColor.Amber), new CDUElement('\xa0DEP')),
         new CDULine(
-          new CDUElement('____', CDUColor.Amber),
+          new CDUElement(
+            simbriefData?.origin?.icao ?? '____',
+            simbriefData?.origin?.icao ? CDUColor.Cyan : CDUColor.Amber,
+          ),
+          new CDUElement('\xa0DEP'),
+        ),
+        new CDULine(
+          new CDUElement(
+            simbriefData?.destination?.icao ?? '____',
+            simbriefData?.destination?.icao ? CDUColor.Cyan : CDUColor.Amber,
+          ),
           new CDUElement('\xa0DEST'),
           new CDUElement('CREW DETAILS>', CDUColor.Inop),
         ),
@@ -42,9 +56,17 @@ export class AOCInit extends DisplayablePage {
           new CDUElement('\xa0FOB'),
         ),
         new CDULine(
-          new CDUElement('____', CDUColor.Amber),
+          new CDUElement(
+            simbriefData?.times?.estTimeEnroute
+              ? this.display.secondsTohhmm(simbriefData.times.estTimeEnroute)
+              : '____',
+            simbriefData?.times?.estTimeEnroute ? CDUColor.Cyan : CDUColor.Amber,
+          ),
           new CDUElement('\xa0ETE'),
-          new CDUElement('INIT DATA REQ*', CDUColor.Cyan),
+          new CDUElement(
+            `INIT DATA REQ${this.CDU.SimbriefStatus === Simbrief.Status.Requesting ? '\xa0' : '*'}`,
+            CDUColor.Cyan,
+          ),
         ),
         new CDULine(new CDUElement('<AOC MENU'), undefined, undefined, new CDUElement('ADVISORY\xa0')),
       );
@@ -85,6 +107,13 @@ export class AOCInit extends DisplayablePage {
         CDULine.EmptyLine,
         new CDULine(new CDUElement('<AOC MENU')),
       );
+    }
+  }
+
+  onRSK5() {
+    if (this.pageCurrent === 1) {
+      this.CDU.simbriefInit();
+      this.refresh();
     }
   }
 

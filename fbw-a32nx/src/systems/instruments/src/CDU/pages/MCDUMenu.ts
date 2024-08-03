@@ -9,6 +9,7 @@ import {
 import { TestPage } from 'instruments/src/CDU/pages/TestPage';
 import { FMGCMenu } from 'instruments/src/CDU/pages/FMGCMenu';
 import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
+import { NXSystemMessages } from 'instruments/src/CDU/model/NXMessages';
 
 export class MCDUMenu extends DisplayablePage {
   title = 'MCDU MENU';
@@ -28,7 +29,7 @@ export class MCDUMenu extends DisplayablePage {
     new CDULine(new CDUElement('<CFDS')),
     new CDULineRight(new CDUElement('CDU TEST>')),
   );
-  defaultScratchpad = 'SELECT DESIRED SYSTEM';
+  defaultMessage = NXSystemMessages.selectDesiredSystem;
 
   onLSK1() {
     this.openPage(new FMGCMenu(this.display));
