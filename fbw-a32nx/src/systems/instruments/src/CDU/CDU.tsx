@@ -11,8 +11,9 @@ import {
 import { CDU } from 'instruments/src/CDU/model/CDU';
 import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
-import { DisplayablePage } from 'instruments/src/CDU/model/CDUPage';
+import { CDUColor, DisplayablePage } from 'instruments/src/CDU/model/CDUPage';
 import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from 'instruments/src/CDU/PageComponents';
+import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 
 export type Side = 1 | 2;
 
@@ -34,12 +35,16 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private showing: boolean = true;
   private currentPage: DisplayablePage = new MCDUMenu(this);
   private scratchpadDisplayed: Subject<string> = Subject.create<string>(this.currentPage.defaultScratchpad);
+  private scratchpadColor: Subject<string> = Subject.create<string>(CDUColor.White);
   private scratchpadTyped: Subject<string> = Subject.create<string>('');
   private refreshTimeout: NodeJS.Timeout;
 
   constructor(props: CDUProps) {
     super(props);
-    this.scratchpadTyped.sub((newValue) => this.scratchpadDisplayed.set(newValue));
+    this.scratchpadTyped.sub((newValue) => {
+      this.scratchpadDisplayed.set(newValue);
+      this.scratchpadColor.set(CDUColor.White);
+    });
   }
 
   public get Side() {
@@ -63,6 +68,11 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     this.scratchpadDisplayed.set(page.defaultScratchpad ?? this.scratchpadTyped.get());
     clearTimeout(this.refreshTimeout);
     this.refresh();
+  }
+
+  setMessage(message: TypeIMessage, replacement?: string) {
+    this.scratchpadDisplayed.set(message.getText(replacement));
+    this.scratchpadColor.set(message.isAmber ? CDUColor.Amber : CDUColor.White);
   }
 
   typeCharacter(text: string) {
@@ -90,6 +100,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   render(): VNode {
     this.side = this.props.side;
     CDU.init();
+    CDU.linkDisplay(this, this.side);
     const result = (
       <>
         <div id="BackglowCDU" />
@@ -132,6 +143,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
           message={this.scratchpadDisplayed}
           arrowUp={this.currentPage.arrows.up}
           arrowDown={this.currentPage.arrows.down}
+          color={this.scratchpadColor}
         />
       </>
     );
@@ -174,7 +186,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         .whenChanged()
         .handle((acEssIsPowered) => {
           console.log(`[CDU${this.side}] powered: ${acEssIsPowered}`);
-          this.CDU.powered = acEssIsPowered;
+          this.CDU.Powered = acEssIsPowered;
         });
     } else if (this.side === 2) {
       sub
@@ -182,7 +194,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         .whenChanged()
         .handle((ac2IsPowered) => {
           console.log(`[CDU${this.side}] powered: ${ac2IsPowered}`);
-          this.CDU.powered = ac2IsPowered;
+          this.CDU.Powered = ac2IsPowered;
         });
     }
   }
@@ -204,7 +216,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
       return;
     }
 
-    if (!this.CDU.powered || !this.showing) {
+    if (!this.CDU.Powered || !this.showing) {
       return;
     }
 

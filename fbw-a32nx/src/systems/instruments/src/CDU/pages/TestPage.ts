@@ -7,6 +7,7 @@ import {
   DisplayablePage,
   makeLines,
 } from 'instruments/src/CDU/model/CDUPage';
+import { NXTestMessages } from 'instruments/src/CDU/model/NXMessages';
 
 export class TestPage extends DisplayablePage {
   static readonly pageID: string = 'TEST_PAGE';
@@ -77,6 +78,18 @@ export class TestPage extends DisplayablePage {
   onRSK2() {
     this.pageCount = this.pageCount ? 0 : 2;
     this.refresh();
+  }
+
+  onRSK3() {
+    this.CDU.setScratchpadMessage(NXTestMessages.type1);
+  }
+
+  onRSK4() {
+    this.CDU.setScratchpadMessage(NXTestMessages.type1Amber);
+  }
+
+  onRSK5() {
+    this.CDU.setScratchpadMessage(NXTestMessages.type1ReplaceXXXX, '0123');
   }
 
   onLSK3() {

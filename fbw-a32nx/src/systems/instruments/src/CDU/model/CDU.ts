@@ -1,5 +1,7 @@
 import { NXUnits } from '@flybywiresim/fbw-sdk';
+import { CDUDisplay } from 'instruments/src/CDU/CDU';
 import { AOCTimes } from 'instruments/src/CDU/model/AOCTimes';
+import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 
 export enum CDUIndex {
   Left = 1,
@@ -8,14 +10,19 @@ export enum CDUIndex {
 
 export class CDU {
   Index: CDUIndex;
-  powered: boolean;
+  Powered: boolean;
   AOCTimes = new AOCTimes();
+  Display: CDUDisplay;
 
   private timeBetweenUpdates: number = 100;
   private updateTimeout: NodeJS.Timeout;
 
   static initialized: boolean = false;
   static instances: Array<CDU>;
+
+  static linkDisplay(display: CDUDisplay, side: CDUIndex) {
+    CDU.instances[side].Display = display;
+  }
 
   static init() {
     if (CDU.initialized) {
@@ -32,11 +39,15 @@ export class CDU {
 
   constructor(index: CDUIndex) {
     this.Index = index;
-    this.powered = this.getIsPowered();
+    this.Powered = this.getIsPowered();
 
     this.updateTimeout = setTimeout(() => {
       this.update();
     }, this.timeBetweenUpdates);
+  }
+
+  setScratchpadMessage(message: TypeIMessage, replacement?: string): void {
+    this.Display?.setMessage(message, replacement);
   }
 
   toString(): string {

@@ -26,17 +26,20 @@ export interface ScratchpadProps {
   message: Subscribable<string>;
   arrowUp?: boolean;
   arrowDown?: boolean;
+  color: Subscribable<string>;
 }
 
 //#endregion
 const columns = 24;
 
 // #region Formatting
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const padBefore = (text: string, width: number = columns) => {
   const before = Math.floor((width - text.length) / 2);
   return CDUScratchpad.nbSpace.repeat(before);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const padAfter = (text: string, width: number = columns) => {
   const before = Math.floor((width - text.length) / 2);
   const after = width - (text.length + before);
@@ -65,9 +68,9 @@ export class CDUHeader extends DisplayComponent<HeaderProps> {
       <div id="cdu-header">
         <span id="cdu-title">
           <span class="white">
-            {padBefore(this.props.page.title)}
+            {/* {padBefore(this.props.page.title)} */}
             <span class="white">{this.props.page.title}</span>
-            {padAfter(this.props.page.title)}
+            {/* {padAfter(this.props.page.title)} */}
             <span class="s-text"></span>
             <span class="b-text"></span>
           </span>
@@ -162,7 +165,7 @@ export class Scratchpad extends DisplayComponent<ScratchpadProps> {
     }
     return (
       <div class="line">
-        <span id="cdu-in-out" class="white">
+        <span id="cdu-in-out" class={this.props.color}>
           {this.props.message}
         </span>
         <span id="cdu-arrow-vertical" style={!this.props.arrowUp && !this.props.arrowDown ? 'opacity: 0;' : ''}>
