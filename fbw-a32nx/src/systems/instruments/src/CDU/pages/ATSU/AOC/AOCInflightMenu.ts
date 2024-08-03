@@ -1,5 +1,5 @@
 import { CDUColor, CDUElement, CDULine, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
-import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOCMenu';
+import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
 
 export class AOCInflightMenu extends DisplayablePage {
   title = 'AOC INFLT MENU';

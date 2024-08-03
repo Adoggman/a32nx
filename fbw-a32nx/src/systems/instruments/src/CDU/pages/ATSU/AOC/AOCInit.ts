@@ -7,7 +7,7 @@ import {
   makeLines,
   PageTimeout,
 } from 'instruments/src/CDU/model/CDUPage';
-import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOCMenu';
+import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
 
 export class AOCInit extends DisplayablePage {
   title = 'INIT/REVIEW';

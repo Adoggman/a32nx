@@ -20,7 +20,6 @@ export class FMGCMenu extends DisplayablePage {
       new CDUElement('\xa0' + this.CDU.Info.navCycleDates, CDUColor.Cyan),
       new CDUElement('\xa0ACTIVE NAV DATA BASE'),
       new CDUElement(this.CDU.Info.navSerial, CDUColor.Green),
-      undefined,
     ),
     new CDULine(
       new CDUElement('{' + this.CDU.Info.navCycleDates, CDUColor.Cyan, CDUTextSize.Small),

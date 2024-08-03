@@ -2,6 +2,7 @@ import {
   CDUColor,
   CDUElement,
   CDULine,
+  CDULineRight,
   CDUTextSize,
   DisplayablePage,
   makeLines,
@@ -42,6 +43,8 @@ export class TestPage extends DisplayablePage {
       new CDUElement('TEST 15', undefined, CDUTextSize.Small),
       new CDUElement('TEST 16', undefined, CDUTextSize.Small),
     ),
+    new CDULine(new CDUElement('TEST 17'), new CDUElement('TEST 18')),
+    new CDULineRight(new CDUElement('TEST 19'), new CDUElement('TEST 20')),
   );
 
   onDown() {

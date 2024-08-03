@@ -135,4 +135,12 @@ export class CDULine implements ICDULine {
     this.labelElements = [leftLabel, rightLabel, undefined, undefined];
     this.textElements = [left, right, undefined, undefined];
   }
+
+  static EmptyLine = undefined;
+}
+
+export class CDULineRight extends CDULine {
+  constructor(right?: CDUElement, rightLabel?: CDUElement) {
+    super(undefined, undefined, right, rightLabel);
+  }
 }

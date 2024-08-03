@@ -1,5 +1,5 @@
-import { CDUElement, CDULine, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
-import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOCMenu';
+import { CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
+import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
 
 export class ATSUMenu extends DisplayablePage {
   title = 'ATSU DATALINK';
@@ -9,11 +9,11 @@ export class ATSUMenu extends DisplayablePage {
 
   lines = makeLines(
     new CDULine(new CDUElement('<ATC MENU')),
-    new CDULine(undefined, undefined, new CDUElement('AOC MENU>')),
-    undefined,
-    undefined,
-    new CDULine(undefined, undefined, new CDUElement('STATUS>'), new CDUElement('DATALINK\xa0')),
-    new CDULine(undefined, undefined, new CDUElement('COMM MENU>')),
+    new CDULineRight(new CDUElement('AOC MENU>')),
+    CDULine.EmptyLine,
+    CDULine.EmptyLine,
+    new CDULineRight(new CDUElement('STATUS>'), new CDUElement('DATALINK\xa0')),
+    new CDULineRight(new CDUElement('COMM MENU>')),
   );
 
   onRSK2() {
