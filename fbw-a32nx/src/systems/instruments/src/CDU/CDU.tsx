@@ -51,6 +51,8 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   }
 
   secondsTohhmm(seconds) {
+    if (seconds === 0) return '0000';
+    if (!seconds) return '----';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds - h * 3600) / 60);
     return h.toFixed(0).padStart(2, '0') + m.toFixed(0).padStart(2, '0');
@@ -107,7 +109,6 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
     if (this.currentPage.refreshRate) {
       this.refreshTimeout = setTimeout(() => {
-        console.log('Refreshing');
         this.currentPage.onRefresh();
         this.refresh();
       }, this.currentPage.refreshRate);

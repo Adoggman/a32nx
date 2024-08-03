@@ -1,4 +1,5 @@
 import { NXUnits } from '@flybywiresim/fbw-sdk';
+import { AOCTimes } from 'instruments/src/CDU/model/AOCTimes';
 
 export enum CDUIndex {
   Left = 1,
@@ -8,6 +9,10 @@ export enum CDUIndex {
 export class CDU {
   Index: CDUIndex;
   powered: boolean;
+  AOCTimes = new AOCTimes();
+
+  private timeBetweenUpdates: number = 100;
+  private updateTimeout: NodeJS.Timeout;
 
   static initialized: boolean = false;
   static instances: Array<CDU>;
@@ -28,6 +33,10 @@ export class CDU {
   constructor(index: CDUIndex) {
     this.Index = index;
     this.powered = this.getIsPowered();
+
+    this.updateTimeout = setTimeout(() => {
+      this.update();
+    }, this.timeBetweenUpdates);
   }
 
   toString(): string {
@@ -52,15 +61,22 @@ export class CDU {
     perf: 0,
   };
 
-  getTimeUTC(): Seconds {
+  static getTimeUTC(): Seconds {
     return Math.floor(SimVar.GetGlobalVarValue('ZULU TIME', 'seconds'));
+  }
+
+  getTimeUTC() {
+    return CDU.getTimeUTC();
   }
 
   getFOB() {
     return NXUnits.poundsToUser(SimVar.GetSimVarValue('FUEL TOTAL QUANTITY WEIGHT', 'pound') / 1000);
   }
 
-  getDoors() {
-    return this.getTimeUTC() - 600;
+  update() {
+    this.AOCTimes.updateTimes(Fmgc.getFlightPhaseManager());
+    this.updateTimeout = setTimeout(() => {
+      this.update();
+    }, this.timeBetweenUpdates);
   }
 }
