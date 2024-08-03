@@ -59,4 +59,8 @@ export class CDU {
   getFOB() {
     return NXUnits.poundsToUser(SimVar.GetSimVarValue('FUEL TOTAL QUANTITY WEIGHT', 'pound') / 1000);
   }
+
+  getDoors() {
+    return this.getTimeUTC() - 600;
+  }
 }

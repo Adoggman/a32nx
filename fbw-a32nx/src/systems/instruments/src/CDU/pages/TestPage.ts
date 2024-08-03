@@ -38,13 +38,15 @@ export class TestPage extends DisplayablePage {
       new CDUElement('TEST12', CDUColor.Magenta, CDUTextSize.Large),
     ),
     new CDULine(
-      new CDUElement('TEST 13', undefined, CDUTextSize.Small),
-      new CDUElement('TEST 14', undefined, CDUTextSize.Small),
-      new CDUElement('TEST 15', undefined, CDUTextSize.Small),
-      new CDUElement('TEST 16', undefined, CDUTextSize.Small),
+      new CDUElement('TEST 13', undefined),
+      new CDUElement('TEST 14', undefined),
+      new CDUElement('TEST 15', undefined),
+      new CDUElement('TEST 16', undefined),
+      new CDUElement('TEST 17', undefined),
+      new CDUElement('TEST 18', undefined),
     ),
-    new CDULine(new CDUElement('TEST 17'), new CDUElement('TEST 18')),
-    new CDULineRight(new CDUElement('TEST 19'), new CDUElement('TEST 20')),
+    new CDULine(new CDUElement('TEST 19'), new CDUElement('TEST 20')),
+    new CDULineRight(new CDUElement('TEST 21'), new CDUElement('TEST 22')),
   );
 
   onDown() {

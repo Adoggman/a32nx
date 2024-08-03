@@ -55,8 +55,17 @@ export class AOCInit extends DisplayablePage {
           new CDUElement('\xa0OUT'),
           new CDUElement('----'),
           new CDUElement('OFF\xa0'),
+          new CDUElement(this.display.secondsTohhmm(this.CDU.getDoors()), CDUColor.Green),
+          new CDUElement('DOORS'),
         ),
-        new CDULine(new CDUElement('----'), new CDUElement('\xa0ON'), new CDUElement('----'), new CDUElement('IN\xa0')),
+        new CDULine(
+          new CDUElement('----'),
+          new CDUElement('\xa0ON'),
+          new CDUElement('----'),
+          new CDUElement('IN\xa0'),
+          new CDUElement(this.display.secondsTohhmm(this.CDU.getTimeUTC()), CDUColor.Green, CDUTextSize.Small),
+          new CDUElement('GMT'),
+        ),
         new CDULine(
           new CDUElement('----'),
           new CDUElement('\xa0BLK TIME'),

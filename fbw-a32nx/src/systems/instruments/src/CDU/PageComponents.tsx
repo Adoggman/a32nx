@@ -113,6 +113,7 @@ export class Labels extends DisplayComponent<LineProps> {
     const lineNum = this.props.lineIndex;
     const leftElement = this.props.line?.labelElements[0];
     const rightElement = this.props.line?.labelElements[1];
+    const centerElement = this.props.line?.labelElements[2];
     return (
       <div class={'label s-text'}>
         <span id={`cdu-label-${lineNum}}-left`} class="fmc-block label label-left">
@@ -121,7 +122,9 @@ export class Labels extends DisplayComponent<LineProps> {
         <span id={`cdu-label-${lineNum}}-right`} class="fmc-block label label-right">
           <span class={rightElement?.color + ' ' + rightElement?.size}>{sanitize(rightElement?.text)}</span>
         </span>
-        <span id={`cdu-label-${lineNum}}-center`} class="fmc-block label label-center"></span>
+        <span id={`cdu-label-${lineNum}}-center`} class="fmc-block label label-center">
+          <span class={centerElement?.color + ' ' + centerElement?.size}>{sanitize(centerElement?.text)}</span>
+        </span>
       </div>
     );
   }
@@ -132,6 +135,7 @@ export class Line extends DisplayComponent<LineProps> {
     const lineNum = this.props.lineIndex;
     const leftElement = this.props.line?.textElements[0];
     const rightElement = this.props.line?.textElements[1];
+    const centerElement = this.props.line?.textElements[2];
     return (
       <div class="line">
         <span id={`cdu-line-${lineNum}-left`} class="fmc-block line line-left">
@@ -140,7 +144,9 @@ export class Line extends DisplayComponent<LineProps> {
         <span id={`cdu-line-${lineNum}-right`} class="fmc-block line line-right">
           <span class={rightElement?.color + ' ' + rightElement?.size}>{sanitize(rightElement?.text)}</span>
         </span>
-        <span id={`cdu-line-${lineNum}-center `} class="fmc-block line line-center"></span>
+        <span id={`cdu-line-${lineNum}-center `} class="fmc-block line line-center">
+          <span class={centerElement?.color + ' ' + centerElement?.size}>{sanitize(centerElement?.text)}</span>
+        </span>
       </div>
     );
   }
