@@ -8,7 +8,7 @@ import {
   makeLines,
   PageTimeout,
 } from 'instruments/src/CDU/model/CDUPage';
-import { Simbrief } from 'instruments/src/CDU/model/Simbrief';
+import { SimbriefStatus } from 'instruments/src/CDU/model/Subsystem/Simbrief';
 import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
 
 export class AOCInit extends DisplayablePage {
@@ -25,7 +25,7 @@ export class AOCInit extends DisplayablePage {
 
   getLines(): CDULines {
     if (this.pageCurrent === 1) {
-      const simbriefData = this.CDU.SimbriefData;
+      const simbriefData = this.CDU.Simbrief.Data;
       return makeLines(
         new CDULine(
           new CDUElement(
@@ -64,7 +64,7 @@ export class AOCInit extends DisplayablePage {
           ),
           new CDUElement('\xa0ETE'),
           new CDUElement(
-            `INIT DATA REQ${this.CDU.SimbriefStatus === Simbrief.Status.Requesting ? '\xa0' : '*'}`,
+            `INIT DATA REQ${this.CDU.Simbrief.Status === SimbriefStatus.Requesting ? '\xa0' : '*'}`,
             CDUColor.Cyan,
           ),
         ),
@@ -112,7 +112,7 @@ export class AOCInit extends DisplayablePage {
 
   onRSK5() {
     if (this.pageCurrent === 1) {
-      this.CDU.simbriefInit();
+      this.CDU.Simbrief.simbriefInit();
       this.lines[4].textElements[1] = new CDUElement('INIT DATA REQ\xa0', CDUColor.Cyan);
       this.refreshRate = PageTimeout.Slow;
       this.refresh();

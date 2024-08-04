@@ -81,15 +81,15 @@ export class TestPage extends DisplayablePage {
   }
 
   onRSK3() {
-    this.CDU.setScratchpadMessage(NXTestMessages.type1);
+    this.CDU.setMessage(NXTestMessages.type1);
   }
 
   onRSK4() {
-    this.CDU.setScratchpadMessage(NXTestMessages.type1Amber);
+    this.CDU.setMessage(NXTestMessages.type1Amber);
   }
 
   onRSK5() {
-    this.CDU.setScratchpadMessage(NXTestMessages.type1ReplaceXXXX, '0123');
+    this.CDU.setMessage(NXTestMessages.type1ReplaceXXXX, '0123');
   }
 
   onLSK3() {

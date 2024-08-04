@@ -40,11 +40,11 @@ export class MCDUMenu extends DisplayablePage {
   }
 
   onLSK3() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK4() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK5() {

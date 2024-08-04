@@ -46,7 +46,7 @@ export class FMGCMenu extends DisplayablePage {
   }
 
   onLSK3() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplemented);
   }
 }
 

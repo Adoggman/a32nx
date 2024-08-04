@@ -2,8 +2,7 @@ import { DatabaseIdent, NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDUDisplay } from 'instruments/src/CDU/CDUDisplay';
 import { AOCTimes } from 'instruments/src/CDU/model/AOCTimes';
 import { NXFictionalMessages, NXSystemMessages, TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
-import { Simbrief } from 'instruments/src/CDU/model/Simbrief';
-import { ISimbriefData } from '../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief/simbriefInterface';
+import { Simbrief } from 'instruments/src/CDU/model/Subsystem/Simbrief';
 import { EventBus } from '@microsoft/msfs-sdk';
 import { FlightPhaseManager } from '@fmgc/flightphase';
 import { FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
@@ -20,8 +19,7 @@ export class CDU {
   Powered: boolean;
   AOCTimes = new AOCTimes();
   Display: CDUDisplay;
-  SimbriefData: ISimbriefData;
-  SimbriefStatus: Simbrief.Status = Simbrief.Status.Ready;
+  Simbrief: Simbrief;
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService;
   navigationDatabaseService: NavigationDatabaseService;
@@ -32,6 +30,8 @@ export class CDU {
 
   private timeBetweenUpdates: number = 100;
   private updateTimeout: NodeJS.Timeout;
+
+  // #region Static Properties & Methods
 
   static initialized: boolean = false;
   static instances: Array<CDU>;
@@ -53,6 +53,8 @@ export class CDU {
     CDU.initialized = true;
   }
 
+  // #endregion
+
   constructor(index: CDUIndex) {
     this.Index = index;
     this.Powered = this.getIsPowered();
@@ -62,6 +64,7 @@ export class CDU {
     }, this.timeBetweenUpdates);
 
     this.initializeSystems();
+    this.initializeSubsystems();
   }
 
   initializeSystems() {
@@ -78,8 +81,12 @@ export class CDU {
     this.navigationDatabase.getDatabaseIdent().then((dbIdent) => (this.navDbIdent = dbIdent));
   }
 
+  initializeSubsystems() {
+    this.Simbrief = new Simbrief(this);
+  }
+
   printPage(_page: string[]) {
-    this.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   /**
@@ -89,56 +96,56 @@ export class CDU {
   addNewAtsuMessage(code: AtsuStatusCodes) {
     switch (code) {
       case AtsuStatusCodes.CallsignInUse:
-        this.setScratchpadMessage(NXFictionalMessages.fltNbrInUse);
+        this.setMessage(NXFictionalMessages.fltNbrInUse);
         break;
       case AtsuStatusCodes.NoHoppieConnection:
-        this.setScratchpadMessage(NXFictionalMessages.noHoppieConnection);
+        this.setMessage(NXFictionalMessages.noHoppieConnection);
         break;
       case AtsuStatusCodes.ComFailed:
-        this.setScratchpadMessage(NXSystemMessages.comUnavailable);
+        this.setMessage(NXSystemMessages.comUnavailable);
         break;
       case AtsuStatusCodes.NoAtc:
-        this.setScratchpadMessage(NXSystemMessages.noAtc);
+        this.setMessage(NXSystemMessages.noAtc);
         break;
       case AtsuStatusCodes.MailboxFull:
-        this.setScratchpadMessage(NXSystemMessages.dcduFileFull);
+        this.setMessage(NXSystemMessages.dcduFileFull);
         break;
       case AtsuStatusCodes.UnknownMessage:
-        this.setScratchpadMessage(NXFictionalMessages.unknownAtsuMessage);
+        this.setMessage(NXFictionalMessages.unknownAtsuMessage);
         break;
       case AtsuStatusCodes.ProxyError:
-        this.setScratchpadMessage(NXFictionalMessages.reverseProxy);
+        this.setMessage(NXFictionalMessages.reverseProxy);
         break;
       case AtsuStatusCodes.NoTelexConnection:
-        this.setScratchpadMessage(NXFictionalMessages.telexNotEnabled);
+        this.setMessage(NXFictionalMessages.telexNotEnabled);
         break;
       case AtsuStatusCodes.OwnCallsign:
-        this.setScratchpadMessage(NXSystemMessages.noAtc);
+        this.setMessage(NXSystemMessages.noAtc);
         break;
       case AtsuStatusCodes.SystemBusy:
-        this.setScratchpadMessage(NXSystemMessages.systemBusy);
+        this.setMessage(NXSystemMessages.systemBusy);
         break;
       case AtsuStatusCodes.NewAtisReceived:
-        this.setScratchpadMessage(NXSystemMessages.newAtisReceived);
+        this.setMessage(NXSystemMessages.newAtisReceived);
         break;
       case AtsuStatusCodes.NoAtisReceived:
-        this.setScratchpadMessage(NXSystemMessages.noAtisReceived);
+        this.setMessage(NXSystemMessages.noAtisReceived);
         break;
       case AtsuStatusCodes.EntryOutOfRange:
-        this.setScratchpadMessage(NXSystemMessages.entryOutOfRange);
+        this.setMessage(NXSystemMessages.entryOutOfRange);
         break;
       case AtsuStatusCodes.FormatError:
-        this.setScratchpadMessage(NXSystemMessages.formatError);
+        this.setMessage(NXSystemMessages.formatError);
         break;
       case AtsuStatusCodes.NotInDatabase:
-        this.setScratchpadMessage(NXSystemMessages.notInDatabase);
+        this.setMessage(NXSystemMessages.notInDatabase);
         break;
       default:
         break;
     }
   }
 
-  setScratchpadMessage(message: TypeIMessage, replacement?: string): void {
+  setMessage(message: TypeIMessage, replacement?: string): void {
     this.Display?.setMessage(message, replacement);
   }
 
@@ -172,44 +179,6 @@ export class CDU {
 
   getFOB() {
     return NXUnits.poundsToUser(SimVar.GetSimVarValue('FUEL TOTAL QUANTITY WEIGHT', 'pound') / 1000);
-  }
-
-  simbriefInit(): void {
-    if (this.SimbriefStatus === Simbrief.Status.Requesting) {
-      console.log(`[CDU${this.Index}] Ignoring new simbrief request, request already in progress`);
-      return;
-    }
-    this.SimbriefStatus = Simbrief.Status.Requesting;
-    const errCode = Simbrief.getOFP(this.Index, CDU.updateSimbrief, CDU.updateSimbriefError);
-    if (errCode) {
-      this.SimbriefStatus = Simbrief.Status.Ready;
-      if (errCode === Simbrief.ErrorCode.NoNavigraphUsername) {
-        this.setScratchpadMessage(NXFictionalMessages.noNavigraphUser);
-      } else if (errCode === Simbrief.ErrorCode.Unknown) {
-        this.setScratchpadMessage(NXFictionalMessages.internalError);
-      }
-    }
-  }
-
-  static updateSimbrief(index: CDUIndex, data: ISimbriefData, _simbriefObject: {}): void {
-    CDU.instances[index].updateSimbrief(data, _simbriefObject);
-  }
-
-  updateSimbrief(data: ISimbriefData, _simbriefObject: {}): void {
-    this.SimbriefData = data;
-    this.SimbriefStatus = Simbrief.Status.Done;
-    this.setScratchpadMessage(NXFictionalMessages.emptyMessage);
-    this.Display?.refresh();
-  }
-
-  static updateSimbriefError(index: CDUIndex): void {
-    CDU.instances[index].updateSimbriefError();
-  }
-
-  updateSimbriefError(): void {
-    this.setScratchpadMessage(NXFictionalMessages.internalError);
-    this.SimbriefStatus = Simbrief.Status.Ready;
-    this.Display?.refresh();
   }
 
   update() {

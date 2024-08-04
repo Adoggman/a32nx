@@ -31,11 +31,11 @@ export class AOCMenu extends DisplayablePage {
   }
 
   onLSK2() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK3() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK6() {
@@ -43,15 +43,15 @@ export class AOCMenu extends DisplayablePage {
   }
 
   onRSK1() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK3() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK4() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
+    this.CDU.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK6() {
