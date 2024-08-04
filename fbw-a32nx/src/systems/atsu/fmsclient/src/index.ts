@@ -29,6 +29,11 @@ import { FlightPlanInterface } from '@fmgc/flightplanning/FlightPlanInterface';
 import { FlightPlanSynchronization } from './FlightPlanSynchronization';
 import { MessageStorage } from './MessageStorage';
 
+export interface ATSUHandler {
+  addNewAtsuMessage(code: AtsuStatusCodes);
+  printPage(page: string[]);
+}
+
 export class FmsClient {
   private readonly bus: EventBus;
 
@@ -75,7 +80,7 @@ export class FmsClient {
 
   private automaticPositionReportIsActive: boolean = false;
 
-  private fms: any = null;
+  private fms: ATSUHandler = null;
 
   private datalinkStatus: { vhf: DatalinkStatusCode; satellite: DatalinkStatusCode; hf: DatalinkStatusCode } = {
     vhf: DatalinkStatusCode.NotInstalled,
@@ -89,7 +94,7 @@ export class FmsClient {
     hf: DatalinkModeCode.None,
   };
 
-  constructor(fms: any, flightPlanManager: FlightPlanInterface) {
+  constructor(fms: ATSUHandler, flightPlanManager: FlightPlanInterface) {
     this.bus = new EventBus();
     this.publisher = this.bus.getPublisher<FmsAtcMessages & FmsAocMessages & FmsRouterMessages>();
     this.subscriber = this.bus.getSubscriber<AtcFmsMessages & AocFmsMessages & RouterFmsMessages & FmsRouterMessages>();

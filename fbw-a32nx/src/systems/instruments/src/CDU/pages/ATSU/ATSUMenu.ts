@@ -1,6 +1,7 @@
 import { CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
 import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
 import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
+import { ATSUDatalinkStatus } from 'instruments/src/CDU/pages/ATSU/ATSUDatalinkStatus';
 
 export class ATSUMenu extends DisplayablePage {
   title = 'ATSU DATALINK';
@@ -26,7 +27,7 @@ export class ATSUMenu extends DisplayablePage {
   }
 
   onRSK5() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+    this.openPage(new ATSUDatalinkStatus(this.display));
   }
 
   onRSK6() {
