@@ -19,12 +19,12 @@ export class ATSUDatalinkStatus extends DisplayablePage {
   lines = this.makeDatalinkLines();
 
   private makeDatalinkLines() {
-    const vhfStatusCode = this.CDU.ATSU.getDatalinkStatus('vhf');
-    const vhfModeCode = this.CDU.ATSU.getDatalinkMode('vhf');
-    const satcomStatusCode = this.CDU.ATSU.getDatalinkStatus('satcom');
-    const satcomModeCode = this.CDU.ATSU.getDatalinkMode('satcom');
-    const hfStatusCode = this.CDU.ATSU.getDatalinkStatus('hf');
-    const hfModeCode = this.CDU.ATSU.getDatalinkMode('hf');
+    const vhfStatusCode = this.CDU.ATSU.fmsClient.getDatalinkStatus('vhf');
+    const vhfModeCode = this.CDU.ATSU.fmsClient.getDatalinkMode('vhf');
+    const satcomStatusCode = this.CDU.ATSU.fmsClient.getDatalinkStatus('satcom');
+    const satcomModeCode = this.CDU.ATSU.fmsClient.getDatalinkMode('satcom');
+    const hfStatusCode = this.CDU.ATSU.fmsClient.getDatalinkStatus('hf');
+    const hfModeCode = this.CDU.ATSU.fmsClient.getDatalinkMode('hf');
 
     return makeLines(
       new CDULine(

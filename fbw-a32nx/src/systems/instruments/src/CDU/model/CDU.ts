@@ -1,13 +1,12 @@
 import { DatabaseIdent, NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDUDisplay } from 'instruments/src/CDU/CDUDisplay';
-import { NXFictionalMessages, NXSystemMessages, TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 import { Simbrief } from 'instruments/src/CDU/model/Subsystem/Simbrief';
 import { EventBus } from '@microsoft/msfs-sdk';
 import { FlightPhaseManager } from '@fmgc/flightphase';
 import { FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
-import { FmsClient } from '../../../../atsu/fmsclient/src/index';
-import { AtsuStatusCodes } from '@datalink/common';
 import { AOC } from 'instruments/src/CDU/model/Subsystem/AOC';
+import { ATSU } from 'instruments/src/CDU/model/Subsystem/ATSU';
+import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 
 export enum CDUIndex {
   Left = 1,
@@ -15,16 +14,19 @@ export enum CDUIndex {
 }
 
 export class CDU {
+  // Properties
   Index: CDUIndex;
   Powered: boolean;
-  AOC: AOC;
   Display: CDUDisplay;
+  // Subsystems
+  AOC: AOC;
   Simbrief: Simbrief;
+  ATSU: ATSU;
+  // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService;
   navigationDatabaseService: NavigationDatabaseService;
   navigationDatabase: NavigationDatabase;
-  ATSU: FmsClient;
 
   navDbIdent: DatabaseIdent;
 
@@ -75,75 +77,13 @@ export class CDU {
 
     this.navigationDatabaseService = Fmgc.NavigationDatabaseService;
     this.navigationDatabase = new Fmgc.NavigationDatabase(Fmgc.NavigationDatabaseBackend.Msfs);
-
-    this.ATSU = new FmsClient(this, this.flightPlanService);
-
     this.navigationDatabase.getDatabaseIdent().then((dbIdent) => (this.navDbIdent = dbIdent));
   }
 
   initializeSubsystems() {
     this.Simbrief = new Simbrief(this);
     this.AOC = new AOC(this);
-  }
-
-  printPage(_page: string[]) {
-    this.setMessage(NXFictionalMessages.notYetImplementedTS);
-  }
-
-  /**
-   * General ATSU message handler which converts ATSU status codes to new MCDU messages
-   * @param code ATSU status code
-   */
-  addNewAtsuMessage(code: AtsuStatusCodes) {
-    switch (code) {
-      case AtsuStatusCodes.CallsignInUse:
-        this.setMessage(NXFictionalMessages.fltNbrInUse);
-        break;
-      case AtsuStatusCodes.NoHoppieConnection:
-        this.setMessage(NXFictionalMessages.noHoppieConnection);
-        break;
-      case AtsuStatusCodes.ComFailed:
-        this.setMessage(NXSystemMessages.comUnavailable);
-        break;
-      case AtsuStatusCodes.NoAtc:
-        this.setMessage(NXSystemMessages.noAtc);
-        break;
-      case AtsuStatusCodes.MailboxFull:
-        this.setMessage(NXSystemMessages.dcduFileFull);
-        break;
-      case AtsuStatusCodes.UnknownMessage:
-        this.setMessage(NXFictionalMessages.unknownAtsuMessage);
-        break;
-      case AtsuStatusCodes.ProxyError:
-        this.setMessage(NXFictionalMessages.reverseProxy);
-        break;
-      case AtsuStatusCodes.NoTelexConnection:
-        this.setMessage(NXFictionalMessages.telexNotEnabled);
-        break;
-      case AtsuStatusCodes.OwnCallsign:
-        this.setMessage(NXSystemMessages.noAtc);
-        break;
-      case AtsuStatusCodes.SystemBusy:
-        this.setMessage(NXSystemMessages.systemBusy);
-        break;
-      case AtsuStatusCodes.NewAtisReceived:
-        this.setMessage(NXSystemMessages.newAtisReceived);
-        break;
-      case AtsuStatusCodes.NoAtisReceived:
-        this.setMessage(NXSystemMessages.noAtisReceived);
-        break;
-      case AtsuStatusCodes.EntryOutOfRange:
-        this.setMessage(NXSystemMessages.entryOutOfRange);
-        break;
-      case AtsuStatusCodes.FormatError:
-        this.setMessage(NXSystemMessages.formatError);
-        break;
-      case AtsuStatusCodes.NotInDatabase:
-        this.setMessage(NXSystemMessages.notInDatabase);
-        break;
-      default:
-        break;
-    }
+    this.ATSU = new ATSU(this);
   }
 
   setMessage(message: TypeIMessage, replacement?: string): void {

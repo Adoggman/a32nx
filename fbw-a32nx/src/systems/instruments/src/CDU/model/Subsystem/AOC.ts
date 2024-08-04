@@ -1,13 +1,13 @@
 import { CDU } from 'instruments/src/CDU/model/CDU';
-import { AOCTimes } from 'instruments/src/CDU/model/Subsystem/AOCTimes';
+import { CDUSubsystem } from 'instruments/src/CDU/model/Subsystem';
+import { AOCTimes } from 'instruments/src/CDU/model/Subsystem/AOC/AOCTimes';
 
-export class AOC {
+export class AOC extends CDUSubsystem {
   Times: AOCTimes;
-  private cdu: CDU;
 
   constructor(cdu: CDU) {
+    super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing AOC subsystem`);
-    this.cdu = cdu;
     this.Times = new AOCTimes();
   }
 

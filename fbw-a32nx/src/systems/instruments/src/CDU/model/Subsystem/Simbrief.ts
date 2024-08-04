@@ -2,6 +2,7 @@ import { NXDataStore } from '@flybywiresim/fbw-sdk';
 import { CDU, CDUIndex } from 'instruments/src/CDU/model/CDU';
 import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
 import { ISimbriefData } from '../../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief';
+import { CDUSubsystem } from 'instruments/src/CDU/model/Subsystem';
 
 export enum SimbriefErrorCode {
   None = 0,
@@ -17,15 +18,13 @@ export enum SimbriefStatus {
 
 export type OFPCallback = (cduIndex: CDUIndex, data: ISimbriefData, simbriefObject: {}) => void;
 
-export class Simbrief {
-  private cdu: CDU;
-
+export class Simbrief extends CDUSubsystem {
   Data: ISimbriefData;
   Status: SimbriefStatus = SimbriefStatus.Ready;
 
   constructor(cdu: CDU) {
+    super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing Simbrief subsystem`);
-    this.cdu = cdu;
   }
 
   simbriefInit(): void {
