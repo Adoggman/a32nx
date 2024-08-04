@@ -24,6 +24,7 @@ export class Simbrief {
   Status: SimbriefStatus = SimbriefStatus.Ready;
 
   constructor(cdu: CDU) {
+    console.log(`[CDU${cdu.Index}] Initializing Simbrief subsystem`);
     this.cdu = cdu;
   }
 

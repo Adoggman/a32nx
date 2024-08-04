@@ -72,7 +72,7 @@ export class AOCInit extends DisplayablePage {
       );
     } else if (this.pageCurrent === 2) {
       const currentTime = this.CDU.getTimeUTC();
-      const AOCTimes = this.CDU.AOCTimes;
+      const AOCTimes = this.CDU.AOC.Times;
       const blockTime = AOCTimes.block();
       const flightTime = AOCTimes.inflight();
       return makeLines(

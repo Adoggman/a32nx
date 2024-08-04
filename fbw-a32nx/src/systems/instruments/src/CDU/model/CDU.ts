@@ -1,6 +1,5 @@
 import { DatabaseIdent, NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDUDisplay } from 'instruments/src/CDU/CDUDisplay';
-import { AOCTimes } from 'instruments/src/CDU/model/AOCTimes';
 import { NXFictionalMessages, NXSystemMessages, TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 import { Simbrief } from 'instruments/src/CDU/model/Subsystem/Simbrief';
 import { EventBus } from '@microsoft/msfs-sdk';
@@ -8,6 +7,7 @@ import { FlightPhaseManager } from '@fmgc/flightphase';
 import { FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
 import { FmsClient } from '../../../../atsu/fmsclient/src/index';
 import { AtsuStatusCodes } from '@datalink/common';
+import { AOC } from 'instruments/src/CDU/model/Subsystem/AOC';
 
 export enum CDUIndex {
   Left = 1,
@@ -17,7 +17,7 @@ export enum CDUIndex {
 export class CDU {
   Index: CDUIndex;
   Powered: boolean;
-  AOCTimes = new AOCTimes();
+  AOC: AOC;
   Display: CDUDisplay;
   Simbrief: Simbrief;
   flightPhaseManager: FlightPhaseManager;
@@ -83,6 +83,7 @@ export class CDU {
 
   initializeSubsystems() {
     this.Simbrief = new Simbrief(this);
+    this.AOC = new AOC(this);
   }
 
   printPage(_page: string[]) {
@@ -182,7 +183,7 @@ export class CDU {
   }
 
   update() {
-    this.AOCTimes.updateTimes(this.flightPhaseManager);
+    this.AOC.update();
     this.updateTimeout = setTimeout(() => {
       this.update();
     }, this.timeBetweenUpdates);
