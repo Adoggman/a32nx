@@ -41,7 +41,7 @@ export class ATSUDatalinkStatus extends DisplayablePage {
   }
 
   onRSK6() {
-    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   statusElement(statusCode: DatalinkStatusCode): CDUElement {

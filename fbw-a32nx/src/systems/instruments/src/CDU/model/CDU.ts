@@ -79,7 +79,7 @@ export class CDU {
   }
 
   printPage(_page: string[]) {
-    this.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+    this.setScratchpadMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   /**

@@ -129,6 +129,7 @@ export const NXFictionalMessages = {
   fltNbrInUse: new TypeIMessage('FLT NBR IN USE'),
   fltNbrMissing: new TypeIMessage('ENTER ATC FLT NBR'),
   notYetImplemented: new TypeIMessage('NOT YET IMPLEMENTED'),
+  notYetImplementedTS: new TypeIMessage('NOT IMPLEMENTED TS'),
   recipientNotFound: new TypeIMessage('RECIPIENT NOT FOUND'),
   authErr: new TypeIMessage('AUTH ERR'),
   invalidMsg: new TypeIMessage('INVALID MSG'),
