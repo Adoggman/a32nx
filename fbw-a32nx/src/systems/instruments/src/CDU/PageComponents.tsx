@@ -1,6 +1,6 @@
 import { DisplayComponent, FSComponent, VNode, Subscribable, SubscribableArray } from '@microsoft/msfs-sdk';
 import { CDUScratchpad } from 'instruments/src/CDU/CDUDisplay';
-import { CDULine, DisplayablePage, ICDULine } from 'instruments/src/CDU/model/CDUPage';
+import { CDULine, DisplayablePage, ICDULine, CDUElement } from 'instruments/src/CDU/model/CDUPage';
 
 // #region Properties
 export interface PageProp {
@@ -20,6 +20,10 @@ export interface LinesProp {
 export interface LineProps {
   line: ICDULine;
   lineIndex: number;
+}
+
+export interface ElementProps {
+  element: CDUElement;
 }
 
 export interface ScratchpadProps {
@@ -120,13 +124,13 @@ export class Labels extends DisplayComponent<LineProps> {
     return (
       <div class={'label s-text'}>
         <span id={`cdu-label-${lineNum}}-left`} class="fmc-block label label-left">
-          <span class={leftElement?.color + ' ' + leftElement?.size}>{sanitize(leftElement?.text)}</span>
+          <CDUElementSpan element={leftElement} />
         </span>
         <span id={`cdu-label-${lineNum}}-right`} class="fmc-block label label-right">
-          <span class={rightElement?.color + ' ' + rightElement?.size}>{sanitize(rightElement?.text)}</span>
+          <CDUElementSpan element={rightElement} />
         </span>
         <span id={`cdu-label-${lineNum}}-center`} class="fmc-block label label-center">
-          <span class={centerElement?.color + ' ' + centerElement?.size}>{sanitize(centerElement?.text)}</span>
+          <CDUElementSpan element={centerElement} />
         </span>
       </div>
     );
@@ -142,15 +146,26 @@ export class Line extends DisplayComponent<LineProps> {
     return (
       <div class="line">
         <span id={`cdu-line-${lineNum}-left`} class="fmc-block line line-left">
-          <span class={leftElement?.color + ' ' + leftElement?.size}>{sanitize(leftElement?.text)}</span>
+          <CDUElementSpan element={leftElement} />
         </span>
         <span id={`cdu-line-${lineNum}-right`} class="fmc-block line line-right">
-          <span class={rightElement?.color + ' ' + rightElement?.size}>{sanitize(rightElement?.text)}</span>
+          <CDUElementSpan element={rightElement} />
         </span>
         <span id={`cdu-line-${lineNum}-center `} class="fmc-block line line-center">
-          <span class={centerElement?.color + ' ' + centerElement?.size}>{sanitize(centerElement?.text)}</span>
+          <CDUElementSpan element={centerElement} />
         </span>
       </div>
+    );
+  }
+}
+
+export class CDUElementSpan extends DisplayComponent<ElementProps> {
+  render(): VNode {
+    return (
+      <span class={this.props.element?.color + ' ' + this.props.element?.size}>
+        {sanitize(this.props.element?.text)}
+        {this.props.element?.secondElement && <CDUElementSpan element={this.props.element.secondElement} />}
+      </span>
     );
   }
 }

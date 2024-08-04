@@ -120,11 +120,13 @@ export class CDUElement {
   color: CDUColor;
   size?: CDUTextSize;
   text: string;
+  secondElement?: CDUElement;
 
-  constructor(text: string, color: CDUColor = CDUColor.White, size?: CDUTextSize) {
+  constructor(text: string, color: CDUColor = CDUColor.White, size?: CDUTextSize, secondPart?: CDUElement) {
     this.text = text;
     this.color = color;
     this.size = size;
+    this.secondElement = secondPart;
   }
 }
 
