@@ -9,7 +9,7 @@ import {
 import { TestPage } from 'instruments/src/CDU/pages/TestPage';
 import { FMGCMenu } from 'instruments/src/CDU/pages/FMGCMenu';
 import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
-import { NXSystemMessages } from 'instruments/src/CDU/model/NXMessages';
+import { NXFictionalMessages, NXSystemMessages } from 'instruments/src/CDU/model/NXMessages';
 
 export class MCDUMenu extends DisplayablePage {
   title = 'MCDU MENU';
@@ -37,6 +37,14 @@ export class MCDUMenu extends DisplayablePage {
 
   onLSK2() {
     this.openPage(new ATSUMenu(this.display));
+  }
+
+  onLSK3() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
+  onLSK4() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
   }
 
   onRSK5() {

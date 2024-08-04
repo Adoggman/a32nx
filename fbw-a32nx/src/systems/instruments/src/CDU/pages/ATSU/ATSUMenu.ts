@@ -1,4 +1,5 @@
 import { CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
+import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
 import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
 
 export class ATSUMenu extends DisplayablePage {
@@ -16,7 +17,19 @@ export class ATSUMenu extends DisplayablePage {
     new CDULineRight(new CDUElement('COMM MENU>')),
   );
 
+  onLSK1() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
   onRSK2() {
     this.openPage(new AOCMenu(this.display));
+  }
+
+  onRSK5() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
+  onRSK6() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
   }
 }

@@ -6,6 +6,7 @@ import {
   DisplayablePage,
   makeLines,
 } from 'instruments/src/CDU/model/CDUPage';
+import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
 
 export class FMGCMenu extends DisplayablePage {
   title = 'A320-200';
@@ -33,6 +34,10 @@ export class FMGCMenu extends DisplayablePage {
       new CDUElement('SOFTWARE\xa0'),
     ),
   );
+
+  onLSK3() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
 }
 
 const formatNum = (num: number): string => {

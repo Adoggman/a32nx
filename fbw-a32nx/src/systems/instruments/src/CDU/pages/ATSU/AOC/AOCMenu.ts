@@ -6,6 +6,7 @@ import {
   DisplayablePage,
   makeLines,
 } from 'instruments/src/CDU/model/CDUPage';
+import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
 import { AOCInflightMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCInflightMenu';
 import { AOCInit } from 'instruments/src/CDU/pages/ATSU/AOC/AOCInit';
 import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
@@ -29,8 +30,28 @@ export class AOCMenu extends DisplayablePage {
     this.openPage(new AOCInit(this.display));
   }
 
+  onLSK2() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
+  onLSK3() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
   onLSK6() {
     this.openPage(new ATSUMenu(this.display));
+  }
+
+  onRSK1() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
+  onRSK3() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
+  }
+
+  onRSK4() {
+    this.CDU.setScratchpadMessage(NXFictionalMessages.notYetImplemented);
   }
 
   onRSK6() {
