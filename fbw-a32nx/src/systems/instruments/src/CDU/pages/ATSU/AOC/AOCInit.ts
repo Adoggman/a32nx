@@ -16,7 +16,7 @@ export class AOCInit extends DisplayablePage {
   titleLeft = 'AOC';
   pageCount = 2;
   pageCurrent = 1;
-  refreshRate = PageTimeout.Slow;
+  refreshRate = PageTimeout.None;
 
   static readonly pageID: string = 'AOC_INIT_MENU';
   _pageID = AOCInit.pageID;
@@ -113,6 +113,8 @@ export class AOCInit extends DisplayablePage {
   onRSK5() {
     if (this.pageCurrent === 1) {
       this.CDU.simbriefInit();
+      this.lines[4].textElements[1] = new CDUElement('INIT DATA REQ\xa0', CDUColor.Cyan);
+      this.refreshRate = PageTimeout.Slow;
       this.refresh();
     }
   }
