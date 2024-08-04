@@ -1,4 +1,4 @@
-import { CDUDisplay } from 'instruments/src/CDU/CDU';
+import { CDUDisplay } from 'instruments/src/CDU/CDUDisplay';
 import { CDU } from 'instruments/src/CDU/model/CDU';
 import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
 

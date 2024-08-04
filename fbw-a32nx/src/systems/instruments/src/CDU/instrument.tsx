@@ -1,7 +1,7 @@
 import { EventBus, FSComponent, HEventPublisher, InstrumentBackplane } from '@microsoft/msfs-sdk';
 
 import './style.scss';
-import { CDUDisplay, Side } from 'instruments/src/CDU/CDU';
+import { CDUDisplay, Side } from 'instruments/src/CDU/CDUDisplay';
 import { CDUSimvarPublisher } from 'instruments/src/CDU/model/CDUSimvarPublisher';
 
 const contentElementId = 'CDU_CONTENT';
