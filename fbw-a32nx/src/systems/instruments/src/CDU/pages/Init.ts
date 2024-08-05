@@ -9,6 +9,7 @@ export class Init extends DisplayablePage {
 
   static readonly pageID: string = 'INIT';
   _pageID = Init.pageID;
+  allowsTyping = true;
 
   lines = makeLines(
     new CDULine(

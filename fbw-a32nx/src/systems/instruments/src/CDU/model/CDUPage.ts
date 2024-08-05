@@ -41,6 +41,7 @@ export abstract class DisplayablePage {
   defaultMessage?: TypeIMessage;
   arrows: Arrows = { up: false, down: false, left: false, right: false };
   display: CDUDisplay;
+  allowsTyping: boolean = false;
   protected abstract _pageID: string;
   refreshRate: PageTimeout = PageTimeout.None;
 

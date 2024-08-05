@@ -1,4 +1,4 @@
-import { CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { CDUElement, CDULine, CDULineRight, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
 import { ATSUDatalinkStatus } from '@cdu/pages/ATSU/ATSUDatalinkStatus';
@@ -12,8 +12,8 @@ export class ATSUMenu extends DisplayablePage {
   lines = makeLines(
     new CDULine(new CDUElement('<ATC MENU')),
     new CDULineRight(new CDUElement('AOC MENU>')),
-    CDULine.EmptyLine,
-    CDULine.EmptyLine,
+    EmptyLine,
+    EmptyLine,
     new CDULineRight(new CDUElement('STATUS>'), new CDUElement('DATALINK\xa0')),
     new CDULineRight(new CDUElement('COMM MENU>')),
   );

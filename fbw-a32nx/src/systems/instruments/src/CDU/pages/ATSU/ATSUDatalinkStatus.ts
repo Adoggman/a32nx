@@ -1,5 +1,5 @@
 import { DatalinkModeCode, DatalinkStatusCode } from '@datalink/common';
-import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
 
@@ -32,7 +32,7 @@ export class ATSUDatalinkStatus extends DisplayablePage {
         this.modeElement(satcomModeCode, 9),
       ),
       new CDULine(undefined, this.modeElement(hfModeCode, 5)),
-      CDULine.EmptyLine,
+      EmptyLine,
       new CDULine(new CDUElement('<RETURN'), undefined, new CDUElement('PRINT*', CDUColor.Cyan)),
     );
   }

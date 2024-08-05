@@ -66,6 +66,8 @@ export class Scratchpad {
   }
 
   typeCharacter(text: string) {
+    if (!this.display.currentPage.allowsTyping) return;
+
     const currentContents = this.typedText.get();
     // Handle if we're on CLR
     if (currentContents === CDUScratchpad.clrValue) {

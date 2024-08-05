@@ -28,7 +28,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
   private showing: boolean = true;
-  private currentPage: DisplayablePage = new MCDUMenu(this);
+  currentPage: DisplayablePage = new MCDUMenu(this);
   private refreshTimeout: NodeJS.Timeout;
   scratchpad: Scratchpad;
 

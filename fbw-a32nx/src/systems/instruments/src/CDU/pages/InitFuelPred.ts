@@ -10,6 +10,8 @@ export class InitFuelPred extends DisplayablePage {
   static readonly pageID: string = 'INIT_FUEL_PRED';
   _pageID = InitFuelPred.pageID;
 
+  allowsTyping = true;
+
   lines = this.makeInitFuelPredLines();
 
   makeInitFuelPredLines() {

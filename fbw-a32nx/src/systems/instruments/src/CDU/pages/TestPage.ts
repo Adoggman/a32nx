@@ -18,6 +18,7 @@ export class TestPage extends DisplayablePage {
   pageCount?: number;
   titleLeft = 'LEFT';
   l3Size = CDUTextSize.Large;
+  allowsTyping = true;
 
   lines = makeLines(
     new CDULine(
