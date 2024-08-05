@@ -7,6 +7,7 @@ import { FlightPlanService, NavigationDatabase, NavigationDatabaseService } from
 import { AOC } from '@cdu/model/Subsystem/AOC';
 import { ATSU } from '@cdu/model/Subsystem/ATSU';
 import { TypeIMessage } from '@cdu/data/NXMessages';
+import { Fuel } from '@cdu/model/Subsystem/Fuel';
 
 export enum CDUIndex {
   Left = 1,
@@ -22,6 +23,7 @@ export class CDU {
   AOC: AOC;
   Simbrief: Simbrief;
   ATSU: ATSU;
+  Fuel: Fuel;
   // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService;
@@ -84,6 +86,7 @@ export class CDU {
     this.Simbrief = new Simbrief(this);
     this.AOC = new AOC(this);
     this.ATSU = new ATSU(this);
+    this.Fuel = new Fuel(this);
   }
 
   setMessage(message: TypeIMessage, replacement?: string): void {
