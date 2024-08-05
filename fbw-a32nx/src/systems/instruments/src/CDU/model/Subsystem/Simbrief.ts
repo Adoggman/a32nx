@@ -1,8 +1,8 @@
 import { NXDataStore, NXUnits } from '@flybywiresim/fbw-sdk';
-import { CDU, CDUIndex } from 'instruments/src/CDU/model/CDU';
-import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
+import { CDU, CDUIndex } from '@cdu/model/CDU';
+import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { ISimbriefData } from '../../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief';
-import { CDUSubsystem } from 'instruments/src/CDU/model/Subsystem';
+import { CDUSubsystem } from '@cdu/model/Subsystem';
 
 export enum SimbriefErrorCode {
   None = 0,
@@ -77,8 +77,8 @@ export class Simbrief extends CDUSubsystem {
 
     Fmgc.SimBriefUplinkAdapter.downloadOfpForUserID(navigraphUsername, overrideSimBriefUserID)
       .then((data) => {
-        const useKgs = simbrief['units'] === 'kgs';
         simbrief['units'] = data.units;
+        const useKgs = simbrief['units'] === 'kgs';
         simbrief['route'] = data.route;
         simbrief['cruiseAltitude'] = data.cruiseAltitude;
         simbrief['originIcao'] = data.origin.icao;

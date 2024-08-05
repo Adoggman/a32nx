@@ -6,8 +6,8 @@ import {
   CDUTextSize,
   DisplayablePage,
   makeLines,
-} from 'instruments/src/CDU/model/CDUPage';
-import { NXTestMessages } from 'instruments/src/CDU/model/NXMessages';
+} from '@cdu/model/CDUPage';
+import { NXTestMessages } from '@cdu/data/NXMessages';
 
 export class TestPage extends DisplayablePage {
   static readonly pageID: string = 'TEST_PAGE';

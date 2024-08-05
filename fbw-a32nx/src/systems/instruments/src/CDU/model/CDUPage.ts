@@ -1,6 +1,6 @@
-import { CDUDisplay } from 'instruments/src/CDU/CDUDisplay';
-import { CDU } from 'instruments/src/CDU/model/CDU';
-import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
+import { CDUDisplay } from '@cdu/CDUDisplay';
+import { CDU } from '@cdu/model/CDU';
+import { TypeIMessage } from '@cdu/data/NXMessages';
 
 export interface ICDULine {
   labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];

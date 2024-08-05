@@ -1,7 +1,7 @@
-import { CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from 'instruments/src/CDU/model/CDUPage';
-import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
-import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
-import { ATSUDatalinkStatus } from 'instruments/src/CDU/pages/ATSU/ATSUDatalinkStatus';
+import { CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { NXFictionalMessages } from '@cdu/data/NXMessages';
+import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
+import { ATSUDatalinkStatus } from '@cdu/pages/ATSU/ATSUDatalinkStatus';
 
 export class ATSUMenu extends DisplayablePage {
   title = 'ATSU DATALINK';

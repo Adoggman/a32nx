@@ -1,15 +1,8 @@
-import {
-  CDUColor,
-  CDUElement,
-  CDULine,
-  CDULineRight,
-  DisplayablePage,
-  makeLines,
-} from 'instruments/src/CDU/model/CDUPage';
-import { TestPage } from 'instruments/src/CDU/pages/TestPage';
-import { FMGCMenu } from 'instruments/src/CDU/pages/FMGCMenu';
-import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
-import { NXFictionalMessages, NXSystemMessages } from 'instruments/src/CDU/model/NXMessages';
+import { CDUColor, CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { TestPage } from '@cdu/pages/TestPage';
+import { FMGCMenu } from '@cdu/pages/FMGCMenu';
+import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
+import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 
 export class MCDUMenu extends DisplayablePage {
   title = 'MCDU MENU';

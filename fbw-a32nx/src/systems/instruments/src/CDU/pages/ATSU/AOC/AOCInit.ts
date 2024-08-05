@@ -7,9 +7,9 @@ import {
   DisplayablePage,
   makeLines,
   PageTimeout,
-} from 'instruments/src/CDU/model/CDUPage';
-import { SimbriefStatus } from 'instruments/src/CDU/model/Subsystem/Simbrief';
-import { AOCMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCMenu';
+} from '@cdu/model/CDUPage';
+import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
+import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
 
 export class AOCInit extends DisplayablePage {
   title = 'INIT/REVIEW';

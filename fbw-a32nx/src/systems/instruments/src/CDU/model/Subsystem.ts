@@ -1,4 +1,4 @@
-import { CDU } from 'instruments/src/CDU/model/CDU';
+import { CDU } from '@cdu/model/CDU';
 
 export abstract class CDUSubsystem {
   protected cdu: CDU;

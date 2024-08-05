@@ -1,6 +1,6 @@
 import { FlightPhaseManager } from '@fmgc/flightphase';
 import { FmgcFlightPhase, isOnGround } from '@shared/flightphase';
-import { CDU } from 'instruments/src/CDU/model/CDU';
+import { CDU } from '@cdu/model/CDU';
 
 export class AOCTimes {
   // Doors last closed during preflight

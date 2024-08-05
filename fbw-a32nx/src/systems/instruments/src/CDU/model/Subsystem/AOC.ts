@@ -1,6 +1,6 @@
-import { CDU } from 'instruments/src/CDU/model/CDU';
-import { CDUSubsystem } from 'instruments/src/CDU/model/Subsystem';
-import { AOCTimes } from 'instruments/src/CDU/model/Subsystem/AOC/AOCTimes';
+import { CDU } from '@cdu/model/CDU';
+import { CDUSubsystem } from '@cdu/model/Subsystem';
+import { AOCTimes } from '@cdu/model/Subsystem/AOC/AOCTimes';
 
 export class AOC extends CDUSubsystem {
   Times: AOCTimes;

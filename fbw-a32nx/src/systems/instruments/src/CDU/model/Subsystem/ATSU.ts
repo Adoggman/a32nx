@@ -1,8 +1,8 @@
 import { AtsuStatusCodes } from '@datalink/common';
 import { FmsClient } from 'atsu/fmsclient/src';
-import { CDU } from 'instruments/src/CDU/model/CDU';
-import { NXFictionalMessages, NXSystemMessages } from 'instruments/src/CDU/model/NXMessages';
-import { CDUSubsystem } from 'instruments/src/CDU/model/Subsystem';
+import { CDU } from '@cdu/model/CDU';
+import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
+import { CDUSubsystem } from '@cdu/model/Subsystem';
 
 export class ATSU extends CDUSubsystem {
   fmsClient: FmsClient;

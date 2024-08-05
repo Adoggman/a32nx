@@ -1,14 +1,7 @@
 import { DatalinkModeCode, DatalinkStatusCode } from '@datalink/common';
-import {
-  CDUColor,
-  CDUElement,
-  CDULine,
-  CDUTextSize,
-  DisplayablePage,
-  makeLines,
-} from 'instruments/src/CDU/model/CDUPage';
-import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
-import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
+import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { NXFictionalMessages } from '@cdu/data/NXMessages';
+import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
 
 export class ATSUDatalinkStatus extends DisplayablePage {
   title = 'DATALINK STATUS';

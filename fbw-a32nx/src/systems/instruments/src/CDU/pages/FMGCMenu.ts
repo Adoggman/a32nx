@@ -1,13 +1,6 @@
 import { DatabaseIdent } from '@flybywiresim/fbw-sdk';
-import {
-  CDUColor,
-  CDUElement,
-  CDULine,
-  CDUTextSize,
-  DisplayablePage,
-  makeLines,
-} from 'instruments/src/CDU/model/CDUPage';
-import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
+import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { NXFictionalMessages } from '@cdu/data/NXMessages';
 
 export class FMGCMenu extends DisplayablePage {
   title = 'A320-200';

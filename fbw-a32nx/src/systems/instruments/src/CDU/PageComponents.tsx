@@ -1,6 +1,6 @@
 import { DisplayComponent, FSComponent, VNode, Subscribable, SubscribableArray } from '@microsoft/msfs-sdk';
-import { CDUScratchpad } from 'instruments/src/CDU/CDUDisplay';
-import { CDULine, DisplayablePage, ICDULine, CDUElement } from 'instruments/src/CDU/model/CDUPage';
+import { CDUScratchpad } from '@cdu/CDUDisplay';
+import { CDULine, DisplayablePage, ICDULine, CDUElement } from '@cdu/model/CDUPage';
 
 // #region Properties
 export interface PageProp {

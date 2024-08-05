@@ -1,12 +1,12 @@
 import { DatabaseIdent, NXUnits } from '@flybywiresim/fbw-sdk';
-import { CDUDisplay } from 'instruments/src/CDU/CDUDisplay';
-import { Simbrief } from 'instruments/src/CDU/model/Subsystem/Simbrief';
+import { CDUDisplay } from '@cdu/CDUDisplay';
+import { Simbrief } from '@cdu/model/Subsystem/Simbrief';
 import { EventBus } from '@microsoft/msfs-sdk';
 import { FlightPhaseManager } from '@fmgc/flightphase';
 import { FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
-import { AOC } from 'instruments/src/CDU/model/Subsystem/AOC';
-import { ATSU } from 'instruments/src/CDU/model/Subsystem/ATSU';
-import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
+import { AOC } from '@cdu/model/Subsystem/AOC';
+import { ATSU } from '@cdu/model/Subsystem/ATSU';
+import { TypeIMessage } from '@cdu/data/NXMessages';
 
 export enum CDUIndex {
   Left = 1,

@@ -1,15 +1,8 @@
-import {
-  CDUColor,
-  CDUElement,
-  CDULine,
-  CDULineRight,
-  DisplayablePage,
-  makeLines,
-} from 'instruments/src/CDU/model/CDUPage';
-import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
-import { AOCInflightMenu } from 'instruments/src/CDU/pages/ATSU/AOC/AOCInflightMenu';
-import { AOCInit } from 'instruments/src/CDU/pages/ATSU/AOC/AOCInit';
-import { ATSUMenu } from 'instruments/src/CDU/pages/ATSU/ATSUMenu';
+import { CDUColor, CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import { NXFictionalMessages } from '@cdu/data/NXMessages';
+import { AOCInflightMenu } from '@cdu/pages/ATSU/AOC/AOCInflightMenu';
+import { AOCInit } from '@cdu/pages/ATSU/AOC/AOCInit';
+import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
 
 export class AOCMenu extends DisplayablePage {
   title = 'AOC MENU';

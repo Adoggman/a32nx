@@ -8,12 +8,12 @@ import {
   HEvent,
   Subject,
 } from '@microsoft/msfs-sdk';
-import { CDU } from 'instruments/src/CDU/model/CDU';
-import { CDUSimvars } from 'instruments/src/CDU/model/CDUSimvarPublisher';
-import { MCDUMenu } from 'instruments/src/CDU/pages/MCDUMenu';
-import { CDUColor, DisplayablePage } from 'instruments/src/CDU/model/CDUPage';
-import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from 'instruments/src/CDU/PageComponents';
-import { TypeIMessage } from 'instruments/src/CDU/model/NXMessages';
+import { CDU } from '@cdu/model/CDU';
+import { CDUSimvars } from '@cdu/model/CDUSimvarPublisher';
+import { MCDUMenu } from '@cdu/pages/MCDUMenu';
+import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
+import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from '@cdu/PageComponents';
+import { TypeIMessage } from '@cdu/data/NXMessages';
 
 export type Side = 1 | 2;
 
