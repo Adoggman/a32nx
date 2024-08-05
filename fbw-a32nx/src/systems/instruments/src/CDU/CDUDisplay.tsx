@@ -15,6 +15,7 @@ import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
 import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from '@cdu/PageComponents';
 import { TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUEvents } from '@cdu/data/CDUEvent';
+import { Init } from '@cdu/pages/Init';
 
 export type Side = 1 | 2;
 
@@ -259,6 +260,9 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         return;
       case events.PageMenu:
         this.openPage(new MCDUMenu(this));
+        return;
+      case events.PageInit:
+        this.openPage(new Init(this));
         return;
       case events.PageUp:
         this.currentPage.onUp();

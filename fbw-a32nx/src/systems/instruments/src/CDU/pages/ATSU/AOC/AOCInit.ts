@@ -5,6 +5,7 @@ import {
   CDULines,
   CDUTextSize,
   DisplayablePage,
+  EmptyLine,
   makeLines,
   PageTimeout,
 } from '@cdu/model/CDUPage';
@@ -104,7 +105,7 @@ export class AOCInit extends DisplayablePage {
           new CDUElement('-------'),
           new CDUElement('LDG PILOT\xa0'),
         ),
-        CDULine.EmptyLine,
+        EmptyLine,
         new CDULine(new CDUElement('<AOC MENU')),
       );
     }
