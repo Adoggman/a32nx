@@ -1,5 +1,6 @@
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
 import { Init } from '@cdu/pages/Init';
+import { NXSystemMessages } from '@cdu/data/NXMessages';
 
 export class InitFuelPred extends DisplayablePage {
   title = 'INIT FUEL PRED';
@@ -55,9 +56,34 @@ export class InitFuelPred extends DisplayablePage {
   }
 
   onLSK1() {
-    this.CDU.Fuel.taxiFuelWeight = 0.3;
-    this.lines = this.makeInitFuelPredLines();
-    this.refresh();
+    // Default to scratchpad if empty
+    if (this.scratchpad.isEmpty()) {
+      if (!this.CDU.Fuel.taxiFuelWeight) {
+        this.scratchpad.setTypedText(this.CDU.Fuel.defaultTaxiFuelWeight.toFixed(1));
+      }
+      return;
+    }
+
+    // Set value if not empty
+    if (this.scratchpad.isPositiveNumber()) {
+      this.CDU.Fuel.taxiFuelWeight = this.scratchpad.getNumber();
+      this.scratchpad.clear();
+      this.lines = this.makeInitFuelPredLines();
+      this.refresh();
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      this.CDU.Fuel.taxiFuelWeight = undefined;
+      this.scratchpad.clear();
+      this.lines = this.makeInitFuelPredLines();
+      this.refresh();
+      return;
+    }
+
+    this.scratchpad.isNumber()
+      ? this.display.setMessage(NXSystemMessages.entryOutOfRange)
+      : this.display.setMessage(NXSystemMessages.formatError);
   }
 
   onLeft() {

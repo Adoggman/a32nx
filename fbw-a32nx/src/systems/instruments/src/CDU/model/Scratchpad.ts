@@ -26,6 +26,40 @@ export class Scratchpad {
     });
   }
 
+  setTypedText(text: string) {
+    this.typedText.set(text);
+  }
+
+  isEmpty() {
+    return this.typedText.get().length === 0;
+  }
+
+  isCLR() {
+    return this.typedText.get() === CDUScratchpad.clrValue;
+  }
+
+  isPositiveNumber() {
+    const text = this.typedText.get();
+    if (text.length === 0) return false;
+    const num = +text;
+    return !isNaN(num) && num >= 0;
+  }
+
+  isNumber() {
+    const text = this.typedText.get();
+    if (text.length === 0) return false;
+    const num = +text;
+    return !isNaN(num);
+  }
+
+  getNumber() {
+    return +this.typedText.get();
+  }
+
+  clear() {
+    this.typedText.set('');
+  }
+
   setMessage(message: TypeIMessage, replacement?: string) {
     this.displayedText.set(message.getText(replacement));
     this.color.set(message.isAmber ? CDUColor.Amber : CDUColor.White);

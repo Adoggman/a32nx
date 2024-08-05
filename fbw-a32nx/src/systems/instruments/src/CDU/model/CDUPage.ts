@@ -44,6 +44,10 @@ export abstract class DisplayablePage {
   protected abstract _pageID: string;
   refreshRate: PageTimeout = PageTimeout.None;
 
+  protected get scratchpad() {
+    return this.display.scratchpad;
+  }
+
   onUp(): void {}
   onDown(): void {}
   onLeft(): void {}

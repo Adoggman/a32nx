@@ -54,6 +54,10 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     this.refresh();
   }
 
+  setTypedText(text: string) {
+    this.scratchpad.setTypedText(text);
+  }
+
   setMessage(message: TypeIMessage, replacement?: string) {
     this.scratchpad.setMessage(message, replacement);
   }
