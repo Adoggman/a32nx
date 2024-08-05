@@ -14,6 +14,7 @@ import { MCDUMenu } from '@cdu/pages/MCDUMenu';
 import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
 import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from '@cdu/PageComponents';
 import { TypeIMessage } from '@cdu/data/NXMessages';
+import { CDUEvents } from '@cdu/data/CDUEvent';
 
 export type Side = 1 | 2;
 
@@ -88,8 +89,8 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
       return;
     }
     // Handle if we're not showing the typed message and hit clr to get rid of it
-    if (text === CDUScratchpad.clrValue && this.scratchpadDisplayed.get() !== this.scratchpadTyped.get()) {
-      this.scratchpadDisplayed.set(this.scratchpadTyped.get());
+    if (text === CDUScratchpad.clrValue && this.scratchpadDisplayed.get() !== currentContents) {
+      this.scratchpadDisplayed.set(currentContents);
       return;
     }
     // Handle if we hit CLR and there is text to erase
@@ -97,6 +98,17 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
       this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1));
       return;
     }
+
+    // Handle plus/minus
+    if (text === '-' && currentContents.endsWith('-')) {
+      this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1) + '+');
+      return;
+    }
+    if (text === '-' && currentContents.endsWith('+')) {
+      this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1) + '-');
+      return;
+    }
+
     this.scratchpadTyped.set(currentContents + text);
   }
 
@@ -225,66 +237,86 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
       return;
     }
 
+    const events = CDUEvents.Side[this.side];
     switch (eventName) {
-      case `A320_Neo_CDU_${this.side}_BTN_OVFY`:
-        this.typeCharacter(CDUScratchpad.ovfyValue);
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_CLR`:
+      case events.CLR:
         this.typeCharacter(CDUScratchpad.clrValue);
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_MENU`:
+        return;
+      case events.DOT:
+        this.typeCharacter('.');
+        return;
+      case events.PLUSMINUS:
+        this.typeCharacter('-');
+        return;
+      case events.SP:
+        this.typeCharacter(' ');
+        return;
+      case events.SLASH:
+        this.typeCharacter('/');
+        return;
+      case events.OVFY:
+        this.typeCharacter(CDUScratchpad.ovfyValue);
+        return;
+      case events.PageMenu:
         this.openPage(new MCDUMenu(this));
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_UP`:
+        return;
+      case events.PageUp:
         this.currentPage.onUp();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_DOWN`:
+        return;
+      case events.PageDown:
         this.currentPage.onDown();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_NEXTPAGE`:
+        return;
+      case events.PageNext:
         this.currentPage.onRight();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_PREVPAGE`:
+        return;
+      case events.PagePrev:
         this.currentPage.onLeft();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_L1`:
+        return;
+      case events.L1:
         this.currentPage.onLSK1();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_L2`:
+        return;
+      case events.L2:
         this.currentPage.onLSK2();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_L3`:
+        return;
+      case events.L3:
         this.currentPage.onLSK3();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_L4`:
+        return;
+      case events.L4:
         this.currentPage.onLSK4();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_L5`:
+        return;
+      case events.L5:
         this.currentPage.onLSK5();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_L6`:
+        return;
+      case events.L6:
         this.currentPage.onLSK6();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_R1`:
+        return;
+      case events.R1:
         this.currentPage.onRSK1();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_R2`:
+        return;
+      case events.R2:
         this.currentPage.onRSK2();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_R3`:
+        return;
+      case events.R3:
         this.currentPage.onRSK3();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_R4`:
+        return;
+      case events.R4:
         this.currentPage.onRSK4();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_R5`:
+        return;
+      case events.R5:
         this.currentPage.onRSK5();
-        break;
-      case `A320_Neo_CDU_${this.side}_BTN_R6`:
+        return;
+      case events.R6:
         this.currentPage.onRSK6();
-        break;
+        return;
       default:
         break;
+    }
+
+    if (eventName.startsWith(events.LettersStartWith)) {
+      const letter = eventName.substring(events.LettersStartWith.length);
+      if (letter in events.Letters) {
+        this.typeCharacter(letter);
+      }
     }
   }
   //#endregion
