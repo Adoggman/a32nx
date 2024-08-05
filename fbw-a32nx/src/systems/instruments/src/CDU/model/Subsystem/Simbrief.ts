@@ -1,4 +1,4 @@
-import { NXDataStore } from '@flybywiresim/fbw-sdk';
+import { NXDataStore, NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDU, CDUIndex } from 'instruments/src/CDU/model/CDU';
 import { NXFictionalMessages } from 'instruments/src/CDU/model/NXMessages';
 import { ISimbriefData } from '../../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief';
@@ -45,17 +45,17 @@ export class Simbrief extends CDUSubsystem {
   }
 
   static updateSimbrief(index: CDUIndex, data: ISimbriefData, _simbriefObject: {}): void {
-    CDU.instances[index].Simbrief.updateSimbrief(data, _simbriefObject);
+    CDU.instances[index].Simbrief.updateSimbriefData(data, _simbriefObject);
   }
 
-  updateSimbrief(data: ISimbriefData, _simbriefObject: {}): void {
+  updateSimbriefData(data: ISimbriefData, _simbriefObject: {}): void {
     this.Data = data;
     this.Status = SimbriefStatus.Done;
     this.cdu.setMessage(NXFictionalMessages.emptyMessage);
     this.cdu.Display?.refresh();
   }
 
-  static updateSimbriefError(index: CDUIndex): void {
+  static onSimbriefError(index: CDUIndex): void {
     CDU.instances[index].Simbrief.updateSimbriefError();
   }
 
@@ -65,12 +65,6 @@ export class Simbrief extends CDUSubsystem {
     this.cdu.Display?.refresh();
   }
 
-  /**
-   * Fetch SimBrief OFP data and store on FMCMainDisplay object
-   * @param {FMCMainDisplay} mcdu FMCMainDisplay
-   * @param {() => void} updateView
-   * @return {Promise<ISimbriefData>}
-   */
   static getOFP(cduIndex: CDUIndex): SimbriefErrorCode {
     const navigraphUsername = NXDataStore.get('NAVIGRAPH_USERNAME', '');
     const overrideSimBriefUserID = NXDataStore.get('CONFIG_OVERRIDE_SIMBRIEF_USERID', '');
@@ -93,9 +87,9 @@ export class Simbrief extends CDUSubsystem {
         simbrief['destinationIcao'] = data.destination.icao;
         simbrief['destinationTransAlt'] = data.destination.transAlt;
         simbrief['destinationTransLevel'] = data.destination.transLevel;
-        simbrief['blockFuel'] = useKgs ? data.fuel.planRamp : lbsToKg(data.fuel.planRamp);
-        simbrief['payload'] = useKgs ? data.weights.payload : lbsToKg(data.weights.payload);
-        simbrief['estZfw'] = useKgs ? data.weights.estZeroFuelWeight : lbsToKg(data.weights.estZeroFuelWeight);
+        simbrief['blockFuel'] = useKgs ? data.fuel.planRamp : NXUnits.lbsToKg(data.fuel.planRamp);
+        simbrief['payload'] = useKgs ? data.weights.payload : NXUnits.lbsToKg(data.weights.payload);
+        simbrief['estZfw'] = useKgs ? data.weights.estZeroFuelWeight : NXUnits.lbsToKg(data.weights.estZeroFuelWeight);
         simbrief['paxCount'] = data.weights.passengerCount;
         simbrief['bagCount'] = data.weights.bagCount;
         simbrief['paxWeight'] = data.weights.passengerWeight;
@@ -121,8 +115,8 @@ export class Simbrief extends CDUSubsystem {
         simbrief['onTime'] = data.times.estOn;
         simbrief['inTime'] = data.times.estIn;
         simbrief['offTime'] = data.times.estOff;
-        simbrief['taxiFuel'] = useKgs ? data.fuel.taxi : lbsToKg(data.fuel.taxi);
-        simbrief['tripFuel'] = useKgs ? data.fuel.enrouteBurn : lbsToKg(data.fuel.enrouteBurn);
+        simbrief['taxiFuel'] = useKgs ? data.fuel.taxi : NXUnits.lbsToKg(data.fuel.taxi);
+        simbrief['tripFuel'] = useKgs ? data.fuel.enrouteBurn : NXUnits.lbsToKg(data.fuel.enrouteBurn);
 
         Simbrief.updateSimbrief(cduIndex, data, simbrief);
 
@@ -130,12 +124,8 @@ export class Simbrief extends CDUSubsystem {
       })
       .catch((_err) => {
         console.log(_err.message);
-        Simbrief.updateSimbriefError(cduIndex);
+        Simbrief.onSimbriefError(cduIndex);
         return SimbriefErrorCode.Unknown;
       });
   }
 }
-
-const lbsToKg = (value) => {
-  return (+value * 0.4535934).toString();
-};

@@ -8,6 +8,10 @@
 
 import { NXDataStore } from '@flybywiresim/fbw-sdk';
 
+const kgsPerLb = 0.4535924; //0.4535934 used previously
+const lbsPerKg = 2.204623; //2.204625 used previously
+const ftPerM = 3.28084; //3.28084 used previously
+
 export class NXUnits {
   private static metricWeightVal: boolean;
 
@@ -25,15 +29,15 @@ export class NXUnits {
   }
 
   static userToKg(value) {
-    return NXUnits.metricWeight ? value : value / 2.204625;
+    return NXUnits.metricWeight ? value : value / lbsPerKg;
   }
 
   static kgToUser(value) {
-    return NXUnits.metricWeight ? value : value * 2.204625;
+    return NXUnits.metricWeight ? value : value * lbsPerKg;
   }
 
   static poundsToUser(value) {
-    return NXUnits.metricWeight ? value / 2.204625 : value;
+    return NXUnits.metricWeight ? value / lbsPerKg : value;
   }
 
   static userWeightUnit() {
@@ -46,7 +50,7 @@ export class NXUnits {
    * @returns {number} in metric or ft
    */
   static mToUser(value) {
-    return NXUnits.metricWeight ? value : value * 3.28084;
+    return NXUnits.metricWeight ? value : value * ftPerM;
   }
 
   /**
@@ -55,5 +59,9 @@ export class NXUnits {
    */
   static userDistanceUnit() {
     return NXUnits.metricWeight ? 'M' : 'FT';
+  }
+
+  static lbsToKg(value: number | string): Kilograms {
+    return +value * kgsPerLb;
   }
 }
