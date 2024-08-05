@@ -1,6 +1,6 @@
 import { DisplayComponent, FSComponent, VNode, Subscribable, SubscribableArray } from '@microsoft/msfs-sdk';
-import { CDUScratchpad } from '@cdu/CDUDisplay';
 import { CDULine, DisplayablePage, ICDULine, CDUElement } from '@cdu/model/CDUPage';
+import { sanitize } from '@cdu/Format';
 
 // #region Properties
 export interface PageProp {
@@ -34,31 +34,6 @@ export interface ScratchpadProps {
 }
 
 //#endregion
-const columns = 24;
-
-// #region Formatting
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const padBefore = (text: string, width: number = columns) => {
-  const before = Math.floor((width - text.length) / 2);
-  return CDUScratchpad.nbSpace.repeat(before);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const padAfter = (text: string, width: number = columns) => {
-  const before = Math.floor((width - text.length) / 2);
-  const after = width - (text.length + before);
-  return CDUScratchpad.nbSpace.repeat(after);
-};
-
-const sanitize = (text?: string) => {
-  return text ? htmlEntities(text) : '';
-};
-
-function htmlEntities(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// #endregion
 
 export class CDUHeader extends DisplayComponent<HeaderProps> {
   render(): VNode | null {
@@ -123,13 +98,13 @@ export class Labels extends DisplayComponent<LineProps> {
     const centerElement = this.props.line?.labelElements[2];
     return (
       <div class={'label s-text'}>
-        <span id={`cdu-label-${lineNum}}-left`} class="fmc-block label label-left">
+        <span id={`cdu-label-${lineNum}-left`} class="fmc-block label label-left">
           <CDUElementSpan element={leftElement} />
         </span>
-        <span id={`cdu-label-${lineNum}}-right`} class="fmc-block label label-right">
+        <span id={`cdu-label-${lineNum}-right`} class="fmc-block label label-right">
           <CDUElementSpan element={rightElement} />
         </span>
-        <span id={`cdu-label-${lineNum}}-center`} class="fmc-block label label-center">
+        <span id={`cdu-label-${lineNum}-center`} class="fmc-block label label-center">
           <CDUElementSpan element={centerElement} />
         </span>
       </div>
@@ -170,7 +145,7 @@ export class CDUElementSpan extends DisplayComponent<ElementProps> {
   }
 }
 
-export class Scratchpad extends DisplayComponent<ScratchpadProps> {
+export class ScratchpadDisplay extends DisplayComponent<ScratchpadProps> {
   render(): VNode {
     let arrowContents = '↓\xa0\xa0';
     if (this.props.arrowUp && this.props.arrowDown) {

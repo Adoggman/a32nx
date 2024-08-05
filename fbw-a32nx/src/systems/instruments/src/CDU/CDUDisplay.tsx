@@ -6,16 +6,16 @@ import {
   FSComponent,
   VNode,
   HEvent,
-  Subject,
 } from '@microsoft/msfs-sdk';
 import { CDU } from '@cdu/model/CDU';
 import { CDUSimvars } from '@cdu/model/CDUSimvarPublisher';
 import { MCDUMenu } from '@cdu/pages/MCDUMenu';
-import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
-import { CDUHeader, CDUPageInfo, Lines, Scratchpad } from '@cdu/PageComponents';
+import { DisplayablePage } from '@cdu/model/CDUPage';
+import { CDUHeader, CDUPageInfo, Lines, ScratchpadDisplay } from '@cdu/PageComponents';
 import { TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUEvents } from '@cdu/data/CDUEvent';
 import { Init } from '@cdu/pages/Init';
+import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
 
 export type Side = 1 | 2;
 
@@ -24,29 +24,17 @@ interface CDUProps extends ComponentProps {
   side: Side;
 }
 
-export namespace CDUScratchpad {
-  export const clrValue = '\xa0\xa0\xa0\xa0\xa0CLR';
-  export const ovfyValue = '\u0394';
-  export const _AvailableKeys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  export const nbSpace = '\xa0';
-}
-
 export class CDUDisplay extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
   private showing: boolean = true;
   private currentPage: DisplayablePage = new MCDUMenu(this);
-  private scratchpadDisplayed: Subject<string> = Subject.create<string>(this.currentPage.defaultMessage.getText());
-  private scratchpadColor: Subject<string> = Subject.create<string>(CDUColor.White);
-  private scratchpadTyped: Subject<string> = Subject.create<string>('');
   private refreshTimeout: NodeJS.Timeout;
+  scratchpad: Scratchpad;
 
   constructor(props: CDUProps) {
     super(props);
-    this.scratchpadTyped.sub((newValue) => {
-      this.scratchpadDisplayed.set(newValue);
-      this.scratchpadColor.set(CDUColor.White);
-    });
+    this.scratchpad = new Scratchpad(this);
   }
 
   public get Side() {
@@ -57,60 +45,17 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     return CDU.instances[this.side];
   }
 
-  secondsTohhmm(seconds) {
-    if (seconds === 0) return '0000';
-    if (!seconds) return '----';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds - h * 3600) / 60);
-    return h.toFixed(0).padStart(2, '0') + m.toFixed(0).padStart(2, '0');
-  }
-
   openPage(page: DisplayablePage) {
     this.currentPage = page;
     if (page.defaultMessage) {
       this.setMessage(page.defaultMessage);
-    } else {
-      this.scratchpadDisplayed.set(this.scratchpadTyped.get());
-      this.scratchpadColor.set(CDUColor.White);
     }
     clearTimeout(this.refreshTimeout);
     this.refresh();
   }
 
   setMessage(message: TypeIMessage, replacement?: string) {
-    this.scratchpadDisplayed.set(message.getText(replacement));
-    this.scratchpadColor.set(message.isAmber ? CDUColor.Amber : CDUColor.White);
-  }
-
-  typeCharacter(text: string) {
-    const currentContents = this.scratchpadTyped.get();
-    // Handle if we're on CLR
-    if (currentContents === CDUScratchpad.clrValue) {
-      this.scratchpadTyped.set(text === CDUScratchpad.clrValue ? '' : text);
-      return;
-    }
-    // Handle if we're not showing the typed message and hit clr to get rid of it
-    if (text === CDUScratchpad.clrValue && this.scratchpadDisplayed.get() !== currentContents) {
-      this.scratchpadDisplayed.set(currentContents);
-      return;
-    }
-    // Handle if we hit CLR and there is text to erase
-    if (text === CDUScratchpad.clrValue && !(currentContents.length === 0)) {
-      this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1));
-      return;
-    }
-
-    // Handle plus/minus
-    if (text === '-' && currentContents.endsWith('-')) {
-      this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1) + '+');
-      return;
-    }
-    if (text === '-' && currentContents.endsWith('+')) {
-      this.scratchpadTyped.set(currentContents.substring(0, currentContents.length - 1) + '-');
-      return;
-    }
-
-    this.scratchpadTyped.set(currentContents + text);
+    this.scratchpad.setMessage(message, replacement);
   }
 
   // #region Rendering
@@ -157,11 +102,11 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         />
         <CDUPageInfo page={this.currentPage} />
         <Lines page={this.currentPage} />
-        <Scratchpad
-          message={this.scratchpadDisplayed}
+        <ScratchpadDisplay
+          message={this.scratchpad.displayedText}
           arrowUp={this.currentPage.arrows.up}
           arrowDown={this.currentPage.arrows.down}
-          color={this.scratchpadColor}
+          color={this.scratchpad.color}
         />
       </>
     );
@@ -241,22 +186,22 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     const events = CDUEvents.Side[this.side];
     switch (eventName) {
       case events.CLR:
-        this.typeCharacter(CDUScratchpad.clrValue);
+        this.scratchpad.typeCharacter(CDUScratchpad.clrValue);
         return;
       case events.DOT:
-        this.typeCharacter('.');
+        this.scratchpad.typeCharacter('.');
         return;
       case events.PLUSMINUS:
-        this.typeCharacter('-');
+        this.scratchpad.typeCharacter('-');
         return;
       case events.SP:
-        this.typeCharacter(' ');
+        this.scratchpad.typeCharacter(' ');
         return;
       case events.SLASH:
-        this.typeCharacter('/');
+        this.scratchpad.typeCharacter('/');
         return;
       case events.OVFY:
-        this.typeCharacter(CDUScratchpad.ovfyValue);
+        this.scratchpad.typeCharacter(CDUScratchpad.ovfyValue);
         return;
       case events.PageMenu:
         this.openPage(new MCDUMenu(this));
@@ -319,7 +264,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     if (eventName.startsWith(events.LettersStartWith)) {
       const letter = eventName.substring(events.LettersStartWith.length);
       if (letter in events.Letters) {
-        this.typeCharacter(letter);
+        this.scratchpad.typeCharacter(letter);
       }
     }
   }

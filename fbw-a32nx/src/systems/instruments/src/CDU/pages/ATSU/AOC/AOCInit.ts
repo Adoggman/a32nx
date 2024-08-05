@@ -1,3 +1,4 @@
+import { secondsTohhmm } from '@cdu/Format';
 import {
   CDUColor,
   CDUElement,
@@ -34,7 +35,7 @@ export class AOCInit extends DisplayablePage {
             simbriefData?.flightNumber ? CDUColor.Green : CDUColor.Amber,
           ),
           new CDUElement('\xa0FMC FLT NO'),
-          new CDUElement(this.display.secondsTohhmm(this.CDU.getTimeUTC()), CDUColor.Green, CDUTextSize.Small),
+          new CDUElement(secondsTohhmm(this.CDU.getTimeUTC()), CDUColor.Green, CDUTextSize.Small),
           new CDUElement('GMT\xa0'),
         ),
         new CDULine(
@@ -58,9 +59,7 @@ export class AOCInit extends DisplayablePage {
         ),
         new CDULine(
           new CDUElement(
-            simbriefData?.times?.estTimeEnroute
-              ? this.display.secondsTohhmm(simbriefData.times.estTimeEnroute)
-              : '____',
+            simbriefData?.times?.estTimeEnroute ? secondsTohhmm(simbriefData.times.estTimeEnroute) : '____',
             simbriefData?.times?.estTimeEnroute ? CDUColor.Cyan : CDUColor.Amber,
           ),
           new CDUElement('\xa0ETE'),
@@ -78,25 +77,25 @@ export class AOCInit extends DisplayablePage {
       const flightTime = AOCTimes.inflight();
       return makeLines(
         new CDULine(
-          new CDUElement(this.display.secondsTohhmm(AOCTimes.out), AOCTimes.out ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(AOCTimes.out), AOCTimes.out ? CDUColor.Green : CDUColor.White),
           new CDUElement('\xa0OUT'),
-          new CDUElement(this.display.secondsTohhmm(AOCTimes.off), AOCTimes.off ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(AOCTimes.off), AOCTimes.off ? CDUColor.Green : CDUColor.White),
           new CDUElement('OFF\xa0'),
-          new CDUElement(this.display.secondsTohhmm(AOCTimes.doors), AOCTimes.doors ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(AOCTimes.doors), AOCTimes.doors ? CDUColor.Green : CDUColor.White),
           new CDUElement('DOORS'),
         ),
         new CDULine(
-          new CDUElement(this.display.secondsTohhmm(AOCTimes.on), AOCTimes.on ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(AOCTimes.on), AOCTimes.on ? CDUColor.Green : CDUColor.White),
           new CDUElement('\xa0ON'),
-          new CDUElement(this.display.secondsTohhmm(AOCTimes.in), AOCTimes.in ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(AOCTimes.in), AOCTimes.in ? CDUColor.Green : CDUColor.White),
           new CDUElement('IN\xa0'),
-          new CDUElement(this.display.secondsTohhmm(currentTime), CDUColor.Green, CDUTextSize.Small),
+          new CDUElement(secondsTohhmm(currentTime), CDUColor.Green, CDUTextSize.Small),
           new CDUElement('GMT'),
         ),
         new CDULine(
-          new CDUElement(this.display.secondsTohhmm(blockTime), blockTime ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(blockTime), blockTime ? CDUColor.Green : CDUColor.White),
           new CDUElement('\xa0BLK TIME'),
-          new CDUElement(this.display.secondsTohhmm(flightTime), flightTime ? CDUColor.Green : CDUColor.White),
+          new CDUElement(secondsTohhmm(flightTime), flightTime ? CDUColor.Green : CDUColor.White),
           new CDUElement('FLT TIME\xa0'),
         ),
         new CDULine(
