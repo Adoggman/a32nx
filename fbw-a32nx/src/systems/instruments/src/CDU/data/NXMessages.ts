@@ -34,7 +34,7 @@ export class TypeIMessage extends McduMessage {
   }
 }
 
-class TypeIIMessage extends McduMessage {
+export class TypeIIMessage extends McduMessage {
   isResolved: () => boolean;
   onClear: () => void;
 
@@ -66,6 +66,10 @@ class TypeIIMessage extends McduMessage {
       isResolved || this.isResolved,
       onClear || this.onClear,
     );
+  }
+
+  getText(replacement?: string) {
+    return this.replace ? this.text.replace(this.replace, replacement) : this.text;
   }
 }
 

@@ -23,7 +23,7 @@ export type Arrows = {
   right?: boolean;
 };
 
-export enum PageTimeout {
+export enum RefreshRate {
   None = 0,
   Fast = 500,
   Medium = 1000,
@@ -43,7 +43,7 @@ export abstract class DisplayablePage {
   display: CDUDisplay;
   allowsTyping: boolean = false;
   protected abstract _pageID: string;
-  refreshRate: PageTimeout = PageTimeout.None;
+  refreshRate: RefreshRate = RefreshRate.None;
 
   protected get scratchpad() {
     return this.display.scratchpad;

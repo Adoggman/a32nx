@@ -3,10 +3,10 @@ import { CDUDisplay } from '@cdu/CDUDisplay';
 import { Simbrief } from '@cdu/model/Subsystem/Simbrief';
 import { EventBus } from '@microsoft/msfs-sdk';
 import { FlightPhaseManager } from '@fmgc/flightphase';
-import { FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
+import { DataManager, FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
 import { AOC } from '@cdu/model/Subsystem/AOC';
 import { ATSU } from '@cdu/model/Subsystem/ATSU';
-import { TypeIMessage } from '@cdu/data/NXMessages';
+import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
 import { Fuel } from '@cdu/model/Subsystem/Fuel';
 
 export enum CDUIndex {
@@ -29,6 +29,7 @@ export class CDU {
   flightPlanService: FlightPlanService;
   navigationDatabaseService: NavigationDatabaseService;
   navigationDatabase: NavigationDatabase;
+  dataManager: DataManager;
 
   navDbIdent: DatabaseIdent;
 
@@ -46,10 +47,10 @@ export class CDU {
 
   static init() {
     if (CDU.initialized) {
-      console.log('[CDU] Already initialized');
+      console.log('[CDU MASTER] Already initialized');
       return;
     }
-    console.log('[CDU] Initializing all CDU instances');
+    console.log('[CDU MASTER] Initializing all CDU instances');
     CDU.instances = new Array<CDU>();
     CDU.instances[0] = undefined;
     CDU.instances[CDUIndex.Left] = new CDU(CDUIndex.Left);
@@ -71,6 +72,10 @@ export class CDU {
     this.initializeSubsystems();
   }
 
+  isWaypointInUse(wpt) {
+    return this.flightPlanService.isWaypointInUse(wpt);
+  }
+
   initializeSystems() {
     this.flightPhaseManager = Fmgc.getFlightPhaseManager();
     const bus = new EventBus();
@@ -80,6 +85,8 @@ export class CDU {
     this.navigationDatabaseService = Fmgc.NavigationDatabaseService;
     this.navigationDatabase = new Fmgc.NavigationDatabase(Fmgc.NavigationDatabaseBackend.Msfs);
     this.navigationDatabase.getDatabaseIdent().then((dbIdent) => (this.navDbIdent = dbIdent));
+
+    this.dataManager = new DataManager(this);
   }
 
   initializeSubsystems() {
@@ -90,7 +97,19 @@ export class CDU {
   }
 
   setMessage(message: TypeIMessage, replacement?: string): void {
+    if (message.isTypeTwo) {
+      throw new Error(`[CDU${this.Index}] Tried to pass type 2 message to setMessage: ${message.getText(replacement)}`);
+    }
     this.Display?.setMessage(message, replacement);
+  }
+
+  addMessageToQueue(message: TypeIIMessage, replacement?: string): void {
+    if (!message.isTypeTwo) {
+      throw new Error(
+        `[CDU${this.Index}] Tried to pass type 1 message to addMessageToQueue: ${message.getText(replacement)}`,
+      );
+    }
+    console.log(`[CDU${this.Index}] Adding message to queue: ${message.getText(replacement)}`);
   }
 
   toString(): string {

@@ -197,6 +197,7 @@ declare global {
             add(time: number, value: any): void;
             evaluate(time: number): number | string;
             debugLog(): void;
+            interpolationFunction: CurveTool;
         }
 
         class DictionaryItem {

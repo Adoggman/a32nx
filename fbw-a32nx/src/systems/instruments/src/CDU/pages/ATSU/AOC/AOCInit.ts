@@ -8,7 +8,7 @@ import {
   DisplayablePage,
   EmptyLine,
   makeLines,
-  PageTimeout,
+  RefreshRate,
 } from '@cdu/model/CDUPage';
 import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
 import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
@@ -18,7 +18,7 @@ export class AOCInit extends DisplayablePage {
   titleLeft = 'AOC';
   pageCount = 2;
   pageCurrent = 1;
-  refreshRate = PageTimeout.None;
+  refreshRate = RefreshRate.None;
 
   static readonly pageID: string = 'AOC_INIT_MENU';
   _pageID = AOCInit.pageID;
@@ -112,9 +112,9 @@ export class AOCInit extends DisplayablePage {
 
   onRSK5() {
     if (this.pageCurrent === 1) {
-      this.CDU.Simbrief.simbriefInit();
+      this.CDU.Simbrief.loadOFP();
       this.lines[4].textElements[1] = new CDUElement('INIT DATA REQ\xa0', CDUColor.Cyan);
-      this.refreshRate = PageTimeout.Slow;
+      this.refreshRate = RefreshRate.Slow;
       this.refresh();
     }
   }

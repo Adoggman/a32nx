@@ -4,7 +4,6 @@
 
 import { NXDataStore, Waypoint } from '@flybywiresim/fbw-sdk';
 import { FmsError, FmsErrorType } from '@fmgc/FmsError';
-import { DisplayInterface } from '@fmgc/flightplanning/interface/DisplayInterface';
 import { WaypointFactory } from '@fmgc/flightplanning/waypoints/WaypointFactory';
 import { Coordinates } from 'msfs-geo';
 
@@ -52,6 +51,10 @@ type PbdWaypoint = {
   pbdDistance: NauticalMiles;
 };
 
+export interface DataManagerHandler {
+  isWaypointInUse(waypoint: Waypoint): Promise<boolean>;
+}
+
 export type PilotWaypoint = LatLonWaypoint | PbxWaypoint | PbdWaypoint | null;
 
 export class DataManager {
@@ -61,7 +64,7 @@ export class DataManager {
 
   private latLonExtendedFormat = false;
 
-  constructor(private fmc: DisplayInterface) {
+  constructor(private handler: DataManagerHandler) {
     // we keep these in localStorage so they live for the same length of time as the flightplan (that they could appear in)
     // if the f-pln is not stored there anymore we can delete this
     const stored = localStorage.getItem(DataManager.STORED_WP_KEY);
@@ -147,7 +150,7 @@ export class DataManager {
       return true;
     }
 
-    if (await this.fmc.isWaypointInUse(this.storedWaypoints[index].waypoint)) {
+    if (await this.handler.isWaypointInUse(this.storedWaypoints[index].waypoint)) {
       return false;
     }
 

@@ -10,14 +10,13 @@ import { FlightPlanIndex } from '@fmgc/flightplanning/FlightPlanManager';
 import { NavigationDatabaseService } from '@fmgc/flightplanning/NavigationDatabaseService';
 import { Airway, Fix } from '@flybywiresim/fbw-sdk';
 import { Coordinates, distanceTo } from 'msfs-geo';
-import { DisplayInterface } from '@fmgc/flightplanning/interface/DisplayInterface';
 import { FlightPlanPerformanceData } from '@fmgc/flightplanning/plans/performance/FlightPlanPerformanceData';
 import { FmsErrorType } from '@fmgc/FmsError';
 import {
   ISimbriefData,
   simbriefDataParser,
 } from '../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief';
-import { DataInterface } from '../interface/DataInterface';
+import { PilotWaypoint } from '@fmgc/flightplanning/DataManager';
 
 const SIMBRIEF_API_URL = 'https://www.simbrief.com/api/xml.fetcher.php?json=1';
 
@@ -112,9 +111,16 @@ export interface SimBriefUplinkOptions {
   doUplinkProcedures?: boolean;
 }
 
+export interface SimbriefUplinkHandler {
+  onUplinkInProgress: () => void;
+  createLatLonWaypoint(coordinates: Coordinates, stored: boolean, ident?: string): PilotWaypoint;
+  showFmsErrorMessage(errorType: FmsErrorType): void;
+  onUplinkDone: () => void;
+}
+
 export class SimBriefUplinkAdapter {
   static async uplinkFlightPlanFromSimbrief<P extends FlightPlanPerformanceData>(
-    fms: DataInterface & DisplayInterface,
+    fms: SimbriefUplinkHandler,
     flightPlanService: FlightPlanService<P>,
     ofp: ISimbriefData,
     options: SimBriefUplinkOptions,
