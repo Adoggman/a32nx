@@ -15,12 +15,15 @@ export class InitFuelPred extends DisplayablePage {
   lines = this.makeInitFuelPredLines();
 
   makeInitFuelPredLines() {
+    const tfw = this.CDU.Fuel.taxiFuelWeight;
+    const rsvTime = this.CDU.Fuel.reserveTime;
+    const rsvPct = this.CDU.Fuel.reservePercent;
     return makeLines(
       new CDULine(
         new CDUElement(
-          this.CDU.Fuel.taxiFuelWeight?.toFixed(1) ?? this.CDU.Fuel.defaultTaxiFuelWeight.toFixed(1),
+          tfw?.toFixed(1) ?? this.CDU.Fuel.taxiFuelWeightDefault.toFixed(1),
           CDUColor.Cyan,
-          this.CDU.Fuel.taxiFuelWeight ? CDUTextSize.Large : CDUTextSize.Small,
+          tfw ? CDUTextSize.Large : CDUTextSize.Small,
         ),
         new CDUElement('TAXI'),
         new CDUElement('___._/__._', CDUColor.Amber),
@@ -33,7 +36,17 @@ export class InitFuelPred extends DisplayablePage {
         new CDUElement('BLOCK'),
       ),
       new CDULine(
-        new CDUElement('---.-', CDUColor.White, CDUTextSize.Large, new CDUElement('/5.0', CDUColor.Cyan)),
+        new CDUElement(
+          rsvTime?.toFixed(1).padStart(5, '\xa0') ?? '---.-',
+          rsvTime ? CDUColor.Cyan : CDUColor.White,
+          CDUTextSize.Large,
+          rsvTime
+            ? new CDUElement('/-.-')
+            : new CDUElement(
+                '/' + (rsvPct?.toFixed(1) ?? this.CDU.Fuel.reservePercentDefault.toFixed(1)),
+                CDUColor.Cyan,
+              ),
+        ),
         new CDUElement('RTE RSV/%'),
       ),
       new CDULine(
@@ -61,20 +74,10 @@ export class InitFuelPred extends DisplayablePage {
     // Default to scratchpad if empty
     if (this.scratchpad.isEmpty()) {
       if (!this.CDU.Fuel.taxiFuelWeight) {
-        this.scratchpad.setTypedText(this.CDU.Fuel.defaultTaxiFuelWeight.toFixed(1));
+        this.scratchpad.setTypedText(this.CDU.Fuel.taxiFuelWeightDefault.toFixed(1));
       }
       return;
     }
-
-    // Set value if not empty
-    if (this.scratchpad.isPositiveNumber()) {
-      this.CDU.Fuel.taxiFuelWeight = this.scratchpad.getNumber();
-      this.scratchpad.clear();
-      this.lines = this.makeInitFuelPredLines();
-      this.refresh();
-      return;
-    }
-
     if (this.scratchpad.isCLR()) {
       this.CDU.Fuel.taxiFuelWeight = undefined;
       this.scratchpad.clear();
@@ -83,9 +86,82 @@ export class InitFuelPred extends DisplayablePage {
       return;
     }
 
-    this.scratchpad.isNumber()
-      ? this.display.setMessage(NXSystemMessages.entryOutOfRange)
-      : this.display.setMessage(NXSystemMessages.formatError);
+    // Not number
+    if (!this.scratchpad.contentIsNumber()) {
+      this.display.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    // Set value if not empty
+    const num = this.scratchpad.getNumber();
+    if (num >= 0) {
+      this.CDU.Fuel.taxiFuelWeight = this.scratchpad.getNumber();
+      this.scratchpad.clear();
+      this.lines = this.makeInitFuelPredLines();
+      this.refresh();
+      return;
+    } else {
+      this.display.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+  }
+
+  onLSK3() {
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+    // Handle clear
+    if (this.scratchpad.isCLR()) {
+      this.CDU.Fuel.reserveTime = undefined;
+      this.CDU.Fuel.reservePercent = undefined;
+      this.scratchpad.clear();
+      this.lines = this.makeInitFuelPredLines();
+      this.refresh();
+      return;
+    }
+
+    const parts = this.scratchpad.getSplitContents();
+
+    if (parts.length === 1) {
+      // Handle input no slash
+      if (this.scratchpad.contentIsNumber()) {
+        const num = this.scratchpad.getNumber();
+        if (this.CDU.Fuel.isValidReserveTime(num)) {
+          this.CDU.Fuel.reserveTime = num;
+          this.CDU.Fuel.reservePercent = undefined;
+          this.scratchpad.clear();
+          this.lines = this.makeInitFuelPredLines();
+          this.refresh();
+          return;
+        } else {
+          this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+          return;
+        }
+      } else {
+        this.scratchpad.setMessage(NXSystemMessages.formatError);
+        return;
+      }
+    } else {
+      // Handle slash input
+      const rsvPct = parts[1];
+      if (this.scratchpad.isNumber(rsvPct)) {
+        const num = +rsvPct;
+        if (this.CDU.Fuel.isValidReservePercent(num)) {
+          this.CDU.Fuel.reservePercent = num;
+          this.CDU.Fuel.reserveTime = undefined;
+          this.scratchpad.clear();
+          this.lines = this.makeInitFuelPredLines();
+          this.refresh();
+          return;
+        } else {
+          this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+          return;
+        }
+      } else {
+        this.scratchpad.setMessage(NXSystemMessages.formatError);
+        return;
+      }
+    }
   }
 
   onLeft() {

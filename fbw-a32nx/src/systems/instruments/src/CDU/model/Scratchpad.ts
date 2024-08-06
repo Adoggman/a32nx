@@ -1,6 +1,6 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { TypeIMessage } from '@cdu/data/NXMessages';
-import { CDUColor } from '@cdu/model/CDUPage';
+import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
 import { Subject } from '@microsoft/msfs-sdk';
 
 export namespace CDUScratchpad {
@@ -14,11 +14,16 @@ export class Scratchpad {
   displayedText: Subject<string> = Subject.create<string>('');
   color: Subject<string> = Subject.create<string>(CDUColor.White);
   typedText: Subject<string> = Subject.create<string>('');
+  isShowingMessage: boolean = false;
+  isShowingPageDefaultMessage: boolean = false;
 
   private display: CDUDisplay;
 
   constructor(display: CDUDisplay) {
     this.display = display;
+    if (this.display.currentPage) {
+      this.onOpenPage(this.display.currentPage);
+    }
 
     this.typedText.sub((newValue) => {
       this.displayedText.set(newValue);
@@ -38,15 +43,11 @@ export class Scratchpad {
     return this.typedText.get() === CDUScratchpad.clrValue;
   }
 
-  isPositiveNumber() {
-    const text = this.typedText.get();
-    if (text.length === 0) return false;
-    const num = +text;
-    return !isNaN(num) && num >= 0;
+  contentIsNumber() {
+    return this.isNumber(this.typedText.get());
   }
 
-  isNumber() {
-    const text = this.typedText.get();
+  isNumber(text: string) {
     if (text.length === 0) return false;
     const num = +text;
     return !isNaN(num);
@@ -57,12 +58,36 @@ export class Scratchpad {
   }
 
   clear() {
+    if (this.isShowingMessage) {
+      this.clearMessage();
+    }
     this.typedText.set('');
+  }
+
+  clearMessage() {
+    this.isShowingMessage = false;
+    this.isShowingPageDefaultMessage = false;
+    this.displayedText.set(this.typedText.get());
+    this.color.set(CDUColor.White);
+  }
+
+  onOpenPage(page: DisplayablePage): void {
+    if (page.defaultMessage) {
+      this.setMessage(page.defaultMessage);
+      this.isShowingPageDefaultMessage = true;
+    } else if (this.isShowingPageDefaultMessage) {
+      this.clearMessage();
+    }
   }
 
   setMessage(message: TypeIMessage, replacement?: string) {
     this.displayedText.set(message.getText(replacement));
     this.color.set(message.isAmber ? CDUColor.Amber : CDUColor.White);
+    this.isShowingMessage = true;
+  }
+
+  getSplitContents(split = '/') {
+    return this.typedText.get().split(split);
   }
 
   typeCharacter(text: string) {
@@ -74,9 +99,10 @@ export class Scratchpad {
       this.typedText.set(text === CDUScratchpad.clrValue ? '' : text);
       return;
     }
-    // Handle if we're not showing the typed message and hit clr to get rid of it
-    if (text === CDUScratchpad.clrValue && this.displayedText.get() !== currentContents) {
+    // Handle if we're showing a message
+    if (this.isShowingMessage) {
       this.displayedText.set(currentContents);
+      this.isShowingMessage = false;
       return;
     }
     // Handle if we hit CLR and there is text to erase

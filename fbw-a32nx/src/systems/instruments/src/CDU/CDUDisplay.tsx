@@ -47,9 +47,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
   openPage(page: DisplayablePage) {
     this.currentPage = page;
-    if (page.defaultMessage) {
-      this.setMessage(page.defaultMessage);
-    }
+    this.scratchpad.onOpenPage(page);
     clearTimeout(this.refreshTimeout);
     this.refresh();
   }

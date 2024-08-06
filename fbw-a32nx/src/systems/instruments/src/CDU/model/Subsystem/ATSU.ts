@@ -8,6 +8,7 @@ export class ATSU extends CDUSubsystem {
   fmsClient: FmsClient;
   constructor(cdu: CDU) {
     super(cdu);
+    console.log(`[CDU${cdu.Index}] Initializing ATSU subsystem`);
     this.fmsClient = new FmsClient(this, cdu.flightPlanService);
   }
 
