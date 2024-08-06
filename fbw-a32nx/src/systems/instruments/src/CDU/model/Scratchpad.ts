@@ -1,7 +1,7 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { TypeIIMessage, TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
-import { MessageQueue } from '@cdu/model/Subsystem/MessageQueue';
+import { MessageQueue } from '@cdu/model/MessageQueue';
 import { Subject } from '@microsoft/msfs-sdk';
 
 export namespace CDUScratchpad {
