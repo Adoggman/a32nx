@@ -9,8 +9,11 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
+import { CDUScratchpad } from '@cdu/model/Scratchpad';
 import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
 import { InitFuelPred } from '@cdu/pages/InitFuelPred';
+import { Airport } from '../../../../../../../fbw-common/src/systems/navdata';
+import { FmgcFlightPhase } from '@shared/flightphase';
 
 export class Init extends DisplayablePage {
   title = 'INIT';
@@ -24,22 +27,25 @@ export class Init extends DisplayablePage {
   lines = this.makeInitPageLines();
 
   makeInitPageLines() {
-    const origin = this.CDU.flightPlanService.active.originAirport;
-    const dest = this.CDU.flightPlanService.active.destinationAirport;
-    const altn = this.CDU.flightPlanService.active.alternateDestinationAirport;
+    const origin = this.CDU.FlightInformation.origin;
+    const dest = this.CDU.FlightInformation.destination;
+    const altn = this.CDU.FlightInformation.alternate;
     const fltNo = this.CDU.FlightInformation.flightNumber;
-    const costIndex = this.CDU.Simbrief.Data?.costIndex;
-    const crzFl = this.CDU.FlightInformation.crzFL;
-    const crzFlTemp = +this.CDU.FlightInformation.crzFLTemp;
+    const costIndex = this.CDU.FlightInformation.costIndex;
+    const crzFl = this.CDU.FlightInformation.cruiseLevel;
+    const crzFlTemp = this.CDU.FlightInformation.crzFlTemp;
+    const defaultCrzFlTemp = +this.CDU.FlightInformation.defaultCrzFLTemp;
+    const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
     const tropo = this.CDU.FlightInformation.tropo;
     const uplinkDone = this.CDU.Simbrief.uplinkDone;
+    const manualGndTmp = this.CDU.FlightInformation.manuallyEnteredGroundTemp;
 
     return makeLines(
       new CDULine(
         new CDUElement(origin ? '' : '__________', origin ? CDUColor.Cyan : CDUColor.Amber),
         new CDUElement('CO RTE'),
         origin
-          ? new CDUElement(origin.ident + '/' + dest.ident, CDUColor.Cyan)
+          ? new CDUElement(origin.ident + '/' + (dest ? dest.ident : '\xa0\xa0\xa0\xa0'), CDUColor.Cyan)
           : new CDUElement('____/____', CDUColor.Amber),
         new CDUElement('FROM/TO\xa0\xa0'),
       ),
@@ -63,7 +69,13 @@ export class Init extends DisplayablePage {
       new CDULine(
         new CDUElement(uplinkDone ? costIndex : '---', uplinkDone ? CDUColor.Cyan : CDUColor.White),
         new CDUElement('COST INDEX'),
-        new CDUElement(tropo ? tropo.toFixed(0) : '36090', CDUColor.Cyan),
+        manualTropo
+          ? new CDUElement(manualTropo.toFixed(0), CDUColor.Cyan, CDUTextSize.Large)
+          : new CDUElement(
+              tropo ? tropo.toFixed(0) : '36090',
+              CDUColor.Cyan,
+              tropo ? CDUTextSize.Large : CDUTextSize.Small,
+            ),
         new CDUElement('TROPO'),
       ),
       new CDULine(
@@ -72,15 +84,19 @@ export class Init extends DisplayablePage {
           crzFl ? CDUColor.Cyan : CDUColor.White,
           CDUTextSize.Large,
           crzFl
-            ? new CDUElement('/' + crzFlTemp.toFixed(0) + '°', CDUColor.Cyan, CDUTextSize.Small)
+            ? new CDUElement(
+                '/' + (crzFlTemp ?? defaultCrzFlTemp.toFixed(0)) + '°',
+                CDUColor.Cyan,
+                crzFlTemp ? CDUTextSize.Large : CDUTextSize.Small,
+              )
             : new CDUElement('/---°'),
         ),
         new CDUElement('CRZ FL/TEMP'),
-        this.CDU.FlightInformation.originGroundTemp
+        origin
           ? new CDUElement(
-              this.CDU.FlightInformation.originGroundTemp.toFixed(0) + '°',
+              (manualGndTmp ? manualGndTmp.toFixed(0) : this.CDU.FlightInformation.defaultGroundTemp.toFixed(0)) + '°',
               CDUColor.Cyan,
-              CDUTextSize.Small,
+              manualGndTmp ? CDUTextSize.Large : CDUTextSize.Small,
             )
           : new CDUElement('---°'),
         new CDUElement('GND TEMP'),
@@ -93,6 +109,11 @@ export class Init extends DisplayablePage {
     if (this.CDU.Simbrief.uplinkDone) {
       this.refreshRate = RefreshRate.None;
     }
+  }
+
+  refresh() {
+    this.lines = this.makeInitPageLines();
+    super.refresh();
   }
 
   onRSK1() {
@@ -120,11 +141,54 @@ export class Init extends DisplayablePage {
   }
 
   onRSK5() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    if (this.scratchpad.isEmpty()) return;
+    if (this.scratchpad.isCLR() && this.CDU.FlightInformation.manuallyEnteredTropo) {
+      this.CDU.FlightInformation.manuallyEnteredTropo = undefined;
+      this.refresh();
+      return;
+    }
+
+    if (this.scratchpad.contentIsNumber()) {
+      const num = this.scratchpad.getNumber();
+      if (num < 0 || num > 60000) {
+        this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      } else {
+        this.scratchpad.clear();
+        this.CDU.FlightInformation.manuallyEnteredTropo = Math.round(num / 10) * 10;
+        this.refresh();
+      }
+    } else {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+    }
   }
 
   onRSK6() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    if (this.CDU.flightPhaseManager.phase !== FmgcFlightPhase.Preflight) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      this.CDU.FlightInformation.manuallyEnteredGroundTemp = undefined;
+      this.scratchpad.clear();
+      this.refresh();
+      return;
+    }
+
+    if (!this.scratchpad.contentIsNumber()) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const num = Math.round(this.scratchpad.getNumber());
+    if (num < -99 || num > 99) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    this.CDU.FlightInformation.manuallyEnteredGroundTemp = num;
+    this.scratchpad.clear();
+    this.refresh();
   }
 
   onLSK1() {
@@ -132,7 +196,32 @@ export class Init extends DisplayablePage {
   }
 
   onLSK2() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    const altDestIdent = this.scratchpad.getContents();
+    if (!altDestIdent || altDestIdent === 'NONE' || altDestIdent === CDUScratchpad.clrValue) {
+      this.CDU.ATSU.fmsClient.resetAtisAutoUpdate();
+      this.CDU.flightPlanService.setAlternate(undefined).then(() => {
+        this.refresh();
+      });
+      this.scratchpad.clear();
+      return;
+    }
+
+    this.searchAirport(altDestIdent).then((airportAltDest) => {
+      if (airportAltDest) {
+        this.CDU.ATSU.fmsClient.resetAtisAutoUpdate();
+        this.CDU.flightPlanService.setAlternate(altDestIdent).then(() => {
+          this.refresh();
+        });
+        this.scratchpad.clear();
+      } else {
+        this.scratchpad.setMessage(NXSystemMessages.notInDatabase);
+      }
+      this.refresh();
+    });
+  }
+
+  async searchAirport(icao: string): Promise<Airport> {
+    return this.CDU.navigationDatabase.searchAirport(icao);
   }
 
   onLSK3() {
@@ -140,7 +229,27 @@ export class Init extends DisplayablePage {
   }
 
   onLSK5() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    if (this.scratchpad.isEmpty()) return;
+
+    if (this.scratchpad.isCLR()) {
+      this.CDU.FlightInformation.costIndex = undefined;
+      this.scratchpad.clear();
+      this.refresh();
+      return;
+    }
+
+    if (this.scratchpad.contentIsNumber()) {
+      const num = this.scratchpad.getNumber();
+      if (num < 0 || num > 999) {
+        this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      } else {
+        this.CDU.FlightInformation.costIndex = num.toFixed(0);
+        this.scratchpad.clear();
+        this.refresh();
+      }
+    } else {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+    }
   }
 
   onLSK6() {

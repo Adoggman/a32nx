@@ -3,26 +3,50 @@ import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { getISATemp } from '@cdu/model/Util';
 
 export class FlightInformation extends CDUSubsystem {
-  originGroundTemp: number | undefined = undefined;
+  manuallyEnteredGroundTemp: number | undefined = undefined;
   flightNumber: string | undefined = undefined;
   tempCurve: Avionics.Curve;
 
+  manuallyEnteredTropo: Feet = undefined;
+  crzFlTemp: Celsius = undefined;
+  costIndex: string = undefined;
+
   public get tropo() {
-    return this.cdu.flightPlanService.active?.performanceData?.tropopause;
+    return this.manuallyEnteredTropo ?? this.cdu.flightPlanService.active?.performanceData?.tropopause;
   }
 
-  public get crzFL() {
-    return this.cdu.flightPlanService.active?.performanceData?.cruiseFlightLevel;
+  public get defaultCrzFLTemp() {
+    return this.tempCurve.evaluate(this.cruiseLevel);
   }
 
-  public get crzFLTemp() {
-    return this.tempCurve.evaluate(this.crzFL);
+  public get defaultGroundTemp() {
+    return getISATemp(this.cdu.flightPlanService.active?.originAirport.location.alt);
+  }
+
+  public get cruiseLevel() {
+    return this.cdu.flightPlanService.active?.performanceData.cruiseFlightLevel;
+  }
+
+  public get origin() {
+    return this.cdu.flightPlanService.active?.originAirport;
+  }
+
+  public get destination() {
+    return this.cdu.flightPlanService.active?.destinationAirport;
+  }
+
+  public get alternate() {
+    return this.cdu.flightPlanService.active?.alternateDestinationAirport;
   }
 
   constructor(cdu: CDU) {
     super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing Flight Information subsystem`);
     this.initTempCurve();
+  }
+
+  setAlternate(icao: string) {
+    this.cdu.flightPlanService.active.setAlternateDestinationAirport(icao);
   }
 
   initTempCurve() {
@@ -52,7 +76,7 @@ export class FlightInformation extends CDUSubsystem {
   }
 
   onFlightPlanUpdated() {
-    this.flightNumber = this.cdu.flightPlanService.active?.flightNumber;
-    this.originGroundTemp = getISATemp(this.cdu.flightPlanService.active?.originAirport.location.alt);
+    this.costIndex = this.cdu.Simbrief.Data.costIndex;
+    this.flightNumber = this.cdu.Simbrief.Data.airline + this.cdu.Simbrief.Data.flightNumber;
   }
 }

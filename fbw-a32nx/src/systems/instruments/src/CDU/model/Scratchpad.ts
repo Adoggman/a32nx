@@ -69,7 +69,7 @@ export class Scratchpad {
   }
 
   removeMessageFromQueue(text: string) {
-    if (this.currentMessage.text === text) {
+    if (this.currentMessage && this.currentMessage.text === text) {
       this.clearMessage();
     }
     this.messageQueue.removeMessage(text);
@@ -147,12 +147,21 @@ export class Scratchpad {
     this.currentMessage = message;
   }
 
+  getContents() {
+    return this.typedText.get();
+  }
+
   getSplitContents(split = '/') {
     return this.typedText.get().split(split);
   }
 
   typeCharacter(text: string) {
-    if (!this.display.currentPage.allowsTyping) return;
+    if (!this.display.currentPage.allowsTyping) {
+      if (this.currentMessage && !this.isShowingPageDefaultMessage) {
+        this.clearMessage();
+      }
+      return;
+    }
 
     const currentContents = this.typedText.get();
     // Handle if we're on CLR
