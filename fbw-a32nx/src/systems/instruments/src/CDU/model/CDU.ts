@@ -9,6 +9,7 @@ import { ATSU } from '@cdu/model/Subsystem/ATSU';
 import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
 import { Fuel } from '@cdu/model/Subsystem/Fuel';
 import { FlightInformation } from '@cdu/model/Subsystem/FlightInformation';
+import { MessageQueue } from '@cdu/model/Subsystem/MessageQueue';
 
 export enum CDUIndex {
   Left = 1,
@@ -26,6 +27,7 @@ export class CDU {
   ATSU: ATSU;
   Fuel: Fuel;
   FlightInformation: FlightInformation;
+  MessageQueue: MessageQueue;
   // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService;
@@ -97,6 +99,7 @@ export class CDU {
     this.ATSU = new ATSU(this);
     this.Fuel = new Fuel(this);
     this.FlightInformation = new FlightInformation(this);
+    this.MessageQueue = new MessageQueue(this);
   }
 
   setMessage(message: TypeIMessage, replacement?: string): void {
@@ -113,6 +116,7 @@ export class CDU {
       );
     }
     console.log(`[CDU${this.Index}] Adding message to queue: ${message.getText(replacement)}`);
+    this.MessageQueue.addMessage(message.getModifiedMessage(replacement));
   }
 
   toString(): string {

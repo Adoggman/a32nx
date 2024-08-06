@@ -1,5 +1,5 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
-import { TypeIMessage } from '@cdu/data/NXMessages';
+import { TypeIIMessage, TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
 import { Subject } from '@microsoft/msfs-sdk';
 
@@ -65,10 +65,20 @@ export class Scratchpad {
   }
 
   clearMessage() {
-    this.isShowingMessage = false;
-    this.isShowingPageDefaultMessage = false;
-    this.displayedText.set(this.typedText.get());
-    this.color.set(CDUColor.White);
+    if (this.isShowingMessage) {
+      const messageText = this.displayedText.get();
+      this.isShowingMessage = false;
+      this.isShowingPageDefaultMessage = false;
+      this.displayedText.set(this.typedText.get());
+      this.color.set(CDUColor.White);
+      this.display.removeMessage(messageText);
+    }
+  }
+
+  messageRemovedFromQueue(text: string) {
+    if (this.isShowingMessage && this.displayedText.get() === text) {
+      this.displayedText.set(this.typedText.get());
+    }
   }
 
   onOpenPage(page: DisplayablePage): void {
@@ -80,7 +90,7 @@ export class Scratchpad {
     }
   }
 
-  setMessage(message: TypeIMessage, replacement?: string) {
+  setMessage(message: TypeIMessage | TypeIIMessage, replacement?: string) {
     this.displayedText.set(message.getText(replacement));
     this.color.set(message.isAmber ? CDUColor.Amber : CDUColor.White);
     this.isShowingMessage = true;
@@ -101,8 +111,7 @@ export class Scratchpad {
     }
     // Handle if we're showing a message
     if (this.isShowingMessage) {
-      this.displayedText.set(currentContents);
-      this.isShowingMessage = false;
+      this.clearMessage();
       return;
     }
     // Handle if we hit CLR and there is text to erase

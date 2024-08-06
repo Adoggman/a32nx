@@ -76,7 +76,6 @@ export class Simbrief extends CDUSubsystem implements SimbriefUplinkHandler {
   updateSimbriefData(data: ISimbriefData, _simbriefObject: {}, uplink: boolean): void {
     this.Data = data;
     this.Status = SimbriefStatus.Done;
-    this.cdu.setMessage(NXFictionalMessages.emptyMessage);
     this.cdu.Display?.refresh();
     if (uplink) {
       this.uplinkFlightPlan();

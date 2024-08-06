@@ -45,6 +45,10 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     return CDU.instances[this.side];
   }
 
+  removeMessage(message: string) {
+    this.CDU.MessageQueue.removeMessage(message);
+  }
+
   openPage(page: DisplayablePage) {
     this.currentPage = page;
     this.scratchpad.onOpenPage(page);
