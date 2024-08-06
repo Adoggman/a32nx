@@ -93,7 +93,7 @@ export class Init extends DisplayablePage {
   }
 
   onRSK1() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK2() {
@@ -109,39 +109,39 @@ export class Init extends DisplayablePage {
   }
 
   onRSK3() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK4() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK5() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onRSK6() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK1() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK2() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK3() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK5() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLSK6() {
-    this.display.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
   }
 
   onLeft() {

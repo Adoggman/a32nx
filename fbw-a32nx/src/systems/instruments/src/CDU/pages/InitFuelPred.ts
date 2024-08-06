@@ -88,7 +88,7 @@ export class InitFuelPred extends DisplayablePage {
 
     // Not number
     if (!this.scratchpad.contentIsNumber()) {
-      this.display.setMessage(NXSystemMessages.formatError);
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
       return;
     }
 
@@ -101,7 +101,7 @@ export class InitFuelPred extends DisplayablePage {
       this.refresh();
       return;
     } else {
-      this.display.setMessage(NXSystemMessages.entryOutOfRange);
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
       return;
     }
   }

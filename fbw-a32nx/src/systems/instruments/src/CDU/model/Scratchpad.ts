@@ -1,6 +1,7 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { TypeIIMessage, TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
+import { MessageQueue } from '@cdu/model/Subsystem/MessageQueue';
 import { Subject } from '@microsoft/msfs-sdk';
 
 export namespace CDUScratchpad {
@@ -16,11 +17,14 @@ export class Scratchpad {
   typedText: Subject<string> = Subject.create<string>('');
   isShowingMessage: boolean = false;
   isShowingPageDefaultMessage: boolean = false;
+  messageQueue: MessageQueue;
 
   private display: CDUDisplay;
 
   constructor(display: CDUDisplay) {
     this.display = display;
+
+    this.messageQueue = new MessageQueue(this);
     if (this.display.currentPage) {
       this.onOpenPage(this.display.currentPage);
     }
@@ -29,6 +33,18 @@ export class Scratchpad {
       this.displayedText.set(newValue);
       this.color.set(CDUColor.White);
     });
+  }
+
+  removeMessageFromQueue(text: string) {
+    if (this.isShowingMessage && this.displayedText.get() === text) {
+      this.displayedText.set(this.typedText.get());
+    }
+
+    this.messageQueue.removeMessage(text);
+  }
+
+  addMessageToQueue(message: TypeIIMessage) {
+    this.messageQueue.addMessage(message);
   }
 
   setTypedText(text: string) {
@@ -71,13 +87,7 @@ export class Scratchpad {
       this.isShowingPageDefaultMessage = false;
       this.displayedText.set(this.typedText.get());
       this.color.set(CDUColor.White);
-      this.display.removeMessage(messageText);
-    }
-  }
-
-  messageRemovedFromQueue(text: string) {
-    if (this.isShowingMessage && this.displayedText.get() === text) {
-      this.displayedText.set(this.typedText.get());
+      this.messageQueue.removeMessage(messageText);
     }
   }
 

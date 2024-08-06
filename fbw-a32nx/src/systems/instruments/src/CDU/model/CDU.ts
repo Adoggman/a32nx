@@ -9,7 +9,6 @@ import { ATSU } from '@cdu/model/Subsystem/ATSU';
 import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
 import { Fuel } from '@cdu/model/Subsystem/Fuel';
 import { FlightInformation } from '@cdu/model/Subsystem/FlightInformation';
-import { MessageQueue } from '@cdu/model/Subsystem/MessageQueue';
 
 export enum CDUIndex {
   Left = 1,
@@ -27,7 +26,6 @@ export class CDU {
   ATSU: ATSU;
   Fuel: Fuel;
   FlightInformation: FlightInformation;
-  MessageQueue: MessageQueue;
   // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService;
@@ -39,6 +37,10 @@ export class CDU {
 
   private timeBetweenUpdates: number = 100;
   private updateTimeout: NodeJS.Timeout;
+
+  public get scratchpad() {
+    return this.Display.scratchpad;
+  }
 
   // #region Static Properties & Methods
 
@@ -99,14 +101,13 @@ export class CDU {
     this.ATSU = new ATSU(this);
     this.Fuel = new Fuel(this);
     this.FlightInformation = new FlightInformation(this);
-    this.MessageQueue = new MessageQueue(this);
   }
 
   setMessage(message: TypeIMessage, replacement?: string): void {
     if (message.isTypeTwo) {
       throw new Error(`[CDU${this.Index}] Tried to pass type 2 message to setMessage: ${message.getText(replacement)}`);
     }
-    this.Display?.setMessage(message, replacement);
+    this.scratchpad.setMessage(message, replacement);
   }
 
   addMessageToQueue(message: TypeIIMessage, replacement?: string): void {
@@ -116,7 +117,7 @@ export class CDU {
       );
     }
     console.log(`[CDU${this.Index}] Adding message to queue: ${message.getText(replacement)}`);
-    this.MessageQueue.addMessage(message.getModifiedMessage(replacement));
+    this.scratchpad.addMessageToQueue(message.getModifiedMessage(replacement));
   }
 
   toString(): string {

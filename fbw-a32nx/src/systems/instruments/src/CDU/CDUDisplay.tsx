@@ -12,7 +12,6 @@ import { CDUSimvars } from '@cdu/model/CDUSimvarPublisher';
 import { MCDUMenu } from '@cdu/pages/MCDUMenu';
 import { DisplayablePage } from '@cdu/model/CDUPage';
 import { CDUHeader, CDUPageInfo, Lines, ScratchpadDisplay } from '@cdu/PageComponents';
-import { TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUEvents } from '@cdu/data/CDUEvent';
 import { Init } from '@cdu/pages/Init';
 import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
@@ -45,10 +44,6 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     return CDU.instances[this.side];
   }
 
-  removeMessage(message: string) {
-    this.CDU.MessageQueue.removeMessage(message);
-  }
-
   openPage(page: DisplayablePage) {
     this.currentPage = page;
     this.scratchpad.onOpenPage(page);
@@ -58,10 +53,6 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
   setTypedText(text: string) {
     this.scratchpad.setTypedText(text);
-  }
-
-  setMessage(message: TypeIMessage, replacement?: string) {
-    this.scratchpad.setMessage(message, replacement);
   }
 
   // #region Rendering

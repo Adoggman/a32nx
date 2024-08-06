@@ -1,13 +1,13 @@
 import { TypeIIMessage } from '@cdu/data/NXMessages';
-import { CDU } from '@cdu/model/CDU';
-import { CDUSubsystem } from '@cdu/model/Subsystem';
+import { Scratchpad } from '@cdu/model/Scratchpad';
 
-export class MessageQueue extends CDUSubsystem {
+export class MessageQueue {
   queue: TypeIIMessage[];
+  scratchpad: Scratchpad;
 
-  constructor(cdu: CDU) {
-    super(cdu);
+  constructor(scratchpad: Scratchpad) {
     this.queue = [];
+    this.scratchpad = scratchpad;
   }
 
   addMessage(message: TypeIIMessage) {
@@ -27,7 +27,6 @@ export class MessageQueue extends CDUSubsystem {
         message.onClear();
         this.queue.splice(i, 1);
         if (i === 0) {
-          this.cdu.Display.scratchpad.messageRemovedFromQueue(text);
           this.updateDisplayedMessage();
         }
         break;
@@ -47,7 +46,7 @@ export class MessageQueue extends CDUSubsystem {
         return this.updateDisplayedMessage();
       }
 
-      this.cdu.Display.scratchpad.setMessage(message);
+      this.scratchpad.setMessage(message);
     }
   }
 
