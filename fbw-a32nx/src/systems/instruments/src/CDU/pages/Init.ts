@@ -90,6 +90,9 @@ export class Init extends DisplayablePage {
 
   onRefresh() {
     this.lines = this.makeInitPageLines();
+    if (this.CDU.Simbrief.uplinkDone) {
+      this.refreshRate = RefreshRate.None;
+    }
   }
 
   onRSK1() {
@@ -104,7 +107,7 @@ export class Init extends DisplayablePage {
       NXSystemMessages.uplinkInsertInProg.getModifiedMessage('', () => this.CDU.Simbrief.uplinkDone),
     );
     this.CDU.Simbrief.tryUplinkFlightPlan();
-    this.refreshRate = RefreshRate.Fast;
+    this.refreshRate = RefreshRate.Medium;
     this.refresh();
   }
 
