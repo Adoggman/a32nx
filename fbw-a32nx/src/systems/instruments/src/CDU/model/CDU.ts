@@ -103,11 +103,11 @@ export class CDU {
     this.FlightInformation = new FlightInformation(this);
   }
 
-  setMessage(message: TypeIMessage, replacement?: string): void {
+  setMessage(message: TypeIMessage): void {
     if (message.isTypeTwo) {
-      throw new Error(`[CDU${this.Index}] Tried to pass type 2 message to setMessage: ${message.getText(replacement)}`);
+      throw new Error(`[CDU${this.Index}] Tried to pass type 2 message to setMessage: ${message.text}`);
     }
-    this.scratchpad.setMessage(message, replacement);
+    this.scratchpad.setMessage(message);
   }
 
   addMessageToQueue(message: TypeIIMessage, replacement?: string): void {

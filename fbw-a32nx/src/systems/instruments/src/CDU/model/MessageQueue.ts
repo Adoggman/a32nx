@@ -1,13 +1,14 @@
 import { TypeIIMessage } from '@cdu/data/NXMessages';
-import { Scratchpad } from '@cdu/model/Scratchpad';
+
+export type QueueUpdateHandler = (message: TypeIIMessage) => void;
 
 export class MessageQueue {
   queue: TypeIIMessage[];
-  scratchpad: Scratchpad;
+  onQueueUpdate: QueueUpdateHandler;
 
-  constructor(scratchpad: Scratchpad) {
+  constructor(queueUpdateHandler: QueueUpdateHandler) {
     this.queue = [];
-    this.scratchpad = scratchpad;
+    this.onQueueUpdate = queueUpdateHandler;
   }
 
   addMessage(message: TypeIIMessage) {
@@ -46,7 +47,7 @@ export class MessageQueue {
         return this.updateDisplayedMessage();
       }
 
-      this.scratchpad.setMessage(message);
+      this.onQueueUpdate(message);
     }
   }
 

@@ -2,7 +2,9 @@ import { CDUDisplay } from '@cdu/CDUDisplay';
 import { TypeIIMessage, TypeIMessage } from '@cdu/data/NXMessages';
 import { CDUColor, DisplayablePage } from '@cdu/model/CDUPage';
 import { MessageQueue } from '@cdu/model/MessageQueue';
+import { FMMessage } from '@flybywiresim/fbw-sdk';
 import { Subject } from '@microsoft/msfs-sdk';
+import { recallMessageById } from '@fmgc/index';
 
 export namespace CDUScratchpad {
   export const clrValue = '\xa0\xa0\xa0\xa0\xa0CLR';
@@ -12,19 +14,23 @@ export namespace CDUScratchpad {
 }
 
 export class Scratchpad {
+  // Display elements - subjects so if they change the display automatically updates, no refresh required
   displayedText: Subject<string> = Subject.create<string>('');
   color: Subject<string> = Subject.create<string>(CDUColor.White);
   typedText: Subject<string> = Subject.create<string>('');
-  isShowingMessage: boolean = false;
-  isShowingPageDefaultMessage: boolean = false;
+
   messageQueue: MessageQueue;
+  currentMessage: TypeIMessage | TypeIIMessage | undefined;
+  isShowingPageDefaultMessage: boolean = false;
+
+  //isShowingMessage: boolean = false;
 
   private display: CDUDisplay;
 
   constructor(display: CDUDisplay) {
     this.display = display;
 
-    this.messageQueue = new MessageQueue(this);
+    this.messageQueue = new MessageQueue((message) => this.onQueueUpdated(message));
     if (this.display.currentPage) {
       this.onOpenPage(this.display.currentPage);
     }
@@ -32,14 +38,40 @@ export class Scratchpad {
     this.typedText.sub((newValue) => {
       this.displayedText.set(newValue);
       this.color.set(CDUColor.White);
+      this.clearMessage();
+    });
+
+    this.initMessageHandler();
+  }
+
+  initMessageHandler() {
+    Coherent.on('A32NX_FMGC_SEND_MESSAGE_TO_MCDU', (message: FMMessage) => {
+      console.log(`[CDU${this.display.Side}] MCDU message received: ${message.text}`);
+      this.addMessageToQueue(
+        new TypeIIMessage(
+          message.text,
+          message.color === 'Amber',
+          '',
+          () => false,
+          () => {
+            if (message.clearable) {
+              recallMessageById(message.id);
+            }
+          },
+        ),
+      );
+    });
+
+    Coherent.on('A32NX_FMGC_RECALL_MESSAGE_FROM_MCDU_WITH_ID', (text) => {
+      console.log(`[CDU${this.display.Side}] MCDU message received: ${text}`);
+      this.removeMessageFromQueue(text);
     });
   }
 
   removeMessageFromQueue(text: string) {
-    if (this.isShowingMessage && this.displayedText.get() === text) {
-      this.displayedText.set(this.typedText.get());
+    if (this.currentMessage.text === text) {
+      this.clearMessage();
     }
-
     this.messageQueue.removeMessage(text);
   }
 
@@ -47,12 +79,19 @@ export class Scratchpad {
     this.messageQueue.addMessage(message);
   }
 
+  onQueueUpdated(message: TypeIIMessage) {
+    if (!this.isShowingPageDefaultMessage) {
+      this.setMessage(message);
+    }
+  }
+
   setTypedText(text: string) {
     this.typedText.set(text);
+    this.clearMessage();
   }
 
   isEmpty() {
-    return this.typedText.get().length === 0;
+    return this.typedText.get().length === 0 && !this.currentMessage;
   }
 
   isCLR() {
@@ -74,16 +113,13 @@ export class Scratchpad {
   }
 
   clear() {
-    if (this.isShowingMessage) {
-      this.clearMessage();
-    }
     this.typedText.set('');
   }
 
   clearMessage() {
-    if (this.isShowingMessage) {
+    if (this.currentMessage) {
       const messageText = this.displayedText.get();
-      this.isShowingMessage = false;
+      this.currentMessage = undefined;
       this.isShowingPageDefaultMessage = false;
       this.displayedText.set(this.typedText.get());
       this.color.set(CDUColor.White);
@@ -92,18 +128,23 @@ export class Scratchpad {
   }
 
   onOpenPage(page: DisplayablePage): void {
+    // Clear old page's message
+    if (this.isShowingPageDefaultMessage) {
+      this.clearMessage();
+    }
+    // Add new page's message
     if (page.defaultMessage) {
       this.setMessage(page.defaultMessage);
       this.isShowingPageDefaultMessage = true;
-    } else if (this.isShowingPageDefaultMessage) {
-      this.clearMessage();
+    } else {
+      this.messageQueue.updateDisplayedMessage();
     }
   }
 
-  setMessage(message: TypeIMessage | TypeIIMessage, replacement?: string) {
-    this.displayedText.set(message.getText(replacement));
+  setMessage(message: TypeIMessage | TypeIIMessage) {
+    this.displayedText.set(message.text);
     this.color.set(message.isAmber ? CDUColor.Amber : CDUColor.White);
-    this.isShowingMessage = true;
+    this.currentMessage = message;
   }
 
   getSplitContents(split = '/') {
@@ -120,7 +161,7 @@ export class Scratchpad {
       return;
     }
     // Handle if we're showing a message
-    if (this.isShowingMessage) {
+    if (this.currentMessage) {
       this.clearMessage();
       return;
     }
