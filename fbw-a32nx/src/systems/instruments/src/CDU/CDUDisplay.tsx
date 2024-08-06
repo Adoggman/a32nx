@@ -79,6 +79,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     }
 
     if (this.currentPage.refreshRate) {
+      clearTimeout(this.refreshTimeout);
       this.refreshTimeout = setTimeout(() => {
         this.currentPage.onRefresh();
         this.refresh();
