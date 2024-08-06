@@ -27,11 +27,11 @@ export class Init extends DisplayablePage {
     const origin = this.CDU.flightPlanService.active.originAirport;
     const dest = this.CDU.flightPlanService.active.destinationAirport;
     const altn = this.CDU.flightPlanService.active.alternateDestinationAirport;
-    const fltNo = this.CDU.Simbrief.flightNumber;
+    const fltNo = this.CDU.FlightInformation.flightNumber;
     const costIndex = this.CDU.Simbrief.Data?.costIndex;
-    const crzFl = this.CDU.Simbrief.crzFL;
-    const crzFlTemp = +this.CDU.Simbrief.crzFLTemp;
-    const tropo = this.CDU.Simbrief.tropo;
+    const crzFl = this.CDU.FlightInformation.crzFL;
+    const crzFlTemp = +this.CDU.FlightInformation.crzFLTemp;
+    const tropo = this.CDU.FlightInformation.tropo;
     const uplinkDone = this.CDU.Simbrief.uplinkDone;
 
     return makeLines(
@@ -76,8 +76,12 @@ export class Init extends DisplayablePage {
             : new CDUElement('/---°'),
         ),
         new CDUElement('CRZ FL/TEMP'),
-        this.CDU.Simbrief.originGroundTemp
-          ? new CDUElement(this.CDU.Simbrief.originGroundTemp.toFixed(0) + '°', CDUColor.Cyan, CDUTextSize.Small)
+        this.CDU.FlightInformation.originGroundTemp
+          ? new CDUElement(
+              this.CDU.FlightInformation.originGroundTemp.toFixed(0) + '°',
+              CDUColor.Cyan,
+              CDUTextSize.Small,
+            )
           : new CDUElement('---°'),
         new CDUElement('GND TEMP'),
       ),
