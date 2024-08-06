@@ -100,7 +100,9 @@ export class Init extends DisplayablePage {
     if (this.CDU.Simbrief.uplinkDone) {
       return;
     }
-    this.CDU.addMessageToQueue(NXSystemMessages.uplinkInsertInProg);
+    this.CDU.addMessageToQueue(
+      NXSystemMessages.uplinkInsertInProg.getModifiedMessage('', () => this.CDU.Simbrief.uplinkDone),
+    );
     this.CDU.Simbrief.tryUplinkFlightPlan();
     this.refreshRate = RefreshRate.Fast;
     this.refresh();
