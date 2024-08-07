@@ -12,7 +12,7 @@ export class FlightInformation extends CDUSubsystem {
   costIndex: string = undefined;
 
   public get tropo() {
-    return this.manuallyEnteredTropo ?? this.cdu.flightPlanService.active?.performanceData?.tropopause;
+    return this.cdu.flightPlanService.active?.performanceData?.tropopause;
   }
 
   public get defaultCrzFLTemp() {

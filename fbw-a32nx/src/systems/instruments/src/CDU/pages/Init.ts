@@ -71,11 +71,7 @@ export class Init extends DisplayablePage {
         new CDUElement('COST INDEX'),
         manualTropo
           ? new CDUElement(manualTropo.toFixed(0), CDUColor.Cyan, CDUTextSize.Large)
-          : new CDUElement(
-              tropo ? tropo.toFixed(0) : '36090',
-              CDUColor.Cyan,
-              tropo ? CDUTextSize.Large : CDUTextSize.Small,
-            ),
+          : new CDUElement(tropo ? tropo.toFixed(0) : '36090', CDUColor.Cyan, CDUTextSize.Small),
         new CDUElement('TROPO'),
       ),
       new CDULine(
