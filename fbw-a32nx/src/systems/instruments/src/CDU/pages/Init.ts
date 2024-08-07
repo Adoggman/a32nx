@@ -140,6 +140,7 @@ export class Init extends DisplayablePage {
     if (this.scratchpad.isEmpty()) return;
     if (this.scratchpad.isCLR() && this.CDU.FlightInformation.manuallyEnteredTropo) {
       this.CDU.FlightInformation.manuallyEnteredTropo = undefined;
+      this.scratchpad.clear();
       this.refresh();
       return;
     }
