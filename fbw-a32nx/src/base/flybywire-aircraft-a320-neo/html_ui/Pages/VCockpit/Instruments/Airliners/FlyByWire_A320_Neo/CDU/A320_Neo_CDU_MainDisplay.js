@@ -426,7 +426,7 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         this.updateMCDU();
     }
 
-    /* MCDU UPDATE */
+    // #region MCDU UPDATE
 
     /**
      * Updates the MCDU state.
@@ -580,8 +580,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         }
     }
 
-    /* END OF MCDU UPDATE */
-    /* MCDU INTERFACE/LAYOUT */
+    //#endregion
+    //#region MCDU INTERFACE/LAYOUT
 
     _formatCell(str) {
         return str
@@ -1077,8 +1077,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         parent.appendChild(footer);
     }
 
-    /* END OF MCDU INTERFACE/LAYOUT */
-    /* MCDU SCRATCHPAD */
+    // #endregion
+    // #region MCDU SCRATCHPAD
 
     setScratchpadUserData(value) {
         this.scratchpad.setUserData(value);
@@ -1241,8 +1241,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         });
     }
 
-    /* END OF MCDU SCRATCHPAD */
-    /* MCDU MESSAGE SYSTEM */
+    // #endregion
+    // #region MCDU Scratchpad System
 
     /**
      * Display a type I message on the active subsystem's scratch pad
@@ -1330,8 +1330,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         }
     }
 
-    /* END OF MCDU MESSAGE SYSTEM */
-    /* MCDU EVENTS */
+    // #endregion
+    // #region MCDU Events
 
     onPowerOn() {
         super.onPowerOn();
@@ -1342,6 +1342,11 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
 
         // MCDU should not accept input while unpowered
         if (!SimVar.GetSimVarValue("L:A32NX_ELEC_AC_ESS_SHED_BUS_IS_POWERED", "Number")) {
+            return;
+        }
+
+        // AJH allow hiding old CDU for debug
+        if (NXDataStore.get('AJH_USE_NEW_CDU','0') === '1') {
             return;
         }
 
@@ -1398,8 +1403,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         SimVar.SetSimVarValue(`L:A32NX_MCDU_${side}_BRIGHTNESS`, "number", Math.max(this.MIN_BRIGHTNESS, Math.min(this.MAX_BRIGHTNESS, oldBrightness + sign * 0.2 * oldBrightness)));
     }
 
-    /* END OF MCDU EVENTS */
-    /* MCDU DELAY SIMULATION */
+    // #endregion
+    // #region MCDU DELAY SIMULATION
 
     /**
      * Used for switching pages
@@ -1459,8 +1464,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         }
     }
 
-    /* END OF MCDU DELAY SIMULATION */
-    /* MCDU AOC MESSAGE SYSTEM */
+    // #endregion
+    // #region MCDU AOC MESSAGE SYSTEM
 
     printPage(lines) {
         if (this.printing) {
@@ -1496,9 +1501,8 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         });
     }
 
-    /* END OF MCDU AOC MESSAGE SYSTEM */
-
-    /* MCDU SERVER CLIENT */
+    // #endregion
+    // #region MCDU SERVER CLIENT
 
     /**
      * Sends a message to the websocket server (if connected)
@@ -1585,7 +1589,7 @@ class A320_Neo_CDU_MainDisplay extends FMCMainDisplay {
         this.sendToMcduServerClient(`update:${JSON.stringify(content)}`);
     }
 
-    /* END OF WEBSOCKET */
+    // #endregion
 
     goToFuelPredPage() {
         if (this.isAnEngineOn()) {

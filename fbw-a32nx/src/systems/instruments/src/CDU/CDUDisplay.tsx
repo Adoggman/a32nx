@@ -15,6 +15,7 @@ import { CDUHeader, CDUPageInfo, Lines, ScratchpadDisplay } from '@cdu/PageCompo
 import { CDUEvents } from '@cdu/data/CDUEvent';
 import { Init } from '@cdu/pages/Init';
 import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
+import { NXDataStore } from '@flybywiresim/fbw-sdk';
 
 export type Side = 1 | 2;
 
@@ -34,6 +35,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   constructor(props: CDUProps) {
     super(props);
     this.scratchpad = new Scratchpad(this);
+    this.showing = NXDataStore.get('AJH_USE_NEW_CDU', '1') === '1';
   }
 
   public get Side() {
@@ -121,6 +123,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   debugSwitchCDUVersion(): void {
     // Hide old JS
     this.showing = !this.showing;
+    NXDataStore.set('AJH_USE_NEW_CDU', this.showing ? '1' : '0');
     if (this.side === 1) {
       if (this.showing) {
         document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.add('hidden');
