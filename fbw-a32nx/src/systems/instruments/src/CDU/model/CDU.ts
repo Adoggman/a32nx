@@ -138,6 +138,7 @@ export class CDU {
     engine: 'LEAP-1A26',
     idle: 0,
     perf: 0,
+    maxFlightLevel: 390,
   };
 
   static getTimeUTC(): Seconds {

@@ -4,8 +4,9 @@ import { getISATemp } from '@cdu/model/Util';
 import { AtsuStatusCodes } from '@datalink/common';
 
 export class FlightInformation extends CDUSubsystem {
-  manuallyEnteredGroundTemp: number | undefined = undefined;
+  manuallyEnteredGroundTemp: Celsius | undefined = undefined;
   flightNumber: string | undefined = undefined;
+  cruiseFLTemp: Celsius = undefined;
   private tempCurve: Avionics.Curve;
 
   public get manuallyEnteredTropo() {
@@ -38,6 +39,20 @@ export class FlightInformation extends CDUSubsystem {
 
   public get cruiseLevel() {
     return this.cdu.flightPlanService.active?.performanceData.cruiseFlightLevel;
+  }
+
+  setCruiseLevel(level: number) {
+    if (
+      SimVar.GetSimVarValue('L:A32NX_CRZ_ALT_SET_INITIAL', 'bool') === 1 &&
+      SimVar.GetSimVarValue('L:A32NX_GOAROUND_PASSED', 'bool') === 1
+    ) {
+      SimVar.SetSimVarValue('L:A32NX_NEW_CRZ_ALT', 'number', level);
+    } else {
+      SimVar.SetSimVarValue('L:A32NX_CRZ_ALT_SET_INITIAL', 'bool', 1);
+    }
+
+    this.cdu.flightPlanService.active?.setPerformanceData('cruiseFlightLevel', level);
+    this.cdu.flightPhaseManager.handleNewCruiseAltitudeEntered(level);
   }
 
   public get origin() {

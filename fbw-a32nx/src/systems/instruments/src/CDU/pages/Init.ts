@@ -29,13 +29,12 @@ export class Init extends DisplayablePage {
   makeInitPageLines() {
     const origin = this.CDU.FlightInformation.origin;
     const hasFlight = !!origin;
-    const dest = this.CDU.FlightInformation.destination;
-    const altn = this.CDU.FlightInformation.alternate;
-    const fltNo = this.CDU.FlightInformation.flightNumber;
+    const destination = this.CDU.FlightInformation.destination;
+    const alternate = this.CDU.FlightInformation.alternate;
+    const flightNumber = this.CDU.FlightInformation.flightNumber;
     const costIndex = this.CDU.FlightInformation.costIndex;
-    const crzFl = this.CDU.FlightInformation.cruiseLevel;
-    const crzFlTemp = this.CDU.FlightInformation.crzFlTemp;
-    const defaultCrzFlTemp = +this.CDU.FlightInformation.defaultCrzFLTemp;
+    const cruiseFlightLevel = this.CDU.FlightInformation.cruiseLevel;
+    const flightLevelTemp = this.CDU.FlightInformation.cruiseFLTemp;
     const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
     const defaultTropo = this.CDU.FlightInformation.defaultTropo;
     const manualGndTmp = this.CDU.FlightInformation.manuallyEnteredGroundTemp;
@@ -43,26 +42,26 @@ export class Init extends DisplayablePage {
 
     const coRteElement = new CDUElement(hasFlight ? '' : '__________', origin ? CDUColor.Cyan : CDUColor.Amber);
     const originDestElement = hasFlight
-      ? new CDUElement(origin.ident + '/' + (dest ? dest.ident : '\xa0\xa0\xa0\xa0'), CDUColor.Cyan)
+      ? new CDUElement(origin.ident + '/' + (destination ? destination.ident : '\xa0\xa0\xa0\xa0'), CDUColor.Cyan)
       : new CDUElement('____/____', CDUColor.Amber);
 
     const alternateElement = hasFlight
-      ? new CDUElement(altn?.ident ?? 'NONE', CDUColor.Cyan)
+      ? new CDUElement(alternate?.ident ?? 'NONE', CDUColor.Cyan)
       : new CDUElement('----/----------');
 
     let flightLevelTempElement = hasFlight
       ? new CDUElement('_____ /___°', CDUColor.Amber)
       : new CDUElement('----- ', CDUColor.White, CDUTextSize.Large, new CDUElement('/---°'));
 
-    if (crzFl) {
+    if (cruiseFlightLevel) {
       flightLevelTempElement = new CDUElement(
-        ('FL' + crzFl.toFixed(0)).padEnd(6, '\xa0'),
+        `FL${cruiseFlightLevel.toFixed(0).padStart(3, '0')}\xa0`,
         CDUColor.Cyan,
         CDUTextSize.Large,
         new CDUElement(
-          '/' + (crzFlTemp ?? defaultCrzFlTemp.toFixed(0)) + '°',
+          '/' + (flightLevelTemp?.toFixed(0) ?? (+this.CDU.FlightInformation.defaultCrzFLTemp).toFixed(0)) + '°',
           CDUColor.Cyan,
-          crzFlTemp ? CDUTextSize.Large : CDUTextSize.Small,
+          flightLevelTemp ? CDUTextSize.Large : CDUTextSize.Small,
         ),
       );
     }
@@ -90,7 +89,7 @@ export class Init extends DisplayablePage {
         fplnMatchesSimbrief ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
       ),
       new CDULine(
-        new CDUElement(fltNo ? fltNo : '________', fltNo ? CDUColor.Cyan : CDUColor.Amber),
+        new CDUElement(flightNumber ? flightNumber : '________', flightNumber ? CDUColor.Cyan : CDUColor.Amber),
         new CDUElement('FLT NBR'),
         hasFlight ? new CDUElement('IRS INIT>') : undefined,
       ),
@@ -315,7 +314,86 @@ export class Init extends DisplayablePage {
   }
 
   onLSK6() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      this.CDU.FlightInformation.setCruiseLevel(undefined);
+      this.CDU.FlightInformation.cruiseFLTemp = undefined;
+      this.scratchpad.clear();
+      this.refresh();
+      return;
+    }
+
+    // Check for slash
+    const contents = this.scratchpad.getSplitContents();
+    if (contents.length > 2) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    let flString, tempString;
+    if (contents.length === 2) {
+      flString = contents[0];
+      tempString = contents[1];
+    } else if (contents.length === 1) {
+      flString = contents[0];
+    }
+
+    let success = false;
+
+    flString = flString.replace('FL', '');
+    if (flString) {
+      if (!this.scratchpad.isNumber(flString)) {
+        // Not a number
+        this.scratchpad.setMessage(NXSystemMessages.formatError);
+        return;
+      }
+
+      let fl = +flString;
+
+      // Convert 1000s to FL
+      if (fl >= 1000) {
+        fl = Math.floor(fl / 100);
+      }
+
+      if (fl < 1 || fl > this.CDU.Info.maxFlightLevel) {
+        this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+        return;
+      }
+
+      this.CDU.FlightInformation.setCruiseLevel(fl);
+      success = true;
+    }
+
+    if (tempString) {
+      tempString = tempString.replace('M', '-');
+      if (!this.scratchpad.isNumber(tempString)) {
+        this.scratchpad.setMessage(NXSystemMessages.formatError);
+        return;
+      }
+      const temp = +tempString;
+      if (this.CDU.FlightInformation.cruiseLevel) {
+        if (temp < -270 || temp > 100) {
+          this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+          return;
+        }
+        this.CDU.FlightInformation.cruiseFLTemp = Math.round(temp);
+        success = true;
+      } else {
+        // Can't set temp if no flight level
+        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+        return;
+      }
+    }
+
+    if (success) {
+      this.scratchpad.clear();
+      this.refresh();
+    } else {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+    }
   }
 
   onLeft() {
