@@ -21,6 +21,10 @@ export class FlightInformation extends CDUSubsystem {
     return this.cdu.flightPlanService.active?.performanceData?.defaultTropopause;
   }
 
+  public get tropo() {
+    return this.manuallyEnteredTropo ?? this.defaultTropo;
+  }
+
   public get costIndex() {
     return this.cdu.flightPlanService.active?.performanceData.costIndex;
   }

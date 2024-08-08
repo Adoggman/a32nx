@@ -3,12 +3,19 @@ import { CDUDisplay } from '@cdu/CDUDisplay';
 import { Simbrief } from '@cdu/model/Subsystem/Simbrief';
 import { EventBus } from '@microsoft/msfs-sdk';
 import { FlightPhaseManager } from '@fmgc/flightphase';
-import { DataManager, FlightPlanService, NavigationDatabase, NavigationDatabaseService } from '@fmgc/index';
+import {
+  A320FlightPlanPerformanceData,
+  DataManager,
+  FlightPlanService,
+  NavigationDatabase,
+  NavigationDatabaseService,
+} from '@fmgc/index';
 import { AOC } from '@cdu/model/Subsystem/AOC';
 import { ATSU } from '@cdu/model/Subsystem/ATSU';
 import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
 import { Fuel } from '@cdu/model/Subsystem/Fuel';
 import { FlightInformation } from '@cdu/model/Subsystem/FlightInformation';
+import { FMGCSubsystem } from '@cdu/model/Subsystem/FMGC';
 
 export enum CDUIndex {
   Left = 1,
@@ -26,9 +33,10 @@ export class CDU {
   ATSU: ATSU;
   Fuel: Fuel;
   FlightInformation: FlightInformation;
+  FMGC: FMGCSubsystem;
   // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
-  flightPlanService: FlightPlanService;
+  flightPlanService: FlightPlanService<A320FlightPlanPerformanceData>;
   navigationDatabaseService: NavigationDatabaseService;
   navigationDatabase: NavigationDatabase;
   dataManager: DataManager;
@@ -37,6 +45,10 @@ export class CDU {
 
   private timeBetweenUpdates: number = 100;
   private updateTimeout: NodeJS.Timeout;
+
+  public get sideLetter() {
+    return this.Index === 1 ? 'L' : 'R';
+  }
 
   public get scratchpad() {
     return this.Display.scratchpad;
@@ -101,6 +113,7 @@ export class CDU {
     this.ATSU = new ATSU(this);
     this.Fuel = new Fuel(this);
     this.FlightInformation = new FlightInformation(this);
+    this.FMGC = new FMGCSubsystem(this);
   }
 
   setMessage(message: TypeIMessage): void {
@@ -155,6 +168,7 @@ export class CDU {
 
   update() {
     this.AOC.update();
+    this.FMGC.update();
     this.updateTimeout = setTimeout(() => {
       this.update();
     }, this.timeBetweenUpdates);
