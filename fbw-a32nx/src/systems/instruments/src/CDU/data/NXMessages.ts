@@ -17,6 +17,8 @@ export class McduMessage {
 }
 
 export class TypeIMessage extends McduMessage {
+  isTypeTwo: false;
+
   constructor(text: string, isAmber: boolean = false, replace: string = '') {
     super(text, isAmber, replace);
   }
@@ -25,9 +27,9 @@ export class TypeIMessage extends McduMessage {
    * Only returning a "copy" of the object to ensure thread safety when trying to edit the original message
    * t {string} replaces defined elements, see this.replace
    */
-  //   getModifiedMessage(t: string) {
-  //     return new McduMessage(t ? this.text.replace(this.replace, '' + t) : this.text, this.isAmber, this.replace);
-  //   }
+  getModifiedMessage(t: string): TypeIMessage {
+    return new TypeIMessage(t ? this.text.replace(this.replace, '' + t) : this.text, this.isAmber, this.replace);
+  }
 
   getText(replacement?: string) {
     return this.replace ? this.text.replace(this.replace, replacement) : this.text;
@@ -37,6 +39,7 @@ export class TypeIMessage extends McduMessage {
 export class TypeIIMessage extends McduMessage {
   isResolved: () => boolean;
   onClear: () => void;
+  isTypeTwo: true;
 
   constructor(
     text: string,
@@ -162,5 +165,5 @@ export const NXTestMessages = {
   type2: new TypeIIMessage('TYPE 2 MSG'),
   type2Amber: new TypeIIMessage('TYPE 2 MSG AMBER', true),
   type2ReplaceXXXX: new TypeIIMessage('TYPE 2 REPLACE XXXX', false, 'XXXX'),
-  // TODO: test message for isResolved, onClear
+  // TODO: test message for isResolved, onClear?
 };

@@ -90,7 +90,7 @@ export class TestPage extends DisplayablePage {
   }
 
   onRSK5() {
-    this.CDU.setMessage(NXTestMessages.type1ReplaceXXXX, '0123');
+    this.CDU.setMessage(NXTestMessages.type1ReplaceXXXX.getModifiedMessage('1234'));
   }
 
   onLSK3() {
