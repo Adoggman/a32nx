@@ -39,7 +39,6 @@ export class Init extends DisplayablePage {
     const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
     const tropo = this.CDU.FlightInformation.tropo;
     const manualGndTmp = this.CDU.FlightInformation.manuallyEnteredGroundTemp;
-    const simbriefUplinkDone = this.CDU.Simbrief.uplinkDone;
 
     const coRteElement = new CDUElement(hasFlight ? '' : '__________', origin ? CDUColor.Cyan : CDUColor.Amber);
     const originDestElement = hasFlight
@@ -80,16 +79,16 @@ export class Init extends DisplayablePage {
       new CDULine(
         alternateElement,
         new CDUElement('ALTN/CO RTE'),
-        simbriefUplinkDone
+        hasFlight
           ? undefined
           : new CDUElement(
               'REQUEST' + (this.CDU.Simbrief.Status === SimbriefStatus.Requesting ? '\xa0' : '*'),
               CDUColor.Amber,
             ),
-        simbriefUplinkDone ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
+        hasFlight ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
       ),
       new CDULine(
-        new CDUElement(fltNo ?? '________', fltNo ? CDUColor.Cyan : CDUColor.Amber),
+        new CDUElement(fltNo ? fltNo : '________', fltNo ? CDUColor.Cyan : CDUColor.Amber),
         new CDUElement('FLT NBR'),
         hasFlight ? new CDUElement('IRS INIT>') : undefined,
       ),
@@ -260,16 +259,27 @@ export class Init extends DisplayablePage {
     });
   }
 
-  async searchAirport(icao: string): Promise<Airport> {
-    return this.CDU.navigationDatabase.searchAirport(icao);
-  }
-
-  async searchAirports(icaos: string[]): Promise<Airport[]> {
-    return this.CDU.navigationDatabase.searchAirports(icaos);
-  }
-
   onLSK3() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      this.CDU.FlightInformation.clearFlightNumber();
+      this.scratchpad.clear();
+      this.refresh();
+      return;
+    }
+
+    const contents = this.scratchpad.getContents();
+    if (contents.length < 1 || contents.length > 7) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    this.CDU.FlightInformation.setFlightNumber(contents);
+    this.scratchpad.clear();
+    this.refresh();
   }
 
   onLSK5() {
@@ -306,5 +316,13 @@ export class Init extends DisplayablePage {
 
   onRight() {
     this.openPage(new InitFuelPred(this.display));
+  }
+
+  async searchAirport(icao: string): Promise<Airport> {
+    return this.CDU.navigationDatabase.searchAirport(icao);
+  }
+
+  async searchAirports(icaos: string[]): Promise<Airport[]> {
+    return this.CDU.navigationDatabase.searchAirports(icaos);
   }
 }

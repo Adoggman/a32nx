@@ -1,6 +1,7 @@
 import { CDU } from '@cdu/model/CDU';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { getISATemp } from '@cdu/model/Util';
+import { AtsuStatusCodes } from '@datalink/common';
 
 export class FlightInformation extends CDUSubsystem {
   manuallyEnteredGroundTemp: number | undefined = undefined;
@@ -45,8 +46,26 @@ export class FlightInformation extends CDUSubsystem {
     this.initTempCurve();
   }
 
-  setAlternate(icao: string) {
-    this.cdu.flightPlanService.active.setAlternateDestinationAirport(icao);
+  clearFlightNumber() {
+    this.flightNumber = undefined;
+    SimVar.SetSimVarValue('ATC FLIGHT NUMBER', 'string', '', 'FMC');
+    SimVar.SetSimVarValue('L:A32NX_MCDU_FLT_NO_SET', 'boolean', 0);
+  }
+
+  setFlightNumber(flightNum: string) {
+    if (!flightNum || flightNum.length > 7) {
+      throw new Error('Flight number must be 1-7 characters long');
+    }
+
+    this.flightNumber = flightNum;
+    SimVar.SetSimVarValue('ATC FLIGHT NUMBER', 'string', flightNum, 'FMC');
+    SimVar.SetSimVarValue('L:A32NX_MCDU_FLT_NO_SET', 'boolean', 1);
+
+    this.cdu.ATSU.fmsClient.connectToNetworks(flightNum).then((errCode) => {
+      if (errCode !== AtsuStatusCodes.Ok) {
+        this.cdu.ATSU.addNewAtsuMessage(errCode);
+      }
+    });
   }
 
   initTempCurve() {
