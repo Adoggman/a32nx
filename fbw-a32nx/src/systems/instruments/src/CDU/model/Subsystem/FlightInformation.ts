@@ -75,7 +75,7 @@ export class FlightInformation extends CDUSubsystem {
     this.tempCurve.add(800 * 3.28084, -74.51);
   }
 
-  onFlightPlanUpdated() {
+  onFlightPlanUplinked() {
     this.costIndex = this.cdu.Simbrief.Data.costIndex;
     this.flightNumber = this.cdu.Simbrief.Data.airline + this.cdu.Simbrief.Data.flightNumber;
   }

@@ -44,6 +44,10 @@ export class NavigationDatabase {
     return this.backendDatabase.getAirports([icao]).then((results) => results[0]);
   }
 
+  async searchAirports(icaos: string[]): Promise<Airport[]> {
+    return this.backendDatabase.getAirports(icaos);
+  }
+
   async searchWaypoint(ident: string): Promise<Waypoint[]> {
     return this.backendDatabase.getWaypoints([ident]);
   }

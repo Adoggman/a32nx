@@ -108,7 +108,7 @@ export class Simbrief extends CDUSubsystem implements SimbriefUplinkHandler {
       console.log(`[CDU${this.cdu.Index}] SimBrief data uplinked.`);
       this.cdu.addMessageToQueue(NXSystemMessages.aocActFplnUplink);
       flightPlanService.uplinkInsert();
-      this.cdu.FlightInformation.onFlightPlanUpdated();
+      this.cdu.FlightInformation.onFlightPlanUplinked();
     });
   }
 

@@ -28,6 +28,7 @@ export class Init extends DisplayablePage {
 
   makeInitPageLines() {
     const origin = this.CDU.FlightInformation.origin;
+    const hasFlight = !!origin;
     const dest = this.CDU.FlightInformation.destination;
     const altn = this.CDU.FlightInformation.alternate;
     const fltNo = this.CDU.FlightInformation.flightNumber;
@@ -37,66 +38,73 @@ export class Init extends DisplayablePage {
     const defaultCrzFlTemp = +this.CDU.FlightInformation.defaultCrzFLTemp;
     const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
     const tropo = this.CDU.FlightInformation.tropo;
-    const uplinkDone = this.CDU.Simbrief.uplinkDone;
     const manualGndTmp = this.CDU.FlightInformation.manuallyEnteredGroundTemp;
+    const simbriefUplinkDone = this.CDU.Simbrief.uplinkDone;
+
+    const coRteElement = new CDUElement(hasFlight ? '' : '__________', origin ? CDUColor.Cyan : CDUColor.Amber);
+    const originDestElement = hasFlight
+      ? new CDUElement(origin.ident + '/' + (dest ? dest.ident : '\xa0\xa0\xa0\xa0'), CDUColor.Cyan)
+      : new CDUElement('____/____', CDUColor.Amber);
+
+    const alternateElement = hasFlight
+      ? new CDUElement(altn?.ident ?? 'NONE', CDUColor.Cyan)
+      : new CDUElement('----/----------');
+
+    let flightLevelTempElement = hasFlight
+      ? new CDUElement('_____ /___°', CDUColor.Amber)
+      : new CDUElement('----- ', CDUColor.White, CDUTextSize.Large, new CDUElement('/---°'));
+
+    if (crzFl) {
+      flightLevelTempElement = new CDUElement(
+        'FL' + crzFl.toFixed(0).padEnd(6, '\xa0'),
+        CDUColor.Cyan,
+        CDUTextSize.Large,
+        new CDUElement(
+          '/' + (crzFlTemp ?? defaultCrzFlTemp.toFixed(0)) + '°',
+          CDUColor.Cyan,
+          crzFlTemp ? CDUTextSize.Large : CDUTextSize.Small,
+        ),
+      );
+    }
+
+    const gndTempElement = hasFlight
+      ? new CDUElement(
+          (manualGndTmp ? manualGndTmp.toFixed(0) : this.CDU.FlightInformation.defaultGroundTemp.toFixed(0)) + '°',
+          CDUColor.Cyan,
+          manualGndTmp ? CDUTextSize.Large : CDUTextSize.Small,
+        )
+      : new CDUElement('---°');
 
     return makeLines(
+      new CDULine(coRteElement, new CDUElement('CO RTE'), originDestElement, new CDUElement('FROM/TO\xa0\xa0')),
       new CDULine(
-        new CDUElement(origin ? '' : '__________', origin ? CDUColor.Cyan : CDUColor.Amber),
-        new CDUElement('CO RTE'),
-        origin
-          ? new CDUElement(origin.ident + '/' + (dest ? dest.ident : '\xa0\xa0\xa0\xa0'), CDUColor.Cyan)
-          : new CDUElement('____/____', CDUColor.Amber),
-        new CDUElement('FROM/TO\xa0\xa0'),
-      ),
-      new CDULine(
-        altn ? new CDUElement(altn.ident, CDUColor.Cyan) : new CDUElement('----/----------'),
+        alternateElement,
         new CDUElement('ALTN/CO RTE'),
-        uplinkDone
+        simbriefUplinkDone
           ? undefined
           : new CDUElement(
               'REQUEST' + (this.CDU.Simbrief.Status === SimbriefStatus.Requesting ? '\xa0' : '*'),
               CDUColor.Amber,
             ),
-        uplinkDone ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
+        simbriefUplinkDone ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
       ),
       new CDULine(
         new CDUElement(fltNo ?? '________', fltNo ? CDUColor.Cyan : CDUColor.Amber),
         new CDUElement('FLT NBR'),
-        uplinkDone ? new CDUElement('IRS INIT>') : undefined,
+        hasFlight ? new CDUElement('IRS INIT>') : undefined,
       ),
       new CDULineRight(new CDUElement('WIND/TEMP>')),
       new CDULine(
-        new CDUElement(uplinkDone ? costIndex : '---', uplinkDone ? CDUColor.Cyan : CDUColor.White),
+        hasFlight
+          ? new CDUElement(costIndex ? costIndex : '___', costIndex ? CDUColor.Cyan : CDUColor.Amber)
+          : new CDUElement(costIndex ?? '---'),
         new CDUElement('COST INDEX'),
         manualTropo
           ? new CDUElement(manualTropo.toFixed(0), CDUColor.Cyan, CDUTextSize.Large)
           : new CDUElement(tropo ? tropo.toFixed(0) : '36090', CDUColor.Cyan, CDUTextSize.Small),
         new CDUElement('TROPO'),
       ),
-      new CDULine(
-        new CDUElement(
-          crzFl ? ('FL' + crzFl.toFixed(0)).padEnd(6, '\xa0') : '----- ',
-          crzFl ? CDUColor.Cyan : CDUColor.White,
-          CDUTextSize.Large,
-          crzFl
-            ? new CDUElement(
-                '/' + (crzFlTemp ?? defaultCrzFlTemp.toFixed(0)) + '°',
-                CDUColor.Cyan,
-                crzFlTemp ? CDUTextSize.Large : CDUTextSize.Small,
-              )
-            : new CDUElement('/---°'),
-        ),
-        new CDUElement('CRZ FL/TEMP'),
-        origin
-          ? new CDUElement(
-              (manualGndTmp ? manualGndTmp.toFixed(0) : this.CDU.FlightInformation.defaultGroundTemp.toFixed(0)) + '°',
-              CDUColor.Cyan,
-              manualGndTmp ? CDUTextSize.Large : CDUTextSize.Small,
-            )
-          : new CDUElement('---°'),
-        new CDUElement('GND TEMP'),
-      ),
+      new CDULine(flightLevelTempElement, new CDUElement('CRZ FL/TEMP'), gndTempElement, new CDUElement('GND TEMP')),
     );
   }
 
@@ -113,7 +121,40 @@ export class Init extends DisplayablePage {
   }
 
   onRSK1() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    if (this.scratchpad.isEmpty()) {
+      // TODO: CO RTE list
+      this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      // Clear
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+
+    const contents = this.scratchpad.getSplitContents();
+    if (contents.length !== 2) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const orig = contents[0];
+    const dest = contents[1];
+
+    this.searchAirports([orig, dest]).then((airports) => {
+      const from = airports[0];
+      const to = airports[1];
+      if (from && to) {
+        this.CDU.ATSU.fmsClient.resetAtisAutoUpdate();
+        this.CDU.flightPlanService.newCityPair(orig, dest).then(() => {
+          this.refresh();
+        });
+        this.scratchpad.clear();
+      } else {
+        this.scratchpad.setMessage(NXSystemMessages.notInDatabase);
+      }
+    });
   }
 
   onRSK2() {
@@ -138,7 +179,7 @@ export class Init extends DisplayablePage {
 
   onRSK5() {
     if (this.scratchpad.isEmpty()) return;
-    if (this.scratchpad.isCLR() && this.CDU.FlightInformation.manuallyEnteredTropo) {
+    if (this.scratchpad.isCLR()) {
       this.CDU.FlightInformation.manuallyEnteredTropo = undefined;
       this.scratchpad.clear();
       this.refresh();
@@ -193,8 +234,10 @@ export class Init extends DisplayablePage {
   }
 
   onLSK2() {
-    const altDestIdent = this.scratchpad.getContents();
-    if (!altDestIdent || altDestIdent === 'NONE' || altDestIdent === CDUScratchpad.clrValue) {
+    if (this.scratchpad.isEmpty()) return;
+
+    const icao = this.scratchpad.getContents();
+    if (icao === 'NONE' || icao === CDUScratchpad.clrValue) {
       this.CDU.ATSU.fmsClient.resetAtisAutoUpdate();
       this.CDU.flightPlanService.setAlternate(undefined).then(() => {
         this.refresh();
@@ -203,10 +246,10 @@ export class Init extends DisplayablePage {
       return;
     }
 
-    this.searchAirport(altDestIdent).then((airportAltDest) => {
-      if (airportAltDest) {
+    this.searchAirport(icao).then((airport) => {
+      if (airport) {
         this.CDU.ATSU.fmsClient.resetAtisAutoUpdate();
-        this.CDU.flightPlanService.setAlternate(altDestIdent).then(() => {
+        this.CDU.flightPlanService.setAlternate(icao).then(() => {
           this.refresh();
         });
         this.scratchpad.clear();
@@ -219,6 +262,10 @@ export class Init extends DisplayablePage {
 
   async searchAirport(icao: string): Promise<Airport> {
     return this.CDU.navigationDatabase.searchAirport(icao);
+  }
+
+  async searchAirports(icaos: string[]): Promise<Airport[]> {
+    return this.CDU.navigationDatabase.searchAirports(icaos);
   }
 
   onLSK3() {
