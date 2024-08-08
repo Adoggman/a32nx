@@ -6,14 +6,26 @@ import { AtsuStatusCodes } from '@datalink/common';
 export class FlightInformation extends CDUSubsystem {
   manuallyEnteredGroundTemp: number | undefined = undefined;
   flightNumber: string | undefined = undefined;
-  tempCurve: Avionics.Curve;
+  private tempCurve: Avionics.Curve;
 
-  manuallyEnteredTropo: Feet = undefined;
-  crzFlTemp: Celsius = undefined;
-  costIndex: string = undefined;
+  public get manuallyEnteredTropo() {
+    return this.cdu.flightPlanService.active?.performanceData.pilotTropopause;
+  }
 
-  public get tropo() {
-    return this.cdu.flightPlanService.active?.performanceData?.tropopause;
+  setManualTropo(value: number | undefined) {
+    this.cdu.flightPlanService.active?.setPerformanceData('pilotTropopause', value);
+  }
+
+  public get costIndex() {
+    return this.cdu.flightPlanService.active?.performanceData.costIndex;
+  }
+
+  setCostIndex(value: number | undefined) {
+    this.cdu.flightPlanService.active?.setPerformanceData('costIndex', value);
+  }
+
+  public get defaultTropo() {
+    return this.cdu.flightPlanService.active?.performanceData?.defaultTropopause;
   }
 
   public get defaultCrzFLTemp() {
@@ -104,7 +116,6 @@ export class FlightInformation extends CDUSubsystem {
   }
 
   onFlightPlanUplinked() {
-    this.costIndex = this.cdu.Simbrief.Data.costIndex;
     this.flightNumber = this.cdu.Simbrief.Data.airline + this.cdu.Simbrief.Data.flightNumber;
   }
 }

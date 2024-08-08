@@ -37,7 +37,7 @@ export class Init extends DisplayablePage {
     const crzFlTemp = this.CDU.FlightInformation.crzFlTemp;
     const defaultCrzFlTemp = +this.CDU.FlightInformation.defaultCrzFLTemp;
     const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
-    const tropo = this.CDU.FlightInformation.tropo;
+    const defaultTropo = this.CDU.FlightInformation.defaultTropo;
     const manualGndTmp = this.CDU.FlightInformation.manuallyEnteredGroundTemp;
     const fplnMatchesSimbrief = this.CDU.FlightInformation.flightPlanMatchesSimbrief;
 
@@ -56,7 +56,7 @@ export class Init extends DisplayablePage {
 
     if (crzFl) {
       flightLevelTempElement = new CDUElement(
-        'FL' + crzFl.toFixed(0).padEnd(6, '\xa0'),
+        ('FL' + crzFl.toFixed(0)).padEnd(6, '\xa0'),
         CDUColor.Cyan,
         CDUTextSize.Large,
         new CDUElement(
@@ -67,13 +67,14 @@ export class Init extends DisplayablePage {
       );
     }
 
-    const gndTempElement = hasFlight
-      ? new CDUElement(
-          (manualGndTmp ? manualGndTmp.toFixed(0) : this.CDU.FlightInformation.defaultGroundTemp.toFixed(0)) + '°',
-          CDUColor.Cyan,
-          manualGndTmp ? CDUTextSize.Large : CDUTextSize.Small,
-        )
-      : new CDUElement('---°');
+    const gndTempElement =
+      hasFlight || manualGndTmp
+        ? new CDUElement(
+            (manualGndTmp ? manualGndTmp.toFixed(0) : this.CDU.FlightInformation.defaultGroundTemp.toFixed(0)) + '°',
+            CDUColor.Cyan,
+            manualGndTmp ? CDUTextSize.Large : CDUTextSize.Small,
+          )
+        : new CDUElement('---°');
 
     return makeLines(
       new CDULine(coRteElement, new CDUElement('CO RTE'), originDestElement, new CDUElement('FROM/TO\xa0\xa0')),
@@ -96,12 +97,18 @@ export class Init extends DisplayablePage {
       new CDULineRight(new CDUElement('WIND/TEMP>')),
       new CDULine(
         hasFlight
-          ? new CDUElement(costIndex ? costIndex : '___', costIndex ? CDUColor.Cyan : CDUColor.Amber)
-          : new CDUElement(costIndex ?? '---'),
+          ? new CDUElement(
+              costIndex || costIndex === 0 ? costIndex.toFixed(0) : '___',
+              costIndex || costIndex === 0 ? CDUColor.Cyan : CDUColor.Amber,
+            )
+          : new CDUElement(
+              costIndex || costIndex === 0 ? costIndex.toFixed(0) : '---',
+              costIndex || costIndex === 0 ? CDUColor.Cyan : CDUColor.White,
+            ),
         new CDUElement('COST INDEX'),
         manualTropo
           ? new CDUElement(manualTropo.toFixed(0), CDUColor.Cyan, CDUTextSize.Large)
-          : new CDUElement(tropo ? tropo.toFixed(0) : '36090', CDUColor.Cyan, CDUTextSize.Small),
+          : new CDUElement(defaultTropo ? defaultTropo.toFixed(0) : '36090', CDUColor.Cyan, CDUTextSize.Small),
         new CDUElement('TROPO'),
       ),
       new CDULine(flightLevelTempElement, new CDUElement('CRZ FL/TEMP'), gndTempElement, new CDUElement('GND TEMP')),
@@ -180,7 +187,7 @@ export class Init extends DisplayablePage {
   onRSK5() {
     if (this.scratchpad.isEmpty()) return;
     if (this.scratchpad.isCLR()) {
-      this.CDU.FlightInformation.manuallyEnteredTropo = undefined;
+      this.CDU.FlightInformation.setManualTropo(undefined);
       this.scratchpad.clear();
       this.refresh();
       return;
@@ -192,7 +199,7 @@ export class Init extends DisplayablePage {
         this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
       } else {
         this.scratchpad.clear();
-        this.CDU.FlightInformation.manuallyEnteredTropo = Math.round(num / 10) * 10;
+        this.CDU.FlightInformation.setManualTropo(Math.round(num / 10) * 10);
         this.refresh();
       }
     } else {
@@ -287,7 +294,7 @@ export class Init extends DisplayablePage {
     if (this.scratchpad.isEmpty()) return;
 
     if (this.scratchpad.isCLR()) {
-      this.CDU.FlightInformation.costIndex = undefined;
+      this.CDU.FlightInformation.setCostIndex(undefined);
       this.scratchpad.clear();
       this.refresh();
       return;
@@ -298,7 +305,7 @@ export class Init extends DisplayablePage {
       if (num < 0 || num > 999) {
         this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
       } else {
-        this.CDU.FlightInformation.costIndex = num.toFixed(0);
+        this.CDU.FlightInformation.setCostIndex(num);
         this.scratchpad.clear();
         this.refresh();
       }
