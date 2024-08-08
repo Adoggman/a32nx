@@ -16,16 +16,16 @@ export class FlightInformation extends CDUSubsystem {
     this.cdu.flightPlanService.active?.setPerformanceData('pilotTropopause', value);
   }
 
+  public get defaultTropo() {
+    return this.cdu.flightPlanService.active?.performanceData?.defaultTropopause;
+  }
+
   public get costIndex() {
     return this.cdu.flightPlanService.active?.performanceData.costIndex;
   }
 
   setCostIndex(value: number | undefined) {
     this.cdu.flightPlanService.active?.setPerformanceData('costIndex', value);
-  }
-
-  public get defaultTropo() {
-    return this.cdu.flightPlanService.active?.performanceData?.defaultTropopause;
   }
 
   public get defaultCrzFLTemp() {
