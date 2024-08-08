@@ -40,6 +40,15 @@ export class FlightInformation extends CDUSubsystem {
     return this.cdu.flightPlanService.active?.alternateDestinationAirport;
   }
 
+  public get flightPlanMatchesSimbrief() {
+    return (
+      this.origin &&
+      this.destination &&
+      this.cdu.Simbrief.Data?.origin.icao === this.origin.ident &&
+      this.cdu.Simbrief.Data?.destination.icao === this.destination.ident
+    );
+  }
+
   constructor(cdu: CDU) {
     super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing Flight Information subsystem`);

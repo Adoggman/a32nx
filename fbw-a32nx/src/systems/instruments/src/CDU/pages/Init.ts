@@ -39,6 +39,7 @@ export class Init extends DisplayablePage {
     const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
     const tropo = this.CDU.FlightInformation.tropo;
     const manualGndTmp = this.CDU.FlightInformation.manuallyEnteredGroundTemp;
+    const fplnMatchesSimbrief = this.CDU.FlightInformation.flightPlanMatchesSimbrief;
 
     const coRteElement = new CDUElement(hasFlight ? '' : '__________', origin ? CDUColor.Cyan : CDUColor.Amber);
     const originDestElement = hasFlight
@@ -79,13 +80,13 @@ export class Init extends DisplayablePage {
       new CDULine(
         alternateElement,
         new CDUElement('ALTN/CO RTE'),
-        hasFlight
+        fplnMatchesSimbrief
           ? undefined
           : new CDUElement(
               'REQUEST' + (this.CDU.Simbrief.Status === SimbriefStatus.Requesting ? '\xa0' : '*'),
               CDUColor.Amber,
             ),
-        hasFlight ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
+        fplnMatchesSimbrief ? undefined : new CDUElement('INIT\xa0', CDUColor.Amber),
       ),
       new CDULine(
         new CDUElement(fltNo ? fltNo : '________', fltNo ? CDUColor.Cyan : CDUColor.Amber),
