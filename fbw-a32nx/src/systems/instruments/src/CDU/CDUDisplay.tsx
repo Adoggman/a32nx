@@ -16,6 +16,7 @@ import { CDUEvents } from '@cdu/data/CDUEvent';
 import { Init } from '@cdu/pages/Init';
 import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
 import { NXDataStore } from '@flybywiresim/fbw-sdk';
+import { NXFictionalMessages } from '@cdu/data/NXMessages';
 
 export type Side = 1 | 2;
 
@@ -47,10 +48,15 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   }
 
   openPage(page: DisplayablePage) {
-    this.currentPage = page;
-    this.scratchpad.onOpenPage(page);
-    clearTimeout(this.refreshTimeout);
-    this.refresh();
+    try {
+      this.currentPage = page;
+      this.scratchpad.onOpenPage(page);
+      clearTimeout(this.refreshTimeout);
+      this.refresh();
+    } catch (e) {
+      this.scratchpad.setMessage(NXFictionalMessages.internalError);
+      console.error(e);
+    }
   }
 
   setTypedText(text: string) {
@@ -117,6 +123,8 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
 
     this.initializeBus();
     this.initializeKeyHandlers();
+
+    this.debugShowNewCDU(this.showing);
   }
 
   // For during development only. Should be removed once old CDU is no longer necessary.
@@ -124,14 +132,20 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     // Hide old JS
     this.showing = !this.showing;
     NXDataStore.set('AJH_USE_NEW_CDU', this.showing ? '1' : '0');
-    if (this.side === 1) {
-      if (this.showing) {
-        document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.add('hidden');
-        document.getElementById('panel').querySelector('a32nx-cdu')?.classList.remove('hidden');
-      } else {
-        document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.remove('hidden');
-        document.getElementById('panel').querySelector('a32nx-cdu')?.classList.add('hidden');
-      }
+    this.debugShowNewCDU(this.showing);
+  }
+
+  debugShowNewCDU(show: boolean) {
+    if (this.side !== 1) {
+      // for now, only do this on side 1
+      return;
+    }
+    if (show) {
+      document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.add('hidden');
+      document.getElementById('panel').querySelector('a32nx-cdu')?.classList.remove('hidden');
+    } else {
+      document.getElementById('panel').querySelector('a320-neo-cdu-main-display')?.classList.remove('hidden');
+      document.getElementById('panel').querySelector('a32nx-cdu')?.classList.add('hidden');
     }
   }
 
