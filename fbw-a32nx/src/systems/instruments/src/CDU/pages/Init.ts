@@ -33,6 +33,7 @@ export class Init extends DisplayablePage {
     const alternate = this.CDU.FlightInformation.alternate;
     const flightNumber = this.CDU.FlightInformation.flightNumber;
     const costIndex = this.CDU.FlightInformation.costIndex;
+    const hasCostIndex = costIndex || costIndex === 0;
     const cruiseFlightLevel = this.CDU.FlightInformation.cruiseLevel;
     const flightLevelTemp = this.CDU.FlightInformation.cruiseFLTemp;
     const manualTropo = this.CDU.FlightInformation.manuallyEnteredTropo;
@@ -96,14 +97,8 @@ export class Init extends DisplayablePage {
       new CDULineRight(new CDUElement('WIND/TEMP>')),
       new CDULine(
         hasFlight
-          ? new CDUElement(
-              costIndex || costIndex === 0 ? costIndex.toFixed(0) : '___',
-              costIndex || costIndex === 0 ? CDUColor.Cyan : CDUColor.Amber,
-            )
-          : new CDUElement(
-              costIndex || costIndex === 0 ? costIndex.toFixed(0) : '---',
-              costIndex || costIndex === 0 ? CDUColor.Cyan : CDUColor.White,
-            ),
+          ? new CDUElement(hasCostIndex ? costIndex.toFixed(0) : '___', hasCostIndex ? CDUColor.Cyan : CDUColor.Amber)
+          : new CDUElement(hasCostIndex ? costIndex.toFixed(0) : '---', hasCostIndex ? CDUColor.Cyan : CDUColor.White),
         new CDUElement('COST INDEX'),
         manualTropo
           ? new CDUElement(manualTropo.toFixed(0), CDUColor.Cyan, CDUTextSize.Large)

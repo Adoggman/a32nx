@@ -1,5 +1,5 @@
-import { DisplayComponent, FSComponent, VNode, Subscribable, SubscribableArray } from '@microsoft/msfs-sdk';
-import { CDULine, DisplayablePage, ICDULine, CDUElement } from '@cdu/model/CDUPage';
+import { DisplayComponent, FSComponent, VNode, Subscribable } from '@microsoft/msfs-sdk';
+import { DisplayablePage, ICDULine, ICDUElement, CDUColor } from '@cdu/model/CDUPage';
 import { sanitize } from '@cdu/Format';
 
 // #region Properties
@@ -13,17 +13,13 @@ export interface HeaderProps {
   arrowRight?: boolean;
 }
 
-export interface LinesProp {
-  lines: SubscribableArray<CDULine>;
-}
-
 export interface LineProps {
   line: ICDULine;
   lineIndex: number;
 }
 
 export interface ElementProps {
-  element: CDUElement;
+  element: ICDUElement;
 }
 
 export interface ScratchpadProps {
@@ -93,9 +89,9 @@ export class Lines extends DisplayComponent<PageProp> {
 export class Labels extends DisplayComponent<LineProps> {
   render(): VNode | null {
     const lineNum = this.props.lineIndex;
-    const leftElement = this.props.line?.labelElements[0];
-    const rightElement = this.props.line?.labelElements[1];
-    const centerElement = this.props.line?.labelElements[2];
+    const leftElement = this.props.line?.leftLabel;
+    const rightElement = this.props.line?.rightLabel;
+    const centerElement = this.props.line?.centerLabel;
     return (
       <div class={'label s-text'}>
         <span id={`cdu-label-${lineNum}-left`} class="fmc-block label label-left">
@@ -115,9 +111,9 @@ export class Labels extends DisplayComponent<LineProps> {
 export class Line extends DisplayComponent<LineProps> {
   render(): VNode | null {
     const lineNum = this.props.lineIndex;
-    const leftElement = this.props.line?.textElements[0];
-    const rightElement = this.props.line?.textElements[1];
-    const centerElement = this.props.line?.textElements[2];
+    const leftElement = this.props.line?.left;
+    const rightElement = this.props.line?.right;
+    const centerElement = this.props.line?.center;
     return (
       <div class="line">
         <span id={`cdu-line-${lineNum}-left`} class="fmc-block line line-left">
@@ -136,8 +132,9 @@ export class Line extends DisplayComponent<LineProps> {
 
 export class CDUElementSpan extends DisplayComponent<ElementProps> {
   render(): VNode {
+    const color = this.props.element?.color ?? CDUColor.White;
     return (
-      <span class={this.props.element?.color + ' ' + this.props.element?.size}>
+      <span class={color + ' ' + this.props.element?.size}>
         {sanitize(this.props.element?.text)}
         {this.props.element?.secondElement && <CDUElementSpan element={this.props.element.secondElement} />}
       </span>

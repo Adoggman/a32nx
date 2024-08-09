@@ -39,6 +39,7 @@ declare global {
     type PercentOver100 = number;
     type Gallons = number;
     type Kilograms = number;
+    type Tonnes = number;
     type Pounds = number;
     type Celsius = number;
     type InchesOfMercury = number;

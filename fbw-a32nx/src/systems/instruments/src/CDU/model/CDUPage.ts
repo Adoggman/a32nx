@@ -3,17 +3,21 @@ import { CDU } from '@cdu/model/CDU';
 import { TypeIMessage } from '@cdu/data/NXMessages';
 
 export interface ICDULine {
-  labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
-  textElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
+  left?: ICDUElement;
+  leftLabel?: ICDUElement;
+  right?: ICDUElement;
+  rightLabel?: ICDUElement;
+  center?: ICDUElement;
+  centerLabel?: ICDUElement;
 }
 
 export type CDULines = [
-  CDULine | undefined,
-  CDULine | undefined,
-  CDULine | undefined,
-  CDULine | undefined,
-  CDULine | undefined,
-  CDULine | undefined,
+  ICDULine | undefined,
+  ICDULine | undefined,
+  ICDULine | undefined,
+  ICDULine | undefined,
+  ICDULine | undefined,
+  ICDULine | undefined,
 ];
 
 export type Arrows = {
@@ -111,17 +115,24 @@ export enum CDUTextSize {
 }
 
 export const makeLines = (
-  line1?: CDULine,
-  line2?: CDULine,
-  line3?: CDULine,
-  line4?: CDULine,
-  line5?: CDULine,
-  line6?: CDULine,
+  line1?: ICDULine,
+  line2?: ICDULine,
+  line3?: ICDULine,
+  line4?: ICDULine,
+  line5?: ICDULine,
+  line6?: ICDULine,
 ): CDULines => {
   return [line1, line2, line3, line4, line5, line6];
 };
 
-export class CDUElement {
+export interface ICDUElement {
+  color?: CDUColor;
+  size?: CDUTextSize;
+  text: string;
+  secondElement?: ICDUElement;
+}
+
+export class CDUElement implements ICDUElement {
   color: CDUColor;
   size?: CDUTextSize;
   text: string;
@@ -136,26 +147,34 @@ export class CDUElement {
 }
 
 export class CDULine implements ICDULine {
-  labelElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
-  textElements?: [CDUElement?, CDUElement?, CDUElement?, CDUElement?];
+  left?: ICDUElement;
+  leftLabel?: ICDUElement;
+  right?: ICDUElement;
+  rightLabel?: ICDUElement;
+  center?: ICDUElement;
+  centerLabel?: ICDUElement;
 
   constructor(
-    left?: CDUElement,
-    leftLabel?: CDUElement,
-    right?: CDUElement,
-    rightLabel?: CDUElement,
-    center?: CDUElement,
-    centerLabel?: CDUElement,
+    left?: ICDUElement | string,
+    leftLabel?: ICDUElement | string,
+    right?: ICDUElement | string,
+    rightLabel?: ICDUElement | string,
+    center?: ICDUElement | string,
+    centerLabel?: ICDUElement | string,
   ) {
-    this.labelElements = [leftLabel, rightLabel, centerLabel, undefined];
-    this.textElements = [left, right, center, undefined];
+    this.left = typeof left === 'string' ? { text: left } : left;
+    this.leftLabel = typeof leftLabel === 'string' ? { text: leftLabel } : leftLabel;
+    this.right = typeof right === 'string' ? { text: right } : right;
+    this.rightLabel = typeof rightLabel === 'string' ? { text: rightLabel } : rightLabel;
+    this.center = typeof center === 'string' ? { text: center } : center;
+    this.centerLabel = typeof centerLabel === 'string' ? { text: centerLabel } : centerLabel;
   }
 }
 
 export const EmptyLine = undefined;
 
 export class CDULineRight extends CDULine {
-  constructor(right?: CDUElement, rightLabel?: CDUElement) {
+  constructor(right?: ICDUElement | string, rightLabel?: ICDUElement | string) {
     super(undefined, undefined, right, rightLabel);
   }
 }

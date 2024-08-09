@@ -1,4 +1,4 @@
-import { CDUElement, CDULine, CDULineRight, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
+import { CDULine, CDULineRight, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
 import { ATSUDatalinkStatus } from '@cdu/pages/ATSU/ATSUDatalinkStatus';
@@ -10,12 +10,12 @@ export class ATSUMenu extends DisplayablePage {
   _pageID = ATSUMenu.pageID;
 
   lines = makeLines(
-    new CDULine(new CDUElement('<ATC MENU')),
-    new CDULineRight(new CDUElement('AOC MENU>')),
+    new CDULine('<ATC MENU'),
+    new CDULineRight('AOC MENU>'),
     EmptyLine,
     EmptyLine,
-    new CDULineRight(new CDUElement('STATUS>'), new CDUElement('DATALINK\xa0')),
-    new CDULineRight(new CDUElement('COMM MENU>')),
+    new CDULineRight('STATUS>', 'DATALINK\xa0'),
+    new CDULineRight('COMM MENU>'),
   );
 
   onLSK1() {

@@ -68,7 +68,7 @@ export class AOCInit extends DisplayablePage {
             CDUColor.Cyan,
           ),
         ),
-        new CDULine(new CDUElement('<AOC MENU'), undefined, undefined, new CDUElement('ADVISORY\xa0')),
+        { left: new CDUElement('<AOC MENU'), rightLabel: new CDUElement('ADVISORY\xa0') },
       );
     } else if (this.pageCurrent === 2) {
       const currentTime = this.CDU.getTimeUTC();
@@ -113,7 +113,7 @@ export class AOCInit extends DisplayablePage {
   onRSK5() {
     if (this.pageCurrent === 1) {
       this.CDU.Simbrief.loadOFP();
-      this.lines[4].textElements[1] = new CDUElement('INIT DATA REQ\xa0', CDUColor.Cyan);
+      this.lines[4].right = new CDUElement('INIT DATA REQ\xa0', CDUColor.Cyan);
       this.refreshRate = RefreshRate.Slow;
       this.refresh();
     }

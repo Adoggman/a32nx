@@ -11,12 +11,12 @@ export class AOCMenu extends DisplayablePage {
   _pageID = AOCMenu.pageID;
 
   lines = makeLines(
-    new CDULine(new CDUElement('<INIT/PRES'), undefined, new CDUElement('FREE TEXT>')),
-    new CDULine(new CDUElement('<WX REQUEST')),
-    new CDULine(new CDUElement('<ATIS'), undefined, new CDUElement('MESSAGES>'), new CDUElement('RECEIVED\xa0')),
-    new CDULineRight(new CDUElement('MESSAGES>'), new CDUElement('SENT\xa0')),
+    new CDULine('<INIT/PRES', undefined, 'FREE TEXT>'),
+    new CDULine('<WX REQUEST'),
+    new CDULine('<ATIS', undefined, 'MESSAGES>', 'RECEIVED\xa0'),
+    new CDULineRight('MESSAGES>', 'SENT\xa0'),
     new CDULineRight(new CDUElement('DIVERSION>', CDUColor.Inop)),
-    new CDULine(new CDUElement('<RETURN'), new CDUElement('\xa0ATSU DLK'), new CDUElement('MISC>', CDUColor.Inop)),
+    new CDULine('<RETURN', '\xa0ATSU DLK', new CDUElement('MISC>', CDUColor.Inop)),
   );
 
   onLSK1() {

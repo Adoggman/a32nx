@@ -17,10 +17,10 @@ export class MCDUMenu extends DisplayablePage {
       new CDUElement('NAV B/UP>', CDUColor.Inop),
       new CDUElement('SELECT\xa0', CDUColor.Inop),
     ),
-    new CDULine(new CDUElement('<ATSU')),
-    new CDULine(new CDUElement('<AIDS')),
-    new CDULine(new CDUElement('<CFDS')),
-    new CDULineRight(new CDUElement('CDU TEST>')),
+    new CDULine('<ATSU'),
+    new CDULine('<AIDS'),
+    new CDULine('<CFDS'),
+    new CDULineRight('CDU TEST>'),
   );
   defaultMessage = NXSystemMessages.selectDesiredSystem;
 
