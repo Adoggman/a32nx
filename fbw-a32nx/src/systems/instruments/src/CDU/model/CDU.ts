@@ -13,7 +13,7 @@ import {
 import { AOC } from '@cdu/model/Subsystem/AOC';
 import { ATSU } from '@cdu/model/Subsystem/ATSU';
 import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
-import { Fuel } from '@cdu/model/Subsystem/Fuel';
+import { FuelWeight } from '@cdu/model/Subsystem/FuelWeight';
 import { FlightInformation } from '@cdu/model/Subsystem/FlightInformation';
 import { FMGCSubsystem } from '@cdu/model/Subsystem/FMGC';
 
@@ -31,7 +31,7 @@ export class CDU {
   AOC: AOC;
   Simbrief: Simbrief;
   ATSU: ATSU;
-  Fuel: Fuel;
+  FuelWeight: FuelWeight;
   FlightInformation: FlightInformation;
   FMGC: FMGCSubsystem;
   // Services, Managers, Databases
@@ -111,7 +111,7 @@ export class CDU {
     this.Simbrief = new Simbrief(this);
     this.AOC = new AOC(this);
     this.ATSU = new ATSU(this);
-    this.Fuel = new Fuel(this);
+    this.FuelWeight = new FuelWeight(this);
     this.FlightInformation = new FlightInformation(this);
     this.FMGC = new FMGCSubsystem(this);
   }
@@ -167,7 +167,7 @@ export class CDU {
   }
 
   update() {
-    if (this.Display.showing) {
+    if (this.Display?.showing) {
       const now = Date.now();
       const deltaTime = now - this.lastUpdate;
       this.AOC.update(deltaTime);

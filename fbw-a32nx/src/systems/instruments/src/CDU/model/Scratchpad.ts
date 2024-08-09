@@ -102,8 +102,15 @@ export class Scratchpad {
     return this.isNumber(this.typedText.get());
   }
 
-  isNumber(text: string) {
+  isNumber(text: string, maxDecimals = 1) {
     if (text.length === 0) return false;
+    const decimalIndex = text.indexOf('.');
+    if (decimalIndex > 0) {
+      const numDecimals = text.length - 1 - decimalIndex;
+      if (numDecimals > maxDecimals) {
+        return false;
+      }
+    }
     const num = +text;
     return !isNaN(num);
   }
