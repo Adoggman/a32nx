@@ -149,6 +149,7 @@ export class Init extends DisplayablePage {
       if (from && to) {
         this.CDU.ATSU.fmsClient.resetAtisAutoUpdate();
         this.CDU.flightPlanService.newCityPair(orig, dest).then(() => {
+          this.CDU.Simbrief.uplinkDone = false;
           this.refresh();
         });
         this.scratchpad.clear();
@@ -159,7 +160,7 @@ export class Init extends DisplayablePage {
   }
 
   onRSK2() {
-    if (this.CDU.Simbrief.uplinkDone) {
+    if (this.CDU.FlightInformation.flightPlanMatchesSimbrief) {
       return;
     }
     this.CDU.addMessageToQueue(
