@@ -36,16 +36,25 @@ export class EfisVectors {
 
   private updateTimer = 0;
 
-  public update(deltaTime: number): void {
+  public update(deltaTime: number, updateLeft: boolean, updateRight: boolean): void {
     this.updateTimer += deltaTime;
 
     if (this.updateTimer >= UPDATE_TIMER) {
-      this.updateSide('L', true);
-      this.updateSide('R', true);
+      if (updateLeft) {
+        this.updateSide('L', true);
+      }
+      if (updateRight) {
+        this.updateSide('R', true);
+      }
+
       this.updateTimer = 0;
     } else {
-      this.updateSide('L');
-      this.updateSide('R');
+      if (updateLeft) {
+        this.updateSide('L');
+      }
+      if (updateRight) {
+        this.updateSide('R');
+      }
     }
   }
 

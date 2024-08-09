@@ -37,7 +37,7 @@ import { VMLeg } from './lnav/legs/VM';
 // How often the (milliseconds)
 const GEOMETRY_RECOMPUTATION_TIMER = 5_000;
 
-export interface Fmgc {
+export interface GuidanceControllerInfoProvider {
   getZeroFuelWeight(): number;
   getFOB(): number;
   getV2Speed(): Knots;
@@ -174,13 +174,13 @@ export class GuidanceController {
   }
 
   private updateMapPartlyDisplayed() {
-    if (this.efisStateForSide.L.dataLimitReached || this.efisStateForSide.L.legsCulled) {
+    if (this.updateLeft && (this.efisStateForSide.L.dataLimitReached || this.efisStateForSide.L.legsCulled)) {
       SimVar.SetSimVarValue('L:A32NX_EFIS_L_MAP_PARTLY_DISPLAYED', 'boolean', true);
     } else {
       SimVar.SetSimVarValue('L:A32NX_EFIS_L_MAP_PARTLY_DISPLAYED', 'boolean', false);
     }
 
-    if (this.efisStateForSide.R.dataLimitReached || this.efisStateForSide.R.legsCulled) {
+    if (this.updateRight && (this.efisStateForSide.R.dataLimitReached || this.efisStateForSide.R.legsCulled)) {
       SimVar.SetSimVarValue('L:A32NX_EFIS_R_MAP_PARTLY_DISPLAYED', 'boolean', true);
     } else {
       SimVar.SetSimVarValue('L:A32NX_EFIS_R_MAP_PARTLY_DISPLAYED', 'boolean', false);
@@ -194,10 +194,14 @@ export class GuidanceController {
 
     const efisVars = SimVarString.pack(efisIdent, 9);
     // setting the simvar as a number greater than about 16 million causes precision error > 1... but this works..
-    SimVar.SetSimVarValue('L:A32NX_EFIS_L_TO_WPT_IDENT_0', 'string', efisVars[0].toString());
-    SimVar.SetSimVarValue('L:A32NX_EFIS_L_TO_WPT_IDENT_1', 'string', efisVars[1].toString());
-    SimVar.SetSimVarValue('L:A32NX_EFIS_R_TO_WPT_IDENT_0', 'string', efisVars[0].toString());
-    SimVar.SetSimVarValue('L:A32NX_EFIS_R_TO_WPT_IDENT_1', 'string', efisVars[1].toString());
+    if (this.updateLeft) {
+      SimVar.SetSimVarValue('L:A32NX_EFIS_L_TO_WPT_IDENT_0', 'string', efisVars[0].toString());
+      SimVar.SetSimVarValue('L:A32NX_EFIS_L_TO_WPT_IDENT_1', 'string', efisVars[1].toString());
+    }
+    if (this.updateRight) {
+      SimVar.SetSimVarValue('L:A32NX_EFIS_R_TO_WPT_IDENT_0', 'string', efisVars[0].toString());
+      SimVar.SetSimVarValue('L:A32NX_EFIS_R_TO_WPT_IDENT_1', 'string', efisVars[1].toString());
+    }
   }
 
   private updateEfisApproachMessage() {
@@ -246,11 +250,19 @@ export class GuidanceController {
       const efisEta = isXMLeg || !etaComputable ? -1 : this.lnavDriver.legEta(gs, termination);
 
       // FIXME should be NCD if no FM position
-      this.updateEfisVars(efisBearing, efisTrueBearing, efisDistance, efisEta, 'L');
-      this.updateEfisVars(efisBearing, efisTrueBearing, efisDistance, efisEta, 'R');
+      if (this.updateLeft) {
+        this.updateEfisVars(efisBearing, efisTrueBearing, efisDistance, efisEta, 'L');
+      }
+      if (this.updateRight) {
+        this.updateEfisVars(efisBearing, efisTrueBearing, efisDistance, efisEta, 'R');
+      }
     } else {
-      this.updateEfisVars(-1, -1, -1, -1, 'L');
-      this.updateEfisVars(-1, -1, -1, -1, 'R');
+      if (this.updateLeft) {
+        this.updateEfisVars(-1, -1, -1, -1, 'L');
+      }
+      if (this.updateRight) {
+        this.updateEfisVars(-1, -1, -1, -1, 'R');
+      }
     }
   }
 
@@ -262,11 +274,13 @@ export class GuidanceController {
   }
 
   constructor(
-    fmgc: Fmgc,
+    fmgc: GuidanceControllerInfoProvider,
     private readonly flightPlanService: FlightPlanService,
     private efisInterfaces: Record<EfisSide, EfisInterface>,
     private readonly efisNDRangeValues: number[],
     private readonly acConfig: AircraftConfig,
+    private readonly updateLeft = true,
+    private readonly updateRight = true,
   ) {
     this.verticalProfileComputationParametersObserver = new VerticalProfileComputationParametersObserver(
       fmgc,
@@ -345,8 +359,12 @@ export class GuidanceController {
   update(deltaTime: number) {
     this.geometryRecomputationTimer += deltaTime;
 
-    this.updateEfisState('L', this.leftEfisState);
-    this.updateEfisState('R', this.rightEfisState);
+    if (this.updateLeft) {
+      this.updateEfisState('L', this.leftEfisState);
+    }
+    if (this.updateRight) {
+      this.updateEfisState('R', this.rightEfisState);
+    }
 
     try {
       this.verticalProfileComputationParametersObserver.update();
@@ -421,7 +439,7 @@ export class GuidanceController {
     }
 
     try {
-      this.efisVectors.update(deltaTime);
+      this.efisVectors.update(deltaTime, this.updateLeft, this.updateRight);
     } catch (e) {
       console.error('[FMS] Error during EFIS vectors update. See exception below.');
       console.error(e);

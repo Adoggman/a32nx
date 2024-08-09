@@ -11,7 +11,7 @@ export class AOC extends CDUSubsystem {
     this.Times = new AOCTimes();
   }
 
-  update() {
+  update(_deltaTime: number) {
     this.Times.updateTimes(this.cdu.flightPhaseManager);
   }
 }

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 import { FlightPlanService } from '@fmgc/flightplanning/FlightPlanService';
-import { Fmgc } from '@fmgc/guidance/GuidanceController';
+import { GuidanceControllerInfoProvider } from '@fmgc/guidance/GuidanceController';
 import { FlapConf } from '@fmgc/guidance/vnav/common';
 import { SpeedLimit } from '@fmgc/guidance/vnav/SpeedLimit';
 import { VnavConfig } from '@fmgc/guidance/vnav/VnavConfig';
@@ -64,7 +64,7 @@ export class VerticalProfileComputationParametersObserver {
   private parameters: VerticalProfileComputationParameters;
 
   constructor(
-    private fmgc: Fmgc,
+    private fmgc: GuidanceControllerInfoProvider,
     private flightPlanService: FlightPlanService,
   ) {
     this.update();

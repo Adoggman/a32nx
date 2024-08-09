@@ -97,7 +97,7 @@ export class EfisSymbols<T extends number> {
     this.nearby.init();
   }
 
-  async update(deltaTime: number): Promise<void> {
+  async update(deltaTime: number, sidesToUpdate: EfisSide[] = EfisSymbols.sides): Promise<void> {
     this.nearby.update(deltaTime);
 
     if (this.blockUpdate) {
@@ -153,7 +153,7 @@ export class EfisSymbols<T extends number> {
     const hasSuitableRunway = (airport: Airport): boolean =>
       airport.longestRunwayLength >= 1500 && airport.longestRunwaySurfaceType === RunwaySurfaceType.Hard;
 
-    for (const side of EfisSymbols.sides) {
+    for (const side of sidesToUpdate) {
       const range = this.rangeValues[SimVar.GetSimVarValue(`L:A32NX_EFIS_${side}_ND_RANGE`, 'number')];
       const mode: EfisNdMode = SimVar.GetSimVarValue(`L:A32NX_EFIS_${side}_ND_MODE`, 'number');
       const efisOption = SimVar.GetSimVarValue(`L:A32NX_EFIS_${side}_OPTION`, 'Enum');

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0
 
-import { Fmgc } from '@fmgc/guidance/GuidanceController';
+import { GuidanceControllerInfoProvider } from '@fmgc/guidance/GuidanceController';
 import { ClimbWindProfile } from '@fmgc/guidance/vnav/wind/ClimbWindProfile';
 import { CruiseWindProfile } from '@fmgc/guidance/vnav/wind/CruiseWindProfile';
 import { DescentWindProfile } from '@fmgc/guidance/vnav/wind/DescentWindProfile';
@@ -16,7 +16,7 @@ export class WindProfileFactory {
 
   private aircraftDistanceFromStart: NauticalMiles;
 
-  constructor(fmgc: Fmgc, fmgcSide: number) {
+  constructor(fmgc: GuidanceControllerInfoProvider, fmgcSide: number) {
     this.windObserver = new WindObserver(fmgcSide);
     this.windInputObserver = new WindForecastInputObserver(fmgc);
   }

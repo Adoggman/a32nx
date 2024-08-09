@@ -585,7 +585,9 @@ class FMCMainDisplay extends BaseAirliners {
 
         if (this.fmsUpdateThrottler.canUpdate(_deltaTime) !== -1) {
             this.checkSpeedLimit();
-            this.navigation.update(_deltaTime);
+            if (NXDataStore.get('AJH_USE_NEW_CDU', '0') !== '1') {
+                this.navigation.update(_deltaTime);
+            }
             this.getGW();
             this.checkGWParams();
             this.toSpeedsChecks();
@@ -611,12 +613,14 @@ class FMCMainDisplay extends BaseAirliners {
             this.updateProgDistance();
         }
 
-        if (this.guidanceController) {
-            this.guidanceController.update(_deltaTime);
-        }
+        if (NXDataStore.get('AJH_USE_NEW_CDU', '0') !== '1') {
+            if (this.guidanceController) {
+                this.guidanceController.update(_deltaTime);
+            }
 
-        if (this.efisSymbols) {
-            this.efisSymbols.update(_deltaTime);
+            if (this.efisSymbols) {
+                this.efisSymbols.update(_deltaTime);
+            }
         }
         this.arincBusOutputs.forEach((word) => word.writeToSimVarIfDirty());
     }

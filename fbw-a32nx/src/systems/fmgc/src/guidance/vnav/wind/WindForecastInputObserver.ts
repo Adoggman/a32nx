@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0
 
-import { Fmgc } from '@fmgc/guidance/GuidanceController';
+import { GuidanceControllerInfoProvider } from '@fmgc/guidance/GuidanceController';
 import { WindComponent, WindVector, WindVectorAtAltitude } from '@fmgc/guidance/vnav/wind';
 import { FmcWinds, FmcWindEntry } from '@fmgc/guidance/vnav/wind/types';
 import { WindForecastInputs } from '@fmgc/guidance/vnav/wind/WindForecastInputs';
@@ -10,7 +10,7 @@ import { WindForecastInputs } from '@fmgc/guidance/vnav/wind/WindForecastInputs'
 export class WindForecastInputObserver {
   private inputs: WindForecastInputs;
 
-  constructor(private fmgc: Fmgc) {
+  constructor(private fmgc: GuidanceControllerInfoProvider) {
     this.inputs = {
       tripWind: new WindComponent(0),
       climbWinds: [],

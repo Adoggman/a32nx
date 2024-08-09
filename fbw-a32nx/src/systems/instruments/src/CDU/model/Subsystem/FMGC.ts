@@ -1,41 +1,60 @@
 import { CDU } from '@cdu/model/CDU';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
-import { Airport, GenericDataListenerSync, NdSymbol, NdSymbolTypeFlags } from '@flybywiresim/fbw-sdk';
+import { A320EfisNdRangeValue, a320EfisRangeSettings, GenericDataListenerSync, NXUnits } from '@flybywiresim/fbw-sdk';
+import { GuidanceControllerInfoProvider } from '@fmgc/guidance/GuidanceController';
+import { FlapConf } from '@fmgc/guidance/vnav/common';
+import { SpeedLimit } from '@fmgc/guidance/vnav/SpeedLimit';
+import { FmcWinds, FmcWindVector } from '@fmgc/guidance/vnav/wind/types';
+import { EfisInterface, GuidanceController, A320AircraftConfig, Navigation, EfisSymbols } from '@fmgc/index';
+import { FmgcFlightPhase } from '@shared/flightphase';
 
-export class FMGCSubsystem extends CDUSubsystem {
+export class FMGCSubsystem extends CDUSubsystem implements GuidanceControllerInfoProvider {
   private syncer: GenericDataListenerSync = new GenericDataListenerSync();
+  efisInterfaces: Record<string, EfisInterface>;
+  guidanceController: GuidanceController;
+  navigation: Navigation;
+  efisSymbols: EfisSymbols<A320EfisNdRangeValue>;
 
   constructor(cdu: CDU) {
     super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing FMGC subsystem`);
+    this.init();
   }
 
-  update() {
-    super.update();
-    const symbols: NdSymbol[] = [];
-    if (this.cdu.FlightInformation.origin) {
-      symbols.push(this.newAirportSymbol(this.cdu.FlightInformation.origin));
-    }
-    if (this.cdu.FlightInformation.destination) {
-      symbols.push(this.newAirportSymbol(this.cdu.FlightInformation.destination));
-    }
-    if (this.cdu.FlightInformation.alternate) {
-      symbols.push(this.newAirportSymbol(this.cdu.FlightInformation.alternate));
-    }
-    this.syncer.sendEvent(`A32NX_EFIS_${this.cdu.sideLetter}_SYMBOLS`, symbols);
-  }
-
-  newAirportSymbol(airport: Airport): NdSymbol {
-    const planAltnStr = ' ';
-    const planIndexStr = this.cdu.flightPlanService.active.index.toString();
-    const runwayIdentStr = '        ';
-    const databaseId = `A${airport.ident}${planAltnStr}${planIndexStr}${runwayIdentStr}`;
-    return {
-      databaseId,
-      ident: airport.ident,
-      location: airport.location,
-      type: NdSymbolTypeFlags.Airport | NdSymbolTypeFlags.FlightPlan,
+  init() {
+    this.efisInterfaces = {
+      L: new EfisInterface('L', this.cdu.flightPlanService),
+      R: new EfisInterface('R', this.cdu.flightPlanService),
     };
+    this.guidanceController = new GuidanceController(
+      this,
+      this.cdu.flightPlanService,
+      this.efisInterfaces,
+      a320EfisRangeSettings,
+      A320AircraftConfig,
+      this.cdu.Index === 1,
+      this.cdu.Index === 2,
+    );
+    this.navigation = new Navigation(this.cdu.flightPlanService);
+    this.efisSymbols = new EfisSymbols(
+      this.guidanceController,
+      this.cdu.flightPlanService,
+      this.navigation.getNavaidTuner(),
+      this.efisInterfaces,
+      a320EfisRangeSettings,
+    );
+
+    this.guidanceController.init();
+    this.navigation.init();
+    this.efisSymbols.init();
+  }
+
+  update(deltaTime: number) {
+    super.update(deltaTime);
+
+    this.guidanceController.update(deltaTime);
+    this.navigation.update(deltaTime);
+    this.efisSymbols.update(deltaTime, [this.cdu.sideLetter]);
   }
 
   getManagedClimbSpeed(): Knots {
@@ -70,5 +89,121 @@ export class FMGCSubsystem extends CDUSubsystem {
 
   getManagedDescentSpeedMach(): Mach {
     return 0.78;
+  }
+
+  getZeroFuelWeight(): Kilograms {
+    return undefined;
+  }
+
+  getFOB(): Tonnes {
+    return NXUnits.lbsToKg(SimVar.GetSimVarValue('FUEL TOTAL QUANTITY WEIGHT', 'pound') / 1000);
+  }
+
+  getV2Speed(): Knots {
+    return undefined;
+  }
+
+  getTropoPause(): Feet {
+    return this.cdu.FlightInformation.tropo;
+  }
+
+  getAccelerationAltitude(): Feet {
+    return this.cdu.flightPlanService.active?.performanceData.accelerationAltitude;
+  }
+
+  getThrustReductionAltitude(): Feet {
+    return this.cdu.flightPlanService.active?.performanceData.thrustReductionAltitude;
+  }
+
+  getOriginTransitionAltitude(): Feet | undefined {
+    return this.cdu.flightPlanService.active?.performanceData.transitionAltitude;
+  }
+
+  getFlightPhase(): FmgcFlightPhase {
+    return this.cdu.flightPhaseManager.phase;
+  }
+
+  getClimbSpeedLimit(): SpeedLimit {
+    return { speed: 250, underAltitude: 10000 };
+  }
+
+  getDescentSpeedLimit(): SpeedLimit {
+    return { speed: 250, underAltitude: 10000 };
+  }
+
+  getPreSelectedClbSpeed(): Knots {
+    return undefined;
+  }
+
+  getPreSelectedCruiseSpeed(): Knots {
+    return undefined;
+  }
+
+  getTakeoffFlapsSetting(): FlapConf | undefined {
+    return undefined;
+  }
+
+  getApproachSpeed(): Knots {
+    return undefined;
+  }
+
+  getFlapRetractionSpeed(): Knots {
+    return undefined;
+  }
+
+  getSlatRetractionSpeed(): Knots {
+    return undefined;
+  }
+
+  getCleanSpeed(): Knots {
+    return undefined;
+  }
+
+  getTripWind(): Knots {
+    return undefined;
+  }
+
+  getWinds(): FmcWinds {
+    return { climb: [], cruise: [], des: [], alternate: null };
+  }
+
+  getApproachWind(): FmcWindVector {
+    return { direction: undefined, speed: undefined };
+  }
+
+  getApproachQnh(): number {
+    return undefined;
+  }
+
+  getApproachTemperature(): Celsius {
+    return undefined;
+  }
+
+  getDestEFOB(_useFob: boolean): number {
+    return undefined;
+  }
+
+  getDepartureElevation(): Feet | null {
+    const activePlan = this.cdu.flightPlanService.active;
+
+    let departureElevation = null;
+    if (activePlan.originRunway) {
+      departureElevation = activePlan.originRunway.thresholdLocation.alt;
+    } else if (activePlan.originAirport) {
+      departureElevation = activePlan.originAirport.location.alt;
+    }
+    return departureElevation;
+  }
+
+  getDestinationElevation(): Feet {
+    const activePlan = this.cdu.flightPlanService.active;
+
+    let destinationElevation = null;
+    if (activePlan.destinationRunway) {
+      destinationElevation = activePlan.destinationRunway.thresholdLocation.alt;
+    } else if (activePlan.destinationAirport) {
+      destinationElevation = activePlan.destinationAirport.location.alt;
+    }
+    return destinationElevation;
   }
 }

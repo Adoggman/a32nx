@@ -7,5 +7,5 @@ export abstract class CDUSubsystem {
     this.cdu = cdu;
   }
 
-  update() {}
+  update(_deltaTime: number) {}
 }

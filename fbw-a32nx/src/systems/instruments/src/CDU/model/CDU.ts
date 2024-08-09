@@ -37,13 +37,13 @@ export class CDU {
   // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService<A320FlightPlanPerformanceData>;
-  navigationDatabaseService: NavigationDatabaseService;
   navigationDatabase: NavigationDatabase;
   dataManager: DataManager;
 
   navDbIdent: DatabaseIdent;
 
   private timeBetweenUpdates: number = 100;
+  private lastUpdate = Date.now();
   private updateTimeout: NodeJS.Timeout;
 
   public get sideLetter() {
@@ -82,12 +82,12 @@ export class CDU {
     this.Index = index;
     this.Powered = this.getIsPowered();
 
-    this.updateTimeout = setTimeout(() => {
-      this.update();
-    }, this.timeBetweenUpdates);
-
     this.initializeSystems();
     this.initializeSubsystems();
+
+    this.updateTimeout = setInterval(() => {
+      this.update();
+    }, this.timeBetweenUpdates);
   }
 
   isWaypointInUse(wpt) {
@@ -100,8 +100,8 @@ export class CDU {
     this.flightPlanService = new Fmgc.FlightPlanService(bus, new Fmgc.A320FlightPlanPerformanceData());
     this.flightPlanService.createFlightPlans();
 
-    this.navigationDatabaseService = Fmgc.NavigationDatabaseService;
     this.navigationDatabase = new Fmgc.NavigationDatabase(Fmgc.NavigationDatabaseBackend.Msfs);
+    NavigationDatabaseService.activeDatabase = this.navigationDatabase;
     this.navigationDatabase.getDatabaseIdent().then((dbIdent) => (this.navDbIdent = dbIdent));
 
     this.dataManager = new DataManager(this);
@@ -167,10 +167,12 @@ export class CDU {
   }
 
   update() {
-    this.AOC.update();
-    this.FMGC.update();
-    this.updateTimeout = setTimeout(() => {
-      this.update();
-    }, this.timeBetweenUpdates);
+    if (this.Display.showing) {
+      const now = Date.now();
+      const deltaTime = now - this.lastUpdate;
+      this.AOC.update(deltaTime);
+      this.FMGC.update(deltaTime);
+      this.lastUpdate = now;
+    }
   }
 }
