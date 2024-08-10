@@ -1,14 +1,19 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, ICDULine, makeLines } from '@cdu/model/CDUPage';
-import { Airport, Runway } from '../../../../../../../fbw-common/src/systems/navdata/shared';
+import {
+  Airport,
+  Departure,
+  ProcedureTransition,
+  Runway,
+} from '../../../../../../../fbw-common/src/systems/navdata/shared';
 import { RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/src';
 import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
 import { NXSystemMessages } from '@cdu/data/NXMessages';
+import { NXUnits } from '@flybywiresim/fbw-sdk';
 
 enum PageMode {
   Runways,
-  Sid,
-  Trans,
+  Departure,
 }
 
 export class Departures extends DisplayablePage {
@@ -48,22 +53,36 @@ export class Departures extends DisplayablePage {
   }
 
   updateArrows() {
-    if (this.isRunwaysMode) {
-      this.arrows.down = this.index > 0;
-      this.arrows.up = this.index + this.runwaysShown < this.numRunways();
-    }
+    this.arrows.down = this.index > 0;
+    this.arrows.up = this.index + this.rowsShown < this.maxIndex;
+  }
+
+  private get currentDeparture() {
+    return this.CDU.flightPlanService.activeOrTemporary.originDeparture;
+  }
+
+  private get currentRunway() {
+    return this.CDU.flightPlanService.activeOrTemporary.originRunway;
+  }
+
+  private get hasTransitions() {
+    return this.currentDeparture?.enrouteTransitions.length > 0;
+  }
+
+  private get currentTransition() {
+    return this.CDU.flightPlanService.activeOrTemporary.departureEnrouteTransition;
+  }
+
+  private get maxIndex() {
+    return this.isRunwaysMode ? this.numRunways() : Math.max(this.numDepartures(), this.numTransitions());
   }
 
   private get isRunwaysMode() {
     return this.mode === PageMode.Runways;
   }
 
-  private get isSidMode() {
-    return this.mode === PageMode.Sid;
-  }
-
-  private get isTransMode() {
-    return this.mode === PageMode.Trans;
+  private get isDepartureMode() {
+    return this.mode === PageMode.Departure;
   }
 
   private get hasTemporary() {
@@ -75,9 +94,58 @@ export class Departures extends DisplayablePage {
   }
 
   makeDepartureLines() {
-    if (this.mode === PageMode.Runways) {
+    if (this.isRunwaysMode) {
       this.makeRunwayLines();
+    } else {
+      this.makeSidLines();
     }
+  }
+
+  makeSidLines() {
+    const departures = this.getDepartures();
+    const transitions = this.currentDeparture ? this.currentDeparture.enrouteTransitions : [];
+    const departureLines: ICDULine[] = [];
+    for (let row = 0; row < 4; row++) {
+      const sharedIndex = this.index + row;
+      const departure = sharedIndex < departures.length ? departures[sharedIndex] : undefined;
+      const transition = sharedIndex < transitions.length ? transitions[sharedIndex] : undefined;
+      const isCurrentDeparture = this.isCurrentDeparture(departure);
+      const isCurrentTransition = this.isCurrentTransition(transition);
+      departureLines.push(
+        new CDULine(
+          departure
+            ? new CDUElement(
+                (isCurrentDeparture ? '\xa0' : '{') + departure.ident,
+                isCurrentDeparture ? this.currentColor : CDUColor.Cyan,
+              )
+            : undefined,
+          undefined,
+          transition
+            ? new CDUElement(
+                transition.ident + (isCurrentTransition ? '\xa0' : '>'),
+                isCurrentTransition ? this.currentColor : CDUColor.Cyan,
+              )
+            : undefined,
+        ),
+      );
+    }
+
+    const lastLine = this.bottomLine();
+    lastLine.center = new CDUElement('NONE', this.currentColor);
+    lastLine.centerLabel = new CDUElement('EOSID');
+
+    departureLines[0].leftLabel = new CDUElement('SIDS');
+    departureLines[0].centerLabel = new CDUElement('AVAILABLE');
+    departureLines[0].rightLabel = new CDUElement('TRANS');
+
+    this.lines = makeLines(
+      this.topLine(),
+      departureLines[0],
+      departureLines[1],
+      departureLines[2],
+      departureLines[3],
+      lastLine,
+    );
   }
 
   makeRunwayLines() {
@@ -108,11 +176,19 @@ export class Departures extends DisplayablePage {
             (isCurrentRunway ? '\xa0' : '{') + RunwayUtils.runwayString(runway.ident).padEnd(3, '\xa0'),
             color,
             CDUTextSize.Large,
-            new CDUElement(runway.lsIdent ? '-ILS\xa0\xa0' : '\xa0\xa0\xa0\xa0\xa0\xa0', color, CDUTextSize.Small),
+            new CDUElement(
+              runway.lsIdent ? '-ILS' : '\xa0\xa0\xa0\xa0',
+              color,
+              CDUTextSize.Small,
+              new CDUElement(
+                NXUnits.mToUser(runway.length).toFixed(0).padStart(6, '\xa0'),
+                color,
+                CDUTextSize.Large,
+                new CDUElement(NXUnits.userDistanceUnit().padEnd(2), color, CDUTextSize.Small),
+              ),
+            ),
           ),
-          lastRunway
-            ? new CDUElement('\xa0\xa0\xa0' + lastRunway.magneticBearing.toFixed(0).padStart(3, '0'), lastColor)
-            : undefined,
+          lastRunway ? this.runwayLabel(lastRunway, lastColor) : undefined,
         ),
       );
       lastRunway = runway;
@@ -121,37 +197,57 @@ export class Departures extends DisplayablePage {
     runwayLines[0].leftLabel = new CDUElement('\xa0\xa0\xa0AVAILABLE RUNWAYS');
     const lastLine = this.bottomLine();
     if (lastRunway) {
-      lastLine.leftLabel = new CDUElement(
-        '\xa0\xa0\xa0' + lastRunway.magneticBearing.toFixed(0).padStart(3, '0'),
-        CDUColor.Cyan,
-      );
+      lastLine.leftLabel = this.runwayLabel(lastRunway, lastColor);
     }
 
     this.lines = makeLines(this.topLine(), runwayLines[0], runwayLines[1], runwayLines[2], runwayLines[3], lastLine);
   }
 
-  private isCurrentRunway(runway: Runway) {
-    return (
-      this.CDU.flightPlanService.activeOrTemporary.originRunway &&
-      this.CDU.flightPlanService.activeOrTemporary.originRunway.ident === runway.ident
+  runwayLabel(runway: Runway, color: CDUColor) {
+    return new CDUElement(
+      '\xa0\xa0\xa0' + runway.magneticBearing.toFixed(0).padStart(3, '0'),
+      color,
+      CDUTextSize.Small,
+      runway.lsIdent
+        ? new CDUElement(
+            `\xa0\xa0${runway.lsIdent.padStart(6)}/${runway.lsFrequencyChannel.toFixed(2)}`,
+            color,
+            CDUTextSize.Small,
+          )
+        : undefined,
     );
   }
 
+  private isCurrentRunway(runway: Runway) {
+    return this.currentRunway && this.currentRunway.ident === runway.ident;
+  }
+
+  private isCurrentDeparture(departure: Departure) {
+    return this.currentDeparture && departure && this.currentDeparture.databaseId === departure.databaseId;
+  }
+
+  private isCurrentTransition(transition: ProcedureTransition) {
+    return this.currentTransition && transition && this.currentTransition.databaseId === transition.databaseId;
+  }
+
   topLine(): ICDULine {
-    const runway = this.CDU.flightPlanService.activeOrTemporary.originRunway;
     return new CDULine(
-      runway
+      this.currentRunway
         ? new CDUElement(
-            RunwayUtils.runwayString(runway.ident),
+            RunwayUtils.runwayString(this.currentRunway.ident.padEnd(3, '\xa0')),
             this.currentColor,
             CDUTextSize.Large,
-            runway.lsIdent ? new CDUElement('-ILS', this.currentColor, CDUTextSize.Small) : undefined,
+            this.currentRunway.lsIdent ? new CDUElement('-ILS', this.currentColor, CDUTextSize.Small) : undefined,
           )
         : '---',
       ' RWY',
-      '------',
+      this.currentTransition
+        ? new CDUElement(this.currentTransition.ident, this.currentColor)
+        : this.currentDeparture && !this.hasTransitions
+          ? new CDUElement('NONE', this.currentColor)
+          : '------',
       'TRANS\xa0',
-      '------',
+      this.currentDeparture ? new CDUElement(this.currentDeparture.ident, this.currentColor) : '------',
       'SID',
     );
   }
@@ -166,68 +262,118 @@ export class Departures extends DisplayablePage {
     return this.CDU.flightPlanService.activeOrTemporary.availableOriginRunways;
   }
 
-  private runwaysShown = 4;
+  getDepartures() {
+    return this.CDU.flightPlanService.activeOrTemporary.availableDepartures;
+  }
+
+  private rowsShown = 4;
   numRunways() {
-    return this.CDU.flightPlanService.activeOrTemporary.availableOriginRunways.length;
+    return this.getRunways().length;
+  }
+
+  numDepartures() {
+    return this.getDepartures().length;
+  }
+
+  numTransitions() {
+    return this.currentDeparture ? this.currentDeparture.enrouteTransitions.length : 0;
+  }
+
+  trySetRunway(runway: Runway) {
+    if (this.isCurrentRunway(runway)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
+      this.setMode(PageMode.Departure);
+    });
+  }
+
+  trySetDeparture(departure: Departure) {
+    if (this.isCurrentDeparture(departure)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    this.CDU.flightPlanService.setDepartureProcedure(departure.databaseId).then(() => {
+      this.refresh();
+    });
+  }
+
+  trySetTransition(transition: ProcedureTransition) {
+    if (this.isCurrentTransition(transition)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    this.CDU.flightPlanService.setDepartureEnrouteTransition(transition.databaseId).then(() => {
+      this.refresh();
+    });
   }
 
   onLSK2() {
-    if (this.isRunwaysMode && this.numRunways() > 0) {
-      const runway = this.getRunways()[this.index];
-      if (this.isCurrentRunway(runway)) {
-        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+    const index = this.index + 0;
+    if (this.isRunwaysMode) {
+      if (index >= this.numRunways()) {
         return;
       }
-
-      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
-        this.refresh();
-      });
+      const runway = this.getRunways()[index];
+      this.trySetRunway(runway);
+    } else if (this.isDepartureMode) {
+      if (index >= this.numDepartures()) {
+        return;
+      }
+      const departure = this.getDepartures()[index];
+      this.trySetDeparture(departure);
     }
   }
 
   onLSK3() {
+    const index = this.index + 1;
     if (this.isRunwaysMode) {
-      if (this.index + 1 > this.getRunways().length) {
+      if (index >= this.numRunways()) {
         return;
       }
-      const runway = this.getRunways()[this.index + 1];
-      if (this.isCurrentRunway(runway)) {
-        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      const runway = this.getRunways()[index];
+      this.trySetRunway(runway);
+    } else if (this.isDepartureMode) {
+      if (index >= this.numDepartures()) {
         return;
       }
-      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
-        this.refresh();
-      });
+      const departure = this.getDepartures()[index];
+      this.trySetDeparture(departure);
     }
   }
+
   onLSK4() {
+    const index = this.index + 2;
     if (this.isRunwaysMode) {
-      if (this.index + 2 > this.getRunways().length) {
+      if (index >= this.numRunways()) {
         return;
       }
-      const runway = this.getRunways()[this.index + 2];
-      if (this.isCurrentRunway(runway)) {
-        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      const runway = this.getRunways()[index];
+      this.trySetRunway(runway);
+    } else if (this.isDepartureMode) {
+      if (index >= this.numDepartures()) {
         return;
       }
-      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
-        this.refresh();
-      });
+      const departure = this.getDepartures()[index];
+      this.trySetDeparture(departure);
     }
   }
+
   onLSK5() {
+    const index = this.index + 3;
     if (this.isRunwaysMode) {
-      if (this.index + 3 > this.getRunways().length) {
+      if (index >= this.numRunways()) {
         return;
       }
-      const runway = this.getRunways()[this.index + 3];
-      if (this.isCurrentRunway(runway)) {
-        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      const runway = this.getRunways()[index];
+      this.trySetRunway(runway);
+    } else if (this.isDepartureMode) {
+      if (index >= this.numDepartures()) {
         return;
       }
-      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
-        this.refresh();
-      });
+      const departure = this.getDepartures()[index];
+      this.trySetDeparture(departure);
     }
   }
 
@@ -242,6 +388,50 @@ export class Departures extends DisplayablePage {
     }
   }
 
+  onRSK2() {
+    if (!this.isDepartureMode || !this.currentDeparture) {
+      return;
+    }
+    const index = this.index;
+    if (index >= this.numTransitions()) {
+      return;
+    }
+    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+  }
+
+  onRSK3() {
+    if (!this.isDepartureMode || !this.currentDeparture) {
+      return;
+    }
+    const index = this.index + 1;
+    if (index >= this.numTransitions()) {
+      return;
+    }
+    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+  }
+
+  onRSK4() {
+    if (!this.isDepartureMode || !this.currentDeparture) {
+      return;
+    }
+    const index = this.index + 2;
+    if (index >= this.numTransitions()) {
+      return;
+    }
+    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+  }
+
+  onRSK5() {
+    if (!this.isDepartureMode || !this.currentDeparture) {
+      return;
+    }
+    const index = this.index + 3;
+    if (index >= this.numTransitions()) {
+      return;
+    }
+    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+  }
+
   onRSK6() {
     if (this.hasTemporary) {
       this.CDU.flightPlanService.temporaryInsert().then(() => {
@@ -251,22 +441,41 @@ export class Departures extends DisplayablePage {
   }
 
   onUp() {
-    if (this.isRunwaysMode) {
-      if (this.index + this.runwaysShown > this.numRunways()) {
-        return;
-      }
-      this.index = this.index + this.runwaysShown;
-      this.refresh();
+    if (this.index + this.rowsShown > this.maxIndex) {
+      return;
     }
+
+    this.index = this.index + this.rowsShown;
+    this.refresh();
   }
 
   onDown() {
-    if (this.isRunwaysMode) {
-      if (this.index <= 0) {
-        return;
-      }
-      this.index = this.index - this.runwaysShown;
-      this.refresh();
+    if (this.index <= 0) {
+      return;
     }
+    if (this.isRunwaysMode || this.isDepartureMode) this.index = this.index - this.rowsShown;
+    this.refresh();
+  }
+
+  onLeft() {
+    if (this.isRunwaysMode) {
+      this.setMode(PageMode.Departure);
+    } else {
+      this.setMode(PageMode.Runways);
+    }
+  }
+
+  onRight() {
+    if (this.isRunwaysMode) {
+      this.setMode(PageMode.Departure);
+    } else {
+      this.setMode(PageMode.Runways);
+    }
+  }
+
+  setMode(mode: PageMode) {
+    this.index = 0;
+    this.mode = mode;
+    this.refresh();
   }
 }

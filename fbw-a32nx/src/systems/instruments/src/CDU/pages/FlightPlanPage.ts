@@ -142,7 +142,7 @@ export class FlightPlanPage extends DisplayablePage {
       showTime ? this.currentColor : CDUColor.White,
     );
     const speedElement = new CDUElement('---', CDUColor.White);
-    const alt: number = (leg.definition.waypoint?.location as any).alt;
+    const alt: number = (leg.definition.waypoint?.location as any)?.alt;
     const altElement = alt
       ? new CDUElement(
           '/' + formatAlt(alt).padStart(6, '\xa0'),
