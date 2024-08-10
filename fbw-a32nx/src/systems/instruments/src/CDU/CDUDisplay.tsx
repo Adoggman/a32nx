@@ -30,6 +30,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private containerRef: NodeReference<HTMLElement> = FSComponent.createRef();
   private side: Side;
   showing: boolean = true;
+  lastPage: DisplayablePage;
   currentPage: DisplayablePage = new MCDUMenu(this);
   private refreshTimeout: NodeJS.Timeout;
   scratchpad: Scratchpad;
@@ -48,8 +49,13 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
     return CDU.instances[this.side];
   }
 
+  openLastPage() {
+    this.openPage(this.lastPage);
+  }
+
   openPage(page: DisplayablePage) {
     try {
+      this.lastPage = this.currentPage;
       this.currentPage = page;
       this.scratchpad.onOpenPage(page);
       clearTimeout(this.refreshTimeout);

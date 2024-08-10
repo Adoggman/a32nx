@@ -8,13 +8,14 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
+import { LatRev } from '@cdu/pages/LatRev';
 import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
+
+type FPLeg = { leg: FlightPlanLeg; legIndex: number } | undefined;
 
 export class FlightPlan extends DisplayablePage {
   title = '';
-  titleLeft = '\xa0'.repeat(14) + (this.CDU.FlightInformation.flightNumber ?? '');
-
-  arrows = { up: true, down: true, left: true, right: true };
+  titleLeft = '';
 
   static readonly pageID: string = 'FPLN';
   _pageID = FlightPlan.pageID;
@@ -24,10 +25,15 @@ export class FlightPlan extends DisplayablePage {
   lines = this.makeFplnLines();
 
   index: number;
+  displayedLegs: [FPLeg, FPLeg, FPLeg, FPLeg, FPLeg] = [undefined, undefined, undefined, undefined, undefined];
 
   constructor(display: CDUDisplay) {
     super(display);
     this.index = 0;
+    this.arrows = { up: true, down: true, left: true, right: true };
+    this.titleLeft =
+      (this.index === this.originLegIndex ? '\xa0FROM' : '').padEnd(14, '\xa0') +
+      (this.CDU.FlightInformation.flightNumber ?? '');
   }
 
   maxIndex() {
@@ -40,6 +46,9 @@ export class FlightPlan extends DisplayablePage {
 
   refresh() {
     this.lines = this.makeFplnLines();
+    this.titleLeft =
+      (this.index === this.originLegIndex ? '\xa0FROM' : '').padEnd(14, '\xa0') +
+      (this.CDU.FlightInformation.flightNumber ?? '');
     super.refresh();
   }
 
@@ -59,10 +68,12 @@ export class FlightPlan extends DisplayablePage {
       );
     }
     const lines: ICDULine[] = [];
+    this.displayedLegs = [undefined, undefined, undefined, undefined, undefined];
     let hasShownNm = false;
     for (let row = 0; row < 5; row++) {
       let legIndex = this.index + row;
       if (legIndex === elements.length) {
+        this.displayedLegs[row] = undefined;
         lines.push(this.endOfFplnLine());
         continue;
       }
@@ -72,12 +83,14 @@ export class FlightPlan extends DisplayablePage {
 
       const element = elements[legIndex];
       if (element.isDiscontinuity) {
+        this.displayedLegs[row] = undefined;
         lines.push(this.discontinuityLine());
         continue;
       }
       const leg = element as FlightPlanLeg;
       if (leg.ident) {
         lines.push(this.legLine(leg, legIndex, hasShownNm));
+        this.displayedLegs[row] = { leg: leg, legIndex: legIndex };
         hasShownNm = row > 0 && !!leg.calculated.distance;
       }
     }
@@ -88,6 +101,14 @@ export class FlightPlan extends DisplayablePage {
 
   getFlightPlanElements() {
     return this.CDU.flightPlanService.activeOrTemporary.allLegs;
+  }
+
+  get originLegIndex() {
+    return this.CDU.flightPlanService.active.originLegIndex;
+  }
+
+  get destinationLegIndex() {
+    return this.CDU.flightPlanService.active.destinationLegIndex;
   }
 
   topLabel() {
@@ -196,6 +217,54 @@ export class FlightPlan extends DisplayablePage {
 
   noAltnFplnLine(): ICDULine {
     return { left: new CDUElement('-----NO ALTN F-PLN------') };
+  }
+
+  onLSK1(): void {
+    if (this.displayedLegs[0]) {
+      const element = this.displayedLegs[0];
+      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+    }
+  }
+
+  onLSK2(): void {
+    if (this.displayedLegs[1]) {
+      const element = this.displayedLegs[1];
+      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+    }
+  }
+
+  onLSK3(): void {
+    if (this.displayedLegs[2]) {
+      const element = this.displayedLegs[2];
+      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+    }
+  }
+
+  onLSK4(): void {
+    if (this.displayedLegs[3]) {
+      const element = this.displayedLegs[4];
+      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+    }
+  }
+
+  onLSK5(): void {
+    if (this.displayedLegs[4]) {
+      const element = this.displayedLegs[4];
+      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+    }
+  }
+
+  onLSK6(): void {
+    if (this.CDU.flightPlanService.active.destinationAirport) {
+      const elements = this.getFlightPlanElements();
+      const lastIndex = elements.length - 1;
+      const lastElement = elements[lastIndex];
+      if (!lastElement.isDiscontinuity) {
+        this.openPage(new LatRev(this.display, lastElement as FlightPlanLeg, lastIndex));
+      } else {
+        throw Error('Tried to open destination Lat Rev page but last element is discontinuity');
+      }
+    }
   }
 
   onDown() {

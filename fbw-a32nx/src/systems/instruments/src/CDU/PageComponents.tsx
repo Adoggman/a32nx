@@ -43,9 +43,9 @@ export class CDUHeader extends DisplayComponent<HeaderProps> {
       <div id="cdu-header">
         <span id="cdu-title">
           <span class="white">
-            {/* {padBefore(this.props.page.title)} */}
-            <span class="white">{this.props.page.title}</span>
-            {/* {padAfter(this.props.page.title)} */}
+            <span class="white">
+              <CDUElementSpan element={this.props.page.titleElement} />
+            </span>
             <span class="s-text"></span>
             <span class="b-text"></span>
           </span>

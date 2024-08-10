@@ -37,7 +37,7 @@ export enum RefreshRate {
 }
 
 export abstract class DisplayablePage {
-  title: string;
+  title: ICDUElement | string;
   pageCurrent?: number;
   pageCount?: number;
   titleLeft?: string;
@@ -51,6 +51,13 @@ export abstract class DisplayablePage {
 
   protected get scratchpad() {
     return this.display.scratchpad;
+  }
+
+  public get titleElement(): ICDUElement {
+    if (typeof this.title === 'string') {
+      return new CDUElement(this.title);
+    }
+    return this.title;
   }
 
   onUp(): void {}
