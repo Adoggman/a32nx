@@ -22,6 +22,8 @@ export class Departures extends DisplayablePage {
   index: number;
   airport: Airport;
   mode: PageMode;
+  noneDeparture: boolean;
+  noneTransition: boolean;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -74,7 +76,7 @@ export class Departures extends DisplayablePage {
   }
 
   private get maxIndex() {
-    return this.isRunwaysMode ? this.numRunways() : Math.max(this.numDepartures(), this.numTransitions());
+    return this.isRunwaysMode ? this.numRunways() : Math.max(this.numDepartures() + 1, this.numTransitions() + 1);
   }
 
   private get isRunwaysMode() {
@@ -108,7 +110,9 @@ export class Departures extends DisplayablePage {
     for (let row = 0; row < 4; row++) {
       const sharedIndex = this.index + row;
       const departure = sharedIndex < departures.length ? departures[sharedIndex] : undefined;
+      const isNoSid = sharedIndex === departures.length;
       const transition = sharedIndex < transitions.length ? transitions[sharedIndex] : undefined;
+      const isNoTransition = sharedIndex === transitions.length && transitions.length !== 0;
       const isCurrentDeparture = this.isCurrentDeparture(departure);
       const isCurrentTransition = this.isCurrentTransition(transition);
       departureLines.push(
@@ -118,14 +122,20 @@ export class Departures extends DisplayablePage {
                 (isCurrentDeparture ? '\xa0' : '{') + departure.ident,
                 isCurrentDeparture ? this.currentColor : CDUColor.Cyan,
               )
-            : undefined,
+            : new CDUElement(
+                isNoSid ? (this.noneDeparture ? ' ' : '{') + 'NO SID' : '',
+                this.noneDeparture ? this.currentColor : CDUColor.Cyan,
+              ),
           undefined,
           transition
             ? new CDUElement(
-                transition.ident + (isCurrentTransition ? '\xa0' : '>'),
+                transition.ident + (isCurrentTransition ? '\xa0' : '}'),
                 isCurrentTransition ? this.currentColor : CDUColor.Cyan,
               )
-            : undefined,
+            : new CDUElement(
+                isNoTransition ? 'NO TRANS' + (this.noneTransition ? ' ' : '}') : '',
+                this.noneTransition ? this.currentColor : CDUColor.Cyan,
+              ),
         ),
       );
     }
@@ -243,11 +253,13 @@ export class Departures extends DisplayablePage {
       ' RWY',
       this.currentTransition
         ? new CDUElement(this.currentTransition.ident, this.currentColor)
-        : this.currentDeparture && !this.hasTransitions
+        : this.noneDeparture || this.noneTransition || (this.currentDeparture && !this.hasTransitions)
           ? new CDUElement('NONE', this.currentColor)
           : '------',
       'TRANS\xa0',
-      this.currentDeparture ? new CDUElement(this.currentDeparture.ident, this.currentColor) : '------',
+      this.currentDeparture || this.noneDeparture
+        ? new CDUElement(this.noneDeparture ? 'NONE' : this.currentDeparture.ident, this.currentColor)
+        : '------',
       'SID',
     );
   }
@@ -294,17 +306,19 @@ export class Departures extends DisplayablePage {
       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
       return;
     }
-    this.CDU.flightPlanService.setDepartureProcedure(departure.databaseId).then(() => {
+    this.noneDeparture = !departure;
+    this.CDU.flightPlanService.setDepartureProcedure(departure?.databaseId).then(() => {
       this.refresh();
     });
   }
 
   trySetTransition(transition: ProcedureTransition) {
-    if (this.isCurrentTransition(transition)) {
+    if (transition && this.isCurrentTransition(transition)) {
       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
       return;
     }
-    this.CDU.flightPlanService.setDepartureEnrouteTransition(transition.databaseId).then(() => {
+    this.noneTransition = !transition;
+    this.CDU.flightPlanService.setDepartureEnrouteTransition(transition?.databaseId).then(() => {
       this.refresh();
     });
   }
@@ -318,7 +332,11 @@ export class Departures extends DisplayablePage {
       const runway = this.getRunways()[index];
       this.trySetRunway(runway);
     } else if (this.isDepartureMode) {
-      if (index >= this.numDepartures()) {
+      if (index > this.numDepartures()) {
+        return;
+      }
+      if (index === this.numDepartures()) {
+        this.trySetDeparture(null);
         return;
       }
       const departure = this.getDepartures()[index];
@@ -335,7 +353,11 @@ export class Departures extends DisplayablePage {
       const runway = this.getRunways()[index];
       this.trySetRunway(runway);
     } else if (this.isDepartureMode) {
-      if (index >= this.numDepartures()) {
+      if (index > this.numDepartures()) {
+        return;
+      }
+      if (index === this.numDepartures()) {
+        this.trySetDeparture(null);
         return;
       }
       const departure = this.getDepartures()[index];
@@ -352,7 +374,11 @@ export class Departures extends DisplayablePage {
       const runway = this.getRunways()[index];
       this.trySetRunway(runway);
     } else if (this.isDepartureMode) {
-      if (index >= this.numDepartures()) {
+      if (index > this.numDepartures()) {
+        return;
+      }
+      if (index === this.numDepartures()) {
+        this.trySetDeparture(null);
         return;
       }
       const departure = this.getDepartures()[index];
@@ -369,7 +395,11 @@ export class Departures extends DisplayablePage {
       const runway = this.getRunways()[index];
       this.trySetRunway(runway);
     } else if (this.isDepartureMode) {
-      if (index >= this.numDepartures()) {
+      if (index > this.numDepartures()) {
+        return;
+      }
+      if (index === this.numDepartures()) {
+        this.trySetDeparture(null);
         return;
       }
       const departure = this.getDepartures()[index];
@@ -393,7 +423,11 @@ export class Departures extends DisplayablePage {
       return;
     }
     const index = this.index;
-    if (index >= this.numTransitions()) {
+    if (index > this.numTransitions()) {
+      return;
+    }
+    if (index === this.numTransitions()) {
+      this.trySetTransition(null);
       return;
     }
     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
@@ -404,7 +438,11 @@ export class Departures extends DisplayablePage {
       return;
     }
     const index = this.index + 1;
-    if (index >= this.numTransitions()) {
+    if (index > this.numTransitions()) {
+      return;
+    }
+    if (index === this.numTransitions()) {
+      this.trySetTransition(null);
       return;
     }
     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
@@ -415,7 +453,11 @@ export class Departures extends DisplayablePage {
       return;
     }
     const index = this.index + 2;
-    if (index >= this.numTransitions()) {
+    if (index > this.numTransitions()) {
+      return;
+    }
+    if (index === this.numTransitions()) {
+      this.trySetTransition(null);
       return;
     }
     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
@@ -426,7 +468,11 @@ export class Departures extends DisplayablePage {
       return;
     }
     const index = this.index + 3;
-    if (index >= this.numTransitions()) {
+    if (index > this.numTransitions()) {
+      return;
+    }
+    if (index === this.numTransitions()) {
+      this.trySetTransition(null);
       return;
     }
     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
