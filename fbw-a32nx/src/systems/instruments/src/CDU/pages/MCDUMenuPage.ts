@@ -1,13 +1,13 @@
 import { CDUColor, CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
 import { TestPage } from '@cdu/pages/TestPage';
-import { FMGCMenu } from '@cdu/pages/FMGCMenu';
-import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
+import { FMGCMenuPage } from '@cdu/pages/FMGCMenuPage';
+import { ATSUMenuPage } from '@cdu/pages/ATSU/ATSUMenuPage';
 import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class MCDUMenu extends DisplayablePage {
+export class MCDUMenuPage extends DisplayablePage {
   static readonly pageID: string = 'MCDU_MENU';
-  _pageID = MCDUMenu.pageID;
+  _pageID = MCDUMenuPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -28,11 +28,11 @@ export class MCDUMenu extends DisplayablePage {
   }
 
   onLSK1() {
-    this.openPage(new FMGCMenu(this.display));
+    this.openPage(new FMGCMenuPage(this.display));
   }
 
   onLSK2() {
-    this.openPage(new ATSUMenu(this.display));
+    this.openPage(new ATSUMenuPage(this.display));
   }
 
   onLSK3() {

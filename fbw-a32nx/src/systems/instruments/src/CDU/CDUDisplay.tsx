@@ -9,11 +9,11 @@ import {
 } from '@microsoft/msfs-sdk';
 import { CDU } from '@cdu/model/CDU';
 import { CDUSimvars } from '@cdu/model/CDUSimvarPublisher';
-import { MCDUMenu } from '@cdu/pages/MCDUMenu';
+import { MCDUMenuPage } from '@cdu/pages/MCDUMenuPage';
 import { DisplayablePage } from '@cdu/model/CDUPage';
 import { CDUHeader, CDUPageInfo, Lines, ScratchpadDisplay } from '@cdu/PageComponents';
 import { CDUEvents } from '@cdu/data/CDUEvent';
-import { Init } from '@cdu/pages/Init';
+import { InitPage } from '@cdu/pages/InitPage';
 import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
 import { NXDataStore } from '@flybywiresim/fbw-sdk';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
@@ -31,7 +31,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
   private side: Side;
   showing: boolean = true;
   lastPage: DisplayablePage;
-  currentPage: DisplayablePage = new MCDUMenu(this);
+  currentPage: DisplayablePage = new MCDUMenuPage(this);
   private refreshTimeout: NodeJS.Timeout;
   scratchpad: Scratchpad;
 
@@ -226,10 +226,10 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         this.scratchpad.typeCharacter(CDUScratchpad.ovfyValue);
         return;
       case events.PageMenu:
-        this.openPage(new MCDUMenu(this));
+        this.openPage(new MCDUMenuPage(this));
         return;
       case events.PageInit:
-        this.openPage(new Init(this));
+        this.openPage(new InitPage(this));
         return;
       case events.PageFpln:
         this.openPage(new FlightPlanPage(this));

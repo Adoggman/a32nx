@@ -10,13 +10,13 @@ import {
   CDUTextSize,
   EmptyLine,
 } from '@cdu/model/CDUPage';
-import { Departures } from '@cdu/pages/Departures';
+import { DeparturesPage } from '@cdu/pages/DeparturesPage';
 import { Coordinates } from '@fmgc/flightplanning/data/geo';
 import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 
-export class LatRev extends DisplayablePage {
+export class LatRevPage extends DisplayablePage {
   static readonly pageID: string = 'LAT_REV';
-  _pageID = LatRev.pageID;
+  _pageID = LatRevPage.pageID;
 
   leg: FlightPlanLeg;
   legIndex: number;
@@ -88,7 +88,7 @@ export class LatRev extends DisplayablePage {
   onLSK1() {
     if (this.isOrigin) {
       // <DEPARTURE
-      this.openPage(new Departures(this.display));
+      this.openPage(new DeparturesPage(this.display));
       return;
     }
   }

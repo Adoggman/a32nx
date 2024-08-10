@@ -16,9 +16,9 @@ enum PageMode {
   Departure,
 }
 
-export class Departures extends DisplayablePage {
+export class DeparturesPage extends DisplayablePage {
   static readonly pageID: string = 'DEPARTURES';
-  _pageID = Departures.pageID;
+  _pageID = DeparturesPage.pageID;
   index: number;
   airport: Airport;
   mode: PageMode;

@@ -1,10 +1,10 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { CDUColor, CDUElement, CDULine, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
-import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
+import { AOCMenuPage } from '@cdu/pages/ATSU/AOC/AOCMenuPage';
 
-export class AOCInflightMenu extends DisplayablePage {
+export class AOCInflightMenuPage extends DisplayablePage {
   static readonly pageID: string = 'AOC_INFLT_MENU';
-  _pageID = AOCInflightMenu.pageID;
+  _pageID = AOCInflightMenuPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -24,6 +24,6 @@ export class AOCInflightMenu extends DisplayablePage {
   }
 
   onRSK5() {
-    this.openPage(new AOCMenu(this.display));
+    this.openPage(new AOCMenuPage(this.display));
   }
 }

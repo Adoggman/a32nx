@@ -1,13 +1,13 @@
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
-import { Init } from '@cdu/pages/Init';
+import { InitPage } from '@cdu/pages/InitPage';
 import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 import { NXUnits } from '@flybywiresim/fbw-sdk';
 import { getZfw, getZfwcg } from '@cdu/model/A32NX Base/Payload';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class InitFuelPred extends DisplayablePage {
+export class InitFuelPredPage extends DisplayablePage {
   static readonly pageID: string = 'INIT_FUEL_PRED';
-  _pageID = InitFuelPred.pageID;
+  _pageID = InitFuelPredPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -292,10 +292,10 @@ export class InitFuelPred extends DisplayablePage {
   }
 
   onLeft() {
-    this.openPage(new Init(this.display));
+    this.openPage(new InitPage(this.display));
   }
 
   onRight() {
-    this.openPage(new Init(this.display));
+    this.openPage(new InitPage(this.display));
   }
 }

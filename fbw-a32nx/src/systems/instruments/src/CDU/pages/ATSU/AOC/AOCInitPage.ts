@@ -12,11 +12,11 @@ import {
   RefreshRate,
 } from '@cdu/model/CDUPage';
 import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
-import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
+import { AOCMenuPage } from '@cdu/pages/ATSU/AOC/AOCMenuPage';
 
-export class AOCInit extends DisplayablePage {
+export class AOCInitPage extends DisplayablePage {
   static readonly pageID: string = 'AOC_INIT_MENU';
-  _pageID = AOCInit.pageID;
+  _pageID = AOCInitPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -123,7 +123,7 @@ export class AOCInit extends DisplayablePage {
   }
 
   onLSK6() {
-    this.openPage(new AOCMenu(this.display));
+    this.openPage(new AOCMenuPage(this.display));
   }
 
   onRefresh() {

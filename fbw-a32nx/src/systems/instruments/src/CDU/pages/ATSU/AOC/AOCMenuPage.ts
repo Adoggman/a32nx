@@ -1,13 +1,13 @@
 import { CDUColor, CDUElement, CDULine, CDULineRight, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
-import { AOCInflightMenu } from '@cdu/pages/ATSU/AOC/AOCInflightMenu';
-import { AOCInit } from '@cdu/pages/ATSU/AOC/AOCInit';
-import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
+import { AOCInflightMenuPage } from '@cdu/pages/ATSU/AOC/AOCInflightMenuPage';
+import { AOCInitPage } from '@cdu/pages/ATSU/AOC/AOCInitPage';
+import { ATSUMenuPage } from '@cdu/pages/ATSU/ATSUMenuPage';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class AOCMenu extends DisplayablePage {
+export class AOCMenuPage extends DisplayablePage {
   static readonly pageID: string = 'AOC_MENU';
-  _pageID = AOCMenu.pageID;
+  _pageID = AOCMenuPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -23,7 +23,7 @@ export class AOCMenu extends DisplayablePage {
   }
 
   onLSK1() {
-    this.openPage(new AOCInit(this.display));
+    this.openPage(new AOCInitPage(this.display));
   }
 
   onLSK2() {
@@ -35,7 +35,7 @@ export class AOCMenu extends DisplayablePage {
   }
 
   onLSK6() {
-    this.openPage(new ATSUMenu(this.display));
+    this.openPage(new ATSUMenuPage(this.display));
   }
 
   onRSK1() {
@@ -51,6 +51,6 @@ export class AOCMenu extends DisplayablePage {
   }
 
   onRSK6() {
-    this.openPage(new AOCInflightMenu(this.display));
+    this.openPage(new AOCInflightMenuPage(this.display));
   }
 }

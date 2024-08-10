@@ -8,7 +8,7 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
-import { LatRev } from '@cdu/pages/LatRev';
+import { LatRevPage } from '@cdu/pages/LatRevPage';
 import { FlightPlanElement, FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 
 type FPLeg = { leg: FlightPlanLeg; legIndex: number } | undefined;
@@ -246,35 +246,35 @@ export class FlightPlanPage extends DisplayablePage {
   onLSK1(): void {
     if (this.displayedLegs[0]) {
       const element = this.displayedLegs[0];
-      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+      this.openPage(new LatRevPage(this.display, element.leg, element.legIndex));
     }
   }
 
   onLSK2(): void {
     if (this.displayedLegs[1]) {
       const element = this.displayedLegs[1];
-      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+      this.openPage(new LatRevPage(this.display, element.leg, element.legIndex));
     }
   }
 
   onLSK3(): void {
     if (this.displayedLegs[2]) {
       const element = this.displayedLegs[2];
-      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+      this.openPage(new LatRevPage(this.display, element.leg, element.legIndex));
     }
   }
 
   onLSK4(): void {
     if (this.displayedLegs[3]) {
       const element = this.displayedLegs[4];
-      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+      this.openPage(new LatRevPage(this.display, element.leg, element.legIndex));
     }
   }
 
   onLSK5(): void {
     if (this.displayedLegs[4]) {
       const element = this.displayedLegs[4];
-      this.openPage(new LatRev(this.display, element.leg, element.legIndex));
+      this.openPage(new LatRevPage(this.display, element.leg, element.legIndex));
     }
   }
 
@@ -284,7 +284,7 @@ export class FlightPlanPage extends DisplayablePage {
       const lastIndex = elements.length - 1;
       const lastElement = elements[lastIndex];
       if (!lastElement.isDiscontinuity) {
-        this.openPage(new LatRev(this.display, lastElement as FlightPlanLeg, lastIndex));
+        this.openPage(new LatRevPage(this.display, lastElement as FlightPlanLeg, lastIndex));
       } else {
         throw Error('Tried to open destination Lat Rev page but last element is discontinuity');
       }

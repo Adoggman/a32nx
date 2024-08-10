@@ -1,12 +1,12 @@
 import { DatalinkModeCode, DatalinkStatusCode } from '@datalink/common';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
-import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
+import { ATSUMenuPage } from '@cdu/pages/ATSU/ATSUMenuPage';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class ATSUDatalinkStatus extends DisplayablePage {
+export class ATSUDatalinkStatusPage extends DisplayablePage {
   static readonly pageID: string = 'ATSU_DATALINK_STATUS';
-  _pageID = ATSUDatalinkStatus.pageID;
+  _pageID = ATSUDatalinkStatusPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -41,7 +41,7 @@ export class ATSUDatalinkStatus extends DisplayablePage {
   }
 
   onLSK6() {
-    this.openPage(new ATSUMenu(this.display));
+    this.openPage(new ATSUMenuPage(this.display));
   }
 
   onRSK6() {

@@ -3,9 +3,9 @@ import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines 
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class FMGCMenu extends DisplayablePage {
+export class FMGCMenuPage extends DisplayablePage {
   static readonly pageID: string = 'FMGC_MENU';
-  _pageID = FMGCMenu.pageID;
+  _pageID = FMGCMenuPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);

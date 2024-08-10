@@ -1,12 +1,12 @@
 import { CDULine, CDULineRight, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
-import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
-import { ATSUDatalinkStatus } from '@cdu/pages/ATSU/ATSUDatalinkStatus';
+import { AOCMenuPage } from '@cdu/pages/ATSU/AOC/AOCMenuPage';
+import { ATSUDatalinkStatusPage } from '@cdu/pages/ATSU/ATSUDatalinkStatusPage';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class ATSUMenu extends DisplayablePage {
+export class ATSUMenuPage extends DisplayablePage {
   static readonly pageID: string = 'ATSU_MENU';
-  _pageID = ATSUMenu.pageID;
+  _pageID = ATSUMenuPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -27,11 +27,11 @@ export class ATSUMenu extends DisplayablePage {
   }
 
   onRSK2() {
-    this.openPage(new AOCMenu(this.display));
+    this.openPage(new AOCMenuPage(this.display));
   }
 
   onRSK5() {
-    this.openPage(new ATSUDatalinkStatus(this.display));
+    this.openPage(new ATSUDatalinkStatusPage(this.display));
   }
 
   onRSK6() {

@@ -11,14 +11,14 @@ import {
 } from '@cdu/model/CDUPage';
 import { CDUScratchpad } from '@cdu/model/Scratchpad';
 import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
-import { InitFuelPred } from '@cdu/pages/InitFuelPred';
+import { InitFuelPredPage } from '@cdu/pages/InitFuelPredPage';
 import { Airport } from '../../../../../../../fbw-common/src/systems/navdata';
 import { FmgcFlightPhase } from '@shared/flightphase';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 
-export class Init extends DisplayablePage {
+export class InitPage extends DisplayablePage {
   static readonly pageID: string = 'INIT';
-  _pageID = Init.pageID;
+  _pageID = InitPage.pageID;
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -395,11 +395,11 @@ export class Init extends DisplayablePage {
   }
 
   onLeft() {
-    this.openPage(new InitFuelPred(this.display));
+    this.openPage(new InitFuelPredPage(this.display));
   }
 
   onRight() {
-    this.openPage(new InitFuelPred(this.display));
+    this.openPage(new InitFuelPredPage(this.display));
   }
 
   async searchAirport(icao: string): Promise<Airport> {
