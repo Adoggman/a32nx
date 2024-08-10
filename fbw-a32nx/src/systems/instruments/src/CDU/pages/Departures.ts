@@ -2,7 +2,7 @@ import { CDUDisplay } from '@cdu/CDUDisplay';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, ICDULine, makeLines } from '@cdu/model/CDUPage';
 import { Airport, Runway } from '../../../../../../../fbw-common/src/systems/navdata/shared';
 import { RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/src';
-import { FlightPlanPage } from '@cdu/pages/FlightPlan';
+import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
 
 enum PageMode {
   Runways,

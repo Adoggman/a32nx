@@ -17,7 +17,7 @@ import { Init } from '@cdu/pages/Init';
 import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
 import { NXDataStore } from '@flybywiresim/fbw-sdk';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
-import { FlightPlanPage } from '@cdu/pages/FlightPlan';
+import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
 
 export type Side = 1 | 2;
 
