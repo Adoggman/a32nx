@@ -3,6 +3,7 @@ import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, ICDULine, 
 import { Airport, Runway } from '../../../../../../../fbw-common/src/systems/navdata/shared';
 import { RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/src';
 import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
+import { NXSystemMessages } from '@cdu/data/NXMessages';
 
 enum PageMode {
   Runways,
@@ -171,8 +172,14 @@ export class Departures extends DisplayablePage {
   }
 
   onLSK2() {
-    if (this.isRunwaysMode) {
-      this.CDU.flightPlanService.setOriginRunway(this.getRunways()[this.index].ident).then(() => {
+    if (this.isRunwaysMode && this.numRunways() > 0) {
+      const runway = this.getRunways()[this.index];
+      if (this.isCurrentRunway(runway)) {
+        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+        return;
+      }
+
+      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
         this.refresh();
       });
     }
@@ -183,7 +190,12 @@ export class Departures extends DisplayablePage {
       if (this.index + 1 > this.getRunways().length) {
         return;
       }
-      this.CDU.flightPlanService.setOriginRunway(this.getRunways()[this.index + 1].ident).then(() => {
+      const runway = this.getRunways()[this.index + 1];
+      if (this.isCurrentRunway(runway)) {
+        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+        return;
+      }
+      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
         this.refresh();
       });
     }
@@ -193,7 +205,12 @@ export class Departures extends DisplayablePage {
       if (this.index + 2 > this.getRunways().length) {
         return;
       }
-      this.CDU.flightPlanService.setOriginRunway(this.getRunways()[this.index + 2].ident).then(() => {
+      const runway = this.getRunways()[this.index + 2];
+      if (this.isCurrentRunway(runway)) {
+        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+        return;
+      }
+      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
         this.refresh();
       });
     }
@@ -203,7 +220,12 @@ export class Departures extends DisplayablePage {
       if (this.index + 3 > this.getRunways().length) {
         return;
       }
-      this.CDU.flightPlanService.setOriginRunway(this.getRunways()[this.index + 3].ident).then(() => {
+      const runway = this.getRunways()[this.index + 3];
+      if (this.isCurrentRunway(runway)) {
+        this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+        return;
+      }
+      this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
         this.refresh();
       });
     }
