@@ -2,14 +2,17 @@ import { DatalinkModeCode, DatalinkStatusCode } from '@datalink/common';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, EmptyLine, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
+import { CDUDisplay } from '@cdu/CDUDisplay';
 
 export class ATSUDatalinkStatus extends DisplayablePage {
-  title = 'DATALINK STATUS';
-
   static readonly pageID: string = 'ATSU_DATALINK_STATUS';
   _pageID = ATSUDatalinkStatus.pageID;
 
-  lines = this.makeDatalinkLines();
+  constructor(display: CDUDisplay) {
+    super(display);
+    this.title = 'DATALINK STATUS';
+    this.lines = this.makeDatalinkLines();
+  }
 
   private makeDatalinkLines() {
     const vhfStatusCode = this.CDU.ATSU.fmsClient.getDatalinkStatus('vhf');

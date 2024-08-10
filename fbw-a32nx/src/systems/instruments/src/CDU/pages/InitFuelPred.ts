@@ -3,18 +3,19 @@ import { Init } from '@cdu/pages/Init';
 import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 import { NXUnits } from '@flybywiresim/fbw-sdk';
 import { getZfw, getZfwcg } from '@cdu/model/A32NX Base/Payload';
+import { CDUDisplay } from '@cdu/CDUDisplay';
 
 export class InitFuelPred extends DisplayablePage {
-  title = 'INIT FUEL PRED';
-
-  arrows = { up: false, down: false, left: true, right: true };
-
   static readonly pageID: string = 'INIT_FUEL_PRED';
   _pageID = InitFuelPred.pageID;
 
-  allowsTyping = true;
-
-  lines = this.makeInitFuelPredLines();
+  constructor(display: CDUDisplay) {
+    super(display);
+    this.title = 'INIT FUEL PRED';
+    this.arrows = { up: false, down: false, left: true, right: true };
+    this.allowsTyping = true;
+    this.lines = this.makeInitFuelPredLines();
+  }
 
   onRefresh() {
     this.lines = this.makeInitFuelPredLines();

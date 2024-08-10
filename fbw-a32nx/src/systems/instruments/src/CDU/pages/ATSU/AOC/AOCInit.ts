@@ -1,3 +1,4 @@
+import { CDUDisplay } from '@cdu/CDUDisplay';
 import { secondsTohhmm } from '@cdu/Format';
 import {
   CDUColor,
@@ -14,16 +15,18 @@ import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
 import { AOCMenu } from '@cdu/pages/ATSU/AOC/AOCMenu';
 
 export class AOCInit extends DisplayablePage {
-  title = 'INIT/REVIEW';
-  titleLeft = 'AOC';
-  pageCount = 2;
-  pageCurrent = 1;
-  refreshRate = RefreshRate.None;
-
   static readonly pageID: string = 'AOC_INIT_MENU';
   _pageID = AOCInit.pageID;
 
-  lines = this.getLines();
+  constructor(display: CDUDisplay) {
+    super(display);
+    this.title = 'INIT/REVIEW';
+    this.titleLeft = 'AOC';
+    this.pageCount = 2;
+    this.pageCurrent = 1;
+    this.refreshRate = RefreshRate.None;
+    this.lines = this.getLines();
+  }
 
   getLines(): CDULines {
     if (this.pageCurrent === 1) {

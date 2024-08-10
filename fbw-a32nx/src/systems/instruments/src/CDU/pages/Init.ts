@@ -14,17 +14,19 @@ import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
 import { InitFuelPred } from '@cdu/pages/InitFuelPred';
 import { Airport } from '../../../../../../../fbw-common/src/systems/navdata';
 import { FmgcFlightPhase } from '@shared/flightphase';
+import { CDUDisplay } from '@cdu/CDUDisplay';
 
 export class Init extends DisplayablePage {
-  title = 'INIT';
-
-  arrows = { up: false, down: false, left: true, right: true };
-
   static readonly pageID: string = 'INIT';
   _pageID = Init.pageID;
-  allowsTyping = true;
 
-  lines = this.makeInitPageLines();
+  constructor(display: CDUDisplay) {
+    super(display);
+    this.title = 'INIT';
+    this.arrows = { up: false, down: false, left: true, right: true };
+    this.allowsTyping = true;
+    this.lines = this.makeInitPageLines();
+  }
 
   makeInitPageLines() {
     const origin = this.CDU.FlightInformation.origin;

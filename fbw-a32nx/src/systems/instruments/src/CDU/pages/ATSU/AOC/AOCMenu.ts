@@ -3,21 +3,24 @@ import { NXFictionalMessages } from '@cdu/data/NXMessages';
 import { AOCInflightMenu } from '@cdu/pages/ATSU/AOC/AOCInflightMenu';
 import { AOCInit } from '@cdu/pages/ATSU/AOC/AOCInit';
 import { ATSUMenu } from '@cdu/pages/ATSU/ATSUMenu';
+import { CDUDisplay } from '@cdu/CDUDisplay';
 
 export class AOCMenu extends DisplayablePage {
-  title = 'AOC MENU';
-
   static readonly pageID: string = 'AOC_MENU';
   _pageID = AOCMenu.pageID;
 
-  lines = makeLines(
-    new CDULine('<INIT/PRES', undefined, 'FREE TEXT>'),
-    new CDULine('<WX REQUEST'),
-    new CDULine('<ATIS', undefined, 'MESSAGES>', 'RECEIVED\xa0'),
-    new CDULineRight('MESSAGES>', 'SENT\xa0'),
-    new CDULineRight(new CDUElement('DIVERSION>', CDUColor.Inop)),
-    new CDULine('<RETURN', '\xa0ATSU DLK', new CDUElement('MISC>', CDUColor.Inop)),
-  );
+  constructor(display: CDUDisplay) {
+    super(display);
+    this.title = 'AOC MENU';
+    this.lines = makeLines(
+      new CDULine('<INIT/PRES', undefined, 'FREE TEXT>'),
+      new CDULine('<WX REQUEST'),
+      new CDULine('<ATIS', undefined, 'MESSAGES>', 'RECEIVED\xa0'),
+      new CDULineRight('MESSAGES>', 'SENT\xa0'),
+      new CDULineRight(new CDUElement('DIVERSION>', CDUColor.Inop)),
+      new CDULine('<RETURN', '\xa0ATSU DLK', new CDUElement('MISC>', CDUColor.Inop)),
+    );
+  }
 
   onLSK1() {
     this.openPage(new AOCInit(this.display));

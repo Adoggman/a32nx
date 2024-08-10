@@ -1,14 +1,17 @@
 import { DatabaseIdent } from '@flybywiresim/fbw-sdk';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
+import { CDUDisplay } from '@cdu/CDUDisplay';
 
 export class FMGCMenu extends DisplayablePage {
-  title = 'A320-200';
-
   static readonly pageID: string = 'FMGC_MENU';
   _pageID = FMGCMenu.pageID;
 
-  lines = this.makeFmgcMenuLines();
+  constructor(display: CDUDisplay) {
+    super(display);
+    this.title = 'A320-200';
+    this.lines = this.makeFmgcMenuLines();
+  }
 
   makeFmgcMenuLines() {
     const navDbIdent = this.CDU.navDbIdent;

@@ -1,4 +1,3 @@
-import { CDUDisplay } from '@cdu/CDUDisplay';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, ICDULine, makeLines } from '@cdu/model/CDUPage';
 import {
   Airport,
@@ -10,6 +9,7 @@ import { RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/
 import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
 import { NXSystemMessages } from '@cdu/data/NXMessages';
 import { NXUnits } from '@flybywiresim/fbw-sdk';
+import { CDUDisplay } from '@cdu/CDUDisplay';
 
 enum PageMode {
   Runways,
@@ -166,14 +166,7 @@ export class Departures extends DisplayablePage {
     for (let row = 0; row < 4; row++) {
       const runwayIndex = this.index + row;
       if (runwayIndex >= runways.length) {
-        runwayLines.push(
-          new CDULine(
-            undefined,
-            lastRunway
-              ? new CDUElement('\xa0\xa0\xa0' + lastRunway.magneticBearing.toFixed(0).padStart(3, '0'), CDUColor.Cyan)
-              : undefined,
-          ),
-        );
+        runwayLines.push({ leftLabel: lastRunway ? this.runwayLabel(lastRunway, lastColor) : undefined });
         lastRunway = undefined;
         continue;
       }
