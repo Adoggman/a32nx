@@ -9,7 +9,7 @@ import {
   RefreshRate,
 } from '@cdu/model/CDUPage';
 import { LatRev } from '@cdu/pages/LatRev';
-import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
+import { FlightPlanElement, FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 
 type FPLeg = { leg: FlightPlanLeg; legIndex: number } | undefined;
 
@@ -22,18 +22,15 @@ export class FlightPlan extends DisplayablePage {
   allowsTyping = true;
   refreshRate = RefreshRate.Medium;
 
-  lines = this.makeFplnLines();
-
   index: number;
   displayedLegs: [FPLeg, FPLeg, FPLeg, FPLeg, FPLeg] = [undefined, undefined, undefined, undefined, undefined];
 
-  constructor(display: CDUDisplay) {
+  constructor(display: CDUDisplay, index = 0) {
     super(display);
-    this.index = 0;
-    this.arrows = { up: true, down: true, left: true, right: true };
-    this.titleLeft =
-      (this.index === this.originLegIndex ? '\xa0FROM' : '').padEnd(14, '\xa0') +
-      (this.CDU.FlightInformation.flightNumber ?? '');
+    this.index = index;
+    this.arrows.left = true;
+    this.arrows.right = true;
+    this.drawPage();
   }
 
   maxIndex() {
@@ -41,23 +38,38 @@ export class FlightPlan extends DisplayablePage {
   }
 
   onRefresh() {
-    this.lines = this.makeFplnLines();
+    this.drawPage();
   }
 
   refresh() {
-    this.lines = this.makeFplnLines();
-    this.titleLeft =
-      (this.index === this.originLegIndex ? '\xa0FROM' : '').padEnd(14, '\xa0') +
-      (this.CDU.FlightInformation.flightNumber ?? '');
+    this.drawPage();
     super.refresh();
   }
 
-  makeFplnLines() {
+  drawPage() {
     this.index = this.index ?? 0;
     const elements = this.getFlightPlanElements();
+
+    this.updateTitle();
+    this.updateArrows(elements.length > 0);
+
+    this.lines = this.makeFplnLines(elements);
+  }
+
+  updateTitle() {
+    this.titleLeft =
+      (this.index === this.originLegIndex ? '\xa0FROM' : '').padEnd(14, '\xa0') +
+      (this.CDU.FlightInformation.flightNumber ?? '');
+  }
+
+  updateArrows(hasPlan: boolean) {
+    this.arrows.up = hasPlan;
+    this.arrows.down = hasPlan;
+  }
+
+  makeFplnLines(elements: FlightPlanElement[]) {
+    this.displayedLegs = [undefined, undefined, undefined, undefined, undefined];
     if (elements.length === 0) {
-      this.arrows.up = false;
-      this.arrows.down = false;
       return makeLines(
         this.fromLine(),
         this.discontinuityLine(),
@@ -68,7 +80,6 @@ export class FlightPlan extends DisplayablePage {
       );
     }
     const lines: ICDULine[] = [];
-    this.displayedLegs = [undefined, undefined, undefined, undefined, undefined];
     let hasShownNm = false;
     for (let row = 0; row < 5; row++) {
       let legIndex = this.index + row;
@@ -137,7 +148,7 @@ export class FlightPlan extends DisplayablePage {
     speedElement.secondElement = altElement;
 
     const label = new CDUElement(
-      '\xa0'.repeat(18) +
+      '\xa0'.repeat(17) +
         (leg.calculated.distance ? leg.calculated.distance.toFixed(0) + (hasShownDistNM ? '' : 'NM') : ''),
       CDUColor.Green,
     );
