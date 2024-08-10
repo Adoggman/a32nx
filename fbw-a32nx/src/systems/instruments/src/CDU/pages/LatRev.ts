@@ -10,6 +10,7 @@ import {
   CDUTextSize,
   EmptyLine,
 } from '@cdu/model/CDUPage';
+import { Departures } from '@cdu/pages/Departures';
 import { Coordinates } from '@fmgc/flightplanning/data/geo';
 import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 
@@ -87,7 +88,7 @@ export class LatRev extends DisplayablePage {
   onLSK1() {
     if (this.isOrigin) {
       // <DEPARTURE
-      this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+      this.openPage(new Departures(this.display, this.CDU.flightPlanService.active.originAirport));
       return;
     }
   }
