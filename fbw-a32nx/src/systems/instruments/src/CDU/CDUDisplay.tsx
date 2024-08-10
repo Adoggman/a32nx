@@ -17,7 +17,7 @@ import { Init } from '@cdu/pages/Init';
 import { CDUScratchpad, Scratchpad } from '@cdu/model/Scratchpad';
 import { NXDataStore } from '@flybywiresim/fbw-sdk';
 import { NXFictionalMessages } from '@cdu/data/NXMessages';
-import { FlightPlan } from '@cdu/pages/FlightPlan';
+import { FlightPlanPage } from '@cdu/pages/FlightPlan';
 
 export type Side = 1 | 2;
 
@@ -232,7 +232,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         this.openPage(new Init(this));
         return;
       case events.PageFpln:
-        this.openPage(new FlightPlan(this));
+        this.openPage(new FlightPlanPage(this));
         return;
       case events.PageUp:
         this.currentPage.onUp();

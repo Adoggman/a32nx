@@ -88,7 +88,7 @@ export class LatRev extends DisplayablePage {
   onLSK1() {
     if (this.isOrigin) {
       // <DEPARTURE
-      this.openPage(new Departures(this.display, this.CDU.flightPlanService.active.originAirport));
+      this.openPage(new Departures(this.display));
       return;
     }
   }
