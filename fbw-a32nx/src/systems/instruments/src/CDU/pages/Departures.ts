@@ -319,85 +319,57 @@ export class Departures extends DisplayablePage {
   onLSK2() {
     const index = this.index + 0;
     if (this.isRunwaysMode) {
-      if (index >= this.numRunways()) {
-        return;
-      }
-      const runway = this.getRunways()[index];
-      this.trySetRunway(runway);
+      this.trySetRunwayAtIndex(index);
     } else if (this.isDepartureMode) {
-      if (index > this.numDepartures()) {
-        return;
-      }
-      if (index === this.numDepartures()) {
-        this.trySetDeparture(null);
-        return;
-      }
-      const departure = this.getDepartures()[index];
-      this.trySetDeparture(departure);
+      this.trySetDepartureAtIndex(index);
     }
   }
 
   onLSK3() {
     const index = this.index + 1;
     if (this.isRunwaysMode) {
-      if (index >= this.numRunways()) {
-        return;
-      }
-      const runway = this.getRunways()[index];
-      this.trySetRunway(runway);
+      this.trySetRunwayAtIndex(index);
     } else if (this.isDepartureMode) {
-      if (index > this.numDepartures()) {
-        return;
-      }
-      if (index === this.numDepartures()) {
-        this.trySetDeparture(null);
-        return;
-      }
-      const departure = this.getDepartures()[index];
-      this.trySetDeparture(departure);
+      this.trySetDepartureAtIndex(index);
     }
   }
 
   onLSK4() {
     const index = this.index + 2;
     if (this.isRunwaysMode) {
-      if (index >= this.numRunways()) {
-        return;
-      }
-      const runway = this.getRunways()[index];
-      this.trySetRunway(runway);
+      this.trySetRunwayAtIndex(index);
     } else if (this.isDepartureMode) {
-      if (index > this.numDepartures()) {
-        return;
-      }
-      if (index === this.numDepartures()) {
-        this.trySetDeparture(null);
-        return;
-      }
-      const departure = this.getDepartures()[index];
-      this.trySetDeparture(departure);
+      this.trySetDepartureAtIndex(index);
     }
   }
 
   onLSK5() {
     const index = this.index + 3;
     if (this.isRunwaysMode) {
-      if (index >= this.numRunways()) {
-        return;
-      }
-      const runway = this.getRunways()[index];
-      this.trySetRunway(runway);
+      this.trySetRunwayAtIndex(index);
     } else if (this.isDepartureMode) {
-      if (index > this.numDepartures()) {
-        return;
-      }
-      if (index === this.numDepartures()) {
-        this.trySetDeparture(null);
-        return;
-      }
-      const departure = this.getDepartures()[index];
-      this.trySetDeparture(departure);
+      this.trySetDepartureAtIndex(index);
     }
+  }
+
+  trySetRunwayAtIndex(index: number) {
+    if (index >= this.numRunways()) {
+      return;
+    }
+    const runway = this.getRunways()[index];
+    this.trySetRunway(runway);
+  }
+
+  trySetDepartureAtIndex(index: number) {
+    if (index > this.numDepartures()) {
+      return;
+    }
+    if (index === this.numDepartures()) {
+      this.trySetDeparture(null);
+      return;
+    }
+    const departure = this.getDepartures()[index];
+    this.trySetDeparture(departure);
   }
 
   onLSK6() {
@@ -415,52 +387,31 @@ export class Departures extends DisplayablePage {
     if (!this.isDepartureMode || !this.currentDeparture) {
       return;
     }
-    const index = this.index;
-    if (index > this.numTransitions()) {
-      return;
-    }
-    if (index === this.numTransitions()) {
-      this.trySetTransition(null);
-      return;
-    }
-    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+    this.trySetTransitionAtIndex(this.index + 0);
   }
 
   onRSK3() {
     if (!this.isDepartureMode || !this.currentDeparture) {
       return;
     }
-    const index = this.index + 1;
-    if (index > this.numTransitions()) {
-      return;
-    }
-    if (index === this.numTransitions()) {
-      this.trySetTransition(null);
-      return;
-    }
-    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+    this.trySetTransitionAtIndex(this.index + 1);
   }
 
   onRSK4() {
     if (!this.isDepartureMode || !this.currentDeparture) {
       return;
     }
-    const index = this.index + 2;
-    if (index > this.numTransitions()) {
-      return;
-    }
-    if (index === this.numTransitions()) {
-      this.trySetTransition(null);
-      return;
-    }
-    this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
+    this.trySetTransitionAtIndex(this.index + 2);
   }
 
   onRSK5() {
     if (!this.isDepartureMode || !this.currentDeparture) {
       return;
     }
-    const index = this.index + 3;
+    this.trySetTransitionAtIndex(this.index + 3);
+  }
+
+  trySetTransitionAtIndex(index: number) {
     if (index > this.numTransitions()) {
       return;
     }
