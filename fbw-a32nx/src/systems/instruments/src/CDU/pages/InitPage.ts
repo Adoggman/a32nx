@@ -10,7 +10,7 @@ import {
   RefreshRate,
 } from '@cdu/model/CDUPage';
 import { CDUScratchpad } from '@cdu/model/Scratchpad';
-import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
+import { SimbriefStatus } from '@cdu/model/Subsystem/SimbriefSubsystem';
 import { InitFuelPredPage } from '@cdu/pages/InitFuelPredPage';
 import { Airport } from '../../../../../../../fbw-common/src/systems/navdata';
 import { FmgcFlightPhase } from '@shared/flightphase';

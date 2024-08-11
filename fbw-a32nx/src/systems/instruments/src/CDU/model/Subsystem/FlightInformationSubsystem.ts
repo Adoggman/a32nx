@@ -3,7 +3,7 @@ import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { getISATemp } from '@cdu/model/Util';
 import { AtsuStatusCodes } from '@datalink/common';
 
-export class FlightInformation extends CDUSubsystem {
+export class FlightInformationSubsystem extends CDUSubsystem {
   manuallyEnteredGroundTemp: Celsius | undefined = undefined;
   flightNumber: string | undefined = undefined;
   cruiseFLTemp: Celsius = undefined;

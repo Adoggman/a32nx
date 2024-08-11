@@ -22,7 +22,7 @@ export enum SimbriefStatus {
 
 export type OFPCallback = (cduIndex: CDUIndex, data: ISimbriefData, simbriefObject: {}) => void;
 
-export class Simbrief extends CDUSubsystem implements SimbriefUplinkHandler {
+export class SimbriefSubsystem extends CDUSubsystem implements SimbriefUplinkHandler {
   Data: ISimbriefData;
   Status: SimbriefStatus = SimbriefStatus.Ready;
 
@@ -58,7 +58,7 @@ export class Simbrief extends CDUSubsystem implements SimbriefUplinkHandler {
       return;
     }
     this.Status = SimbriefStatus.Requesting;
-    const errCode = Simbrief.getOFP(this.cdu.Index, uplink);
+    const errCode = SimbriefSubsystem.getOFP(this.cdu.Index, uplink);
     if (errCode) {
       this.Status = SimbriefStatus.Ready;
       if (errCode === SimbriefErrorCode.NoNavigraphUsername) {
@@ -165,13 +165,13 @@ export class Simbrief extends CDUSubsystem implements SimbriefUplinkHandler {
         simbrief['taxiFuel'] = useKgs ? data.fuel.taxi : NXUnits.lbsToKg(data.fuel.taxi);
         simbrief['tripFuel'] = useKgs ? data.fuel.enrouteBurn : NXUnits.lbsToKg(data.fuel.enrouteBurn);
 
-        Simbrief.updateSimbrief(cduIndex, data, simbrief, uplink);
+        SimbriefSubsystem.updateSimbrief(cduIndex, data, simbrief, uplink);
 
         return SimbriefErrorCode.None;
       })
       .catch((_err) => {
         console.log(_err.message);
-        Simbrief.onSimbriefError(cduIndex);
+        SimbriefSubsystem.onSimbriefError(cduIndex);
         return SimbriefErrorCode.Unknown;
       });
   }

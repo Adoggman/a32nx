@@ -1,7 +1,7 @@
 import { CDU } from '@cdu/model/CDU';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
 
-export class FuelWeight extends CDUSubsystem {
+export class FuelWeightSubsystem extends CDUSubsystem {
   constructor(cdu: CDU) {
     super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing Fuel subsystem`);

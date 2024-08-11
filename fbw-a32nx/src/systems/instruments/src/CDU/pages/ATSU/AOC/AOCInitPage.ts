@@ -11,7 +11,7 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
-import { SimbriefStatus } from '@cdu/model/Subsystem/Simbrief';
+import { SimbriefStatus } from '@cdu/model/Subsystem/SimbriefSubsystem';
 import { AOCMenuPage } from '@cdu/pages/ATSU/AOC/AOCMenuPage';
 
 export class AOCInitPage extends DisplayablePage {

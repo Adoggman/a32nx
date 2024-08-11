@@ -1,6 +1,6 @@
 import { DatabaseIdent, NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDUDisplay } from '@cdu/CDUDisplay';
-import { Simbrief } from '@cdu/model/Subsystem/Simbrief';
+import { SimbriefSubsystem } from '@cdu/model/Subsystem/SimbriefSubsystem';
 import { EventBus } from '@microsoft/msfs-sdk';
 import { FlightPhaseManager } from '@fmgc/flightphase';
 import {
@@ -10,12 +10,12 @@ import {
   NavigationDatabase,
   NavigationDatabaseService,
 } from '@fmgc/index';
-import { AOC } from '@cdu/model/Subsystem/AOC';
-import { ATSU } from '@cdu/model/Subsystem/ATSU';
+import { AOCSubsystem } from '@cdu/model/Subsystem/AOCSubsystem';
+import { ATSUSubsystem } from '@cdu/model/Subsystem/ATSUSubsystem';
 import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
-import { FuelWeight } from '@cdu/model/Subsystem/FuelWeight';
-import { FlightInformation } from '@cdu/model/Subsystem/FlightInformation';
-import { FMGCSubsystem } from '@cdu/model/Subsystem/FMGC';
+import { FuelWeightSubsystem } from '@cdu/model/Subsystem/FuelWeightSubsystem';
+import { FlightInformationSubsystem } from '@cdu/model/Subsystem/FlightInformationSubsystem';
+import { FMGCSubsystem } from '@cdu/model/Subsystem/FMGCSubsystem';
 import { SpeedSubsystem } from '@cdu/model/Subsystem/SpeedSubsystem';
 
 export enum CDUIndex {
@@ -29,11 +29,11 @@ export class CDU {
   Powered: boolean;
   Display: CDUDisplay;
   // Subsystems
-  AOC: AOC;
-  Simbrief: Simbrief;
-  ATSU: ATSU;
-  FuelWeight: FuelWeight;
-  FlightInformation: FlightInformation;
+  AOC: AOCSubsystem;
+  Simbrief: SimbriefSubsystem;
+  ATSU: ATSUSubsystem;
+  FuelWeight: FuelWeightSubsystem;
+  FlightInformation: FlightInformationSubsystem;
   FMGC: FMGCSubsystem;
   Speeds: SpeedSubsystem;
   // Services, Managers, Databases
@@ -110,11 +110,11 @@ export class CDU {
   }
 
   initializeSubsystems() {
-    this.Simbrief = new Simbrief(this);
-    this.AOC = new AOC(this);
-    this.ATSU = new ATSU(this);
-    this.FuelWeight = new FuelWeight(this);
-    this.FlightInformation = new FlightInformation(this);
+    this.Simbrief = new SimbriefSubsystem(this);
+    this.AOC = new AOCSubsystem(this);
+    this.ATSU = new ATSUSubsystem(this);
+    this.FuelWeight = new FuelWeightSubsystem(this);
+    this.FlightInformation = new FlightInformationSubsystem(this);
     this.FMGC = new FMGCSubsystem(this);
     this.Speeds = new SpeedSubsystem(this);
   }

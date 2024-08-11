@@ -4,7 +4,7 @@ import { CDU } from '@cdu/model/CDU';
 import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
 
-export class ATSU extends CDUSubsystem {
+export class ATSUSubsystem extends CDUSubsystem {
   fmsClient: FmsClient;
   constructor(cdu: CDU) {
     super(cdu);

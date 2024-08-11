@@ -2,7 +2,7 @@ import { CDU } from '@cdu/model/CDU';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { AOCTimes } from '@cdu/model/Subsystem/AOC/AOCTimes';
 
-export class AOC extends CDUSubsystem {
+export class AOCSubsystem extends CDUSubsystem {
   Times: AOCTimes;
 
   constructor(cdu: CDU) {
