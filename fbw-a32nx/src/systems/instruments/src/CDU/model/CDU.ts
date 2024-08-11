@@ -16,7 +16,7 @@ import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
 import { FuelWeightSubsystem } from '@cdu/model/Subsystem/FuelWeightSubsystem';
 import { FlightInformationSubsystem } from '@cdu/model/Subsystem/FlightInformationSubsystem';
 import { FMGCSubsystem } from '@cdu/model/Subsystem/FMGCSubsystem';
-import { PerformanceSubsystem } from '@cdu/model/Subsystem/SpeedSubsystem';
+import { PerformanceSubsystem } from '@cdu/model/Subsystem/PerformanceSubsystem';
 
 export enum CDUIndex {
   Left = 1,
