@@ -179,7 +179,9 @@ export class Scratchpad {
     // Handle if we're showing a message
     if (this.currentMessage) {
       this.clearMessage();
-      return;
+      if (text == CDUScratchpad.clrValue) {
+        return;
+      }
     }
     // Handle if we hit CLR and there is text to erase
     if (text === CDUScratchpad.clrValue && !(currentContents.length === 0)) {

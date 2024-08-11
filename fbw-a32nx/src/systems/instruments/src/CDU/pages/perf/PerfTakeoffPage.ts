@@ -99,6 +99,14 @@ export class PerfTakeoffPage extends DisplayablePage {
   makeLine3() {
     const v2Speed = this.CDU.Speeds.v2Speed;
     const cleanSpeed = this.CDU.Speeds.cleanSpeed;
+    const flaps = this.CDU.Speeds.takeoffFlaps;
+    const ths = this.CDU.Speeds.takeoffTrim;
+    const formattedThs =
+      ths && isFinite(ths)
+        ? ths >= 0 && !Object.is(ths, -0)
+          ? `UP${Math.abs(ths).toFixed(1)}`
+          : `DN${Math.abs(ths).toFixed(1)}`
+        : '';
     return new CDULine(
       new CDUElement(
         v2Speed ? v2Speed.toFixed(0) : '___',
@@ -112,7 +120,10 @@ export class PerfTakeoffPage extends DisplayablePage {
         ),
       ),
       new CDUElement('\xa0V2\xa0\xa0\xa0\xa0\xa0CLEAN'),
-      new CDUElement('[]/[\xa0\xa0\xa0]', CDUColor.Cyan),
+      new CDUElement(
+        (flaps ? flaps.toFixed(0) : '[]') + '/' + (formattedThs ? formattedThs : '[\xa0\xa0\xa0]'),
+        CDUColor.Cyan,
+      ),
       new CDUElement('FLAPS/THS'),
     );
   }
@@ -244,6 +255,77 @@ export class PerfTakeoffPage extends DisplayablePage {
     this.CDU.Speeds.setV2Speed(v);
     this.scratchpad.clear();
     this.refresh();
+  }
+
+  onRSK3() {
+    // Clear
+    if (this.scratchpad.isCLR()) {
+      this.CDU.Speeds.setTakeoffFlaps(null);
+      //this.setTakeoffTrim(null);
+      this.CDU.Speeds.tryCheckToData();
+      return;
+    }
+
+    let newFlaps = null;
+    let newThs = null;
+
+    const [flaps, ths] = this.scratchpad.getSplitContents();
+
+    if (flaps && flaps.length > 0) {
+      if (!/^\d$/.test(flaps)) {
+        this.scratchpad.setMessage(NXSystemMessages.formatError);
+        return;
+      }
+
+      const flapsNum = parseInt(flaps);
+      if (!this.CDU.Speeds.isValidFlaps(flapsNum)) {
+        this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+        return;
+      }
+
+      newFlaps = flapsNum;
+    }
+
+    if (ths && ths.length > 0) {
+      // allow AAN.N and N.NAA, where AA is UP or DN
+      if (!/^(UP|DN)(\d|\d?\.\d|\d\.\d?)|(\d|\d?\.\d|\d\.\d?)(UP|DN)$/.test(ths)) {
+        this.scratchpad.setMessage(NXSystemMessages.formatError);
+        return;
+      }
+
+      let direction = null;
+      const thsClean = ths.replace(/(UP|DN)/g, (substr) => {
+        direction = substr;
+        return '';
+      });
+
+      if (direction) {
+        let thsNum = parseFloat(thsClean);
+        if (direction === 'DN') {
+          // Note that 0 *= -1 will result in -0, which is strictly
+          // the same as 0 (that is +0 === -0) and doesn't make a
+          // difference for the calculation itself. However, in order
+          // to differentiate between DN0.0 and UP0.0 we'll do check
+          // later when displaying this value using Object.is to
+          // determine whether the pilot entered DN0.0 or UP0.0.
+          thsNum *= -1;
+        }
+        if (!isFinite(thsNum) || !this.CDU.Speeds.isValidTakeoffTrim(thsNum)) {
+          this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+          return false;
+        }
+        newThs = thsNum;
+      }
+    }
+
+    if (newFlaps !== null) {
+      this.CDU.Speeds.setTakeoffFlaps(newFlaps);
+    }
+    if (newThs !== null) {
+      this.CDU.Speeds.setTakeoffTrim(newThs);
+    }
+    this.refresh();
+    this.scratchpad.clear();
   }
 
   onRefresh() {

@@ -1,22 +1,35 @@
+import { NXSystemMessages } from '@cdu/data/NXMessages';
 import { CDU } from '@cdu/model/CDU';
 import { NXSpeeds } from '@cdu/model/Speeds';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
+import { Arinc429SignStatusMatrix, Arinc429Word } from '@flybywiresim/fbw-sdk';
 import { FmgcFlightPhase } from '@shared/flightphase';
 
 export class SpeedSubsystem extends CDUSubsystem {
   lastGrossWeight: number;
   lastFlapsPosition: number;
-  currentFlapsPosition: number;
   landingGearPosition: number;
   altitude: number;
   //cgw: number;
   isTakeoff: boolean;
   speeds: NXSpeeds;
+  takeoffFlaps: number;
+  takeoffTrim: number;
+  arincDiscreteWord2: FmArinc429OutputWord;
+  arincTakeoffPitchTrim: FmArinc429OutputWord;
 
   constructor(cdu: CDU) {
     super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing Speed subsystem`);
     this.init();
+  }
+
+  isValidFlaps(flaps: number): boolean {
+    return !(flaps < 0 || flaps > 3);
+  }
+
+  isValidTakeoffTrim(ths: number) {
+    return !(ths < -5 || ths > 7);
   }
 
   init() {
@@ -33,11 +46,42 @@ export class SpeedSubsystem extends CDUSubsystem {
     SimVar.SetSimVarValue('L:A32NX_SPEEDS_ALPHA_MAX_CALC', 'number', 0);
     this.lastGrossWeight = 50;
     this.lastFlapsPosition = -1;
-    this.currentFlapsPosition = -1;
     this.landingGearPosition = -1;
     this.altitude = -1;
-    //this.cgw = 0;
     this.isTakeoff = false;
+    this.arincDiscreteWord2 = FmArinc429OutputWord.empty('DISCRETE_WORD_2');
+    this.arincDiscreteWord2.value = 0;
+    this.arincDiscreteWord2.ssm = Arinc429SignStatusMatrix.NoComputedData;
+    this.arincTakeoffPitchTrim = FmArinc429OutputWord.empty('TO_PITCH_TRIM');
+    this.arincTakeoffPitchTrim.value = 0;
+    this.arincTakeoffPitchTrim.ssm = Arinc429SignStatusMatrix.NoComputedData;
+  }
+
+  setTakeoffFlaps(flaps: number) {
+    if (flaps !== this.takeoffFlaps) {
+      this.takeoffFlaps = flaps;
+      this.arincDiscreteWord2.setBitValue(13, this.takeoffFlaps === 0);
+      this.arincDiscreteWord2.setBitValue(14, this.takeoffFlaps === 1);
+      this.arincDiscreteWord2.setBitValue(15, this.takeoffFlaps === 2);
+      this.arincDiscreteWord2.setBitValue(16, this.takeoffFlaps === 3);
+      this.arincDiscreteWord2.ssm = Arinc429SignStatusMatrix.NormalOperation;
+      SimVar.SetSimVarValue('L:A32NX_TO_CONFIG_FLAPS', 'number', this.takeoffFlaps !== null ? this.takeoffFlaps : -1);
+      this.tryCheckToData();
+    }
+  }
+
+  setTakeoffTrim(ths: number) {
+    if (ths !== this.takeoffTrim) {
+      this.takeoffTrim = ths;
+      // legacy vars
+      SimVar.SetSimVarValue('L:A32NX_TO_CONFIG_THS', 'degree', this.takeoffTrim ? this.takeoffTrim : 0);
+      SimVar.SetSimVarValue('L:A32NX_TO_CONFIG_THS_ENTERED', 'bool', this.takeoffTrim !== null);
+
+      const ssm =
+        this.takeoffTrim !== null ? Arinc429SignStatusMatrix.NormalOperation : Arinc429SignStatusMatrix.NoComputedData;
+
+      this.arincTakeoffPitchTrim.setBnrValue(this.takeoffTrim ? -this.takeoffTrim : 0, ssm, 12, 180, -180);
+    }
   }
 
   update(_deltaTime: number) {
@@ -143,6 +187,12 @@ export class SpeedSubsystem extends CDUSubsystem {
     SimVar.SetSimVarValue('L:AIRLINER_V2_SPEED', 'knots', speed ? speed : NaN);
   }
 
+  tryCheckToData() {
+    if (isFinite(this.v1Speed) || isFinite(this.vRSpeed) || isFinite(this.v2Speed)) {
+      this.cdu.addMessageToQueue(NXSystemMessages.checkToData);
+    }
+  }
+
   /**
    * Math.round(x / r) * r
    * @param x {number} number to be rounded
@@ -151,5 +201,58 @@ export class SpeedSubsystem extends CDUSubsystem {
    */
   round(x: number, r: number = 100): number {
     return Math.round(x / r) * r;
+  }
+}
+
+class FmArinc429OutputWord extends Arinc429Word {
+  name: string;
+  dirty: boolean;
+  ssm: Arinc429SignStatusMatrix;
+  value: number;
+
+  constructor(name, value = 0) {
+    super(0);
+
+    this.name = name;
+    this.dirty = true;
+    this.value = value;
+    this.ssm = 0;
+  }
+
+  setValue(value: number) {
+    if (this.value !== value) {
+      this.dirty = true;
+    }
+    this.value = value;
+  }
+
+  setSsm(ssm: Arinc429SignStatusMatrix) {
+    if (this.ssm !== ssm) {
+      this.dirty = true;
+    }
+    this.ssm = ssm;
+  }
+
+  static empty(name?: string) {
+    return new FmArinc429OutputWord(name ?? 'EMPTY', 0);
+  }
+
+  async writeToSimVarIfDirty() {
+    if (this.dirty) {
+      this.dirty = false;
+      return Promise.all([
+        Arinc429Word.toSimVarValue(`L:A32NX_FM1_${this.name}`, this.value, this.ssm),
+        Arinc429Word.toSimVarValue(`L:A32NX_FM2_${this.name}`, this.value, this.ssm),
+      ]);
+    }
+    return Promise.resolve();
+  }
+
+  setBnrValue(value: number, ssm: Arinc429SignStatusMatrix, bits: number, rangeMax: number, rangeMin = 0) {
+    const quantum = Math.max(Math.abs(rangeMin), rangeMax) / 2 ** bits;
+    const data = Math.max(rangeMin, Math.min(rangeMax, Math.round(value / quantum) * quantum));
+
+    this.value = data;
+    this.ssm = ssm;
   }
 }
