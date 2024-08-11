@@ -133,6 +133,7 @@ export class PerfTakeoffPage extends DisplayablePage {
     const hasOrigin = !!plan?.originAirport;
     const transAlt = plan?.performanceData.transitionAltitude;
     const transAltitudeIsFromDatabase = plan?.performanceData.transitionAltitudeIsFromDatabase;
+    const flexTemp = this.CDU.Performance.takeoffFlexTemp;
     return {
       left: new CDUElement(
         transAlt ? transAlt.toFixed(0) : hasOrigin ? '[\xa0\xa0\xa0\xa0]' : '',
@@ -140,7 +141,7 @@ export class PerfTakeoffPage extends DisplayablePage {
         transAltitudeIsFromDatabase ? CDUTextSize.Small : CDUTextSize.Large,
       ),
       leftLabel: new CDUElement('TRANS ALT'),
-      right: new CDUElement('[\xa0\xa0]°', CDUColor.Cyan),
+      right: new CDUElement(flexTemp ? flexTemp.toFixed(0) + '°' : '[\xa0\xa0]°', CDUColor.Cyan),
       rightLabel: new CDUElement('FLEX TO TEMP'),
     };
   }
@@ -352,6 +353,30 @@ export class PerfTakeoffPage extends DisplayablePage {
     }
 
     this.CDU.Performance.setTransitionAltitude(num);
+    this.scratchpad.clear();
+    this.refresh();
+  }
+
+  onRSK4() {
+    if (this.scratchpad.isCLR()) {
+      this.CDU.Performance.setFlexTemp(null);
+      this.scratchpad.clear();
+      this.refresh();
+      return;
+    }
+
+    if (!this.scratchpad.contentIsNumber()) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const num = Math.round(this.scratchpad.getNumber());
+    if (!this.CDU.Performance.isValidFlexTemp(num)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    this.CDU.Performance.setFlexTemp(num);
     this.scratchpad.clear();
     this.refresh();
   }

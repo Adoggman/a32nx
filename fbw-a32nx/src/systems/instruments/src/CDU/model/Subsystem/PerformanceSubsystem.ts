@@ -16,6 +16,7 @@ export class PerformanceSubsystem extends CDUSubsystem {
   speeds: NXSpeeds;
   takeoffFlaps: number;
   takeoffTrim: number;
+  takeoffFlexTemp: number;
   arincDiscreteWord2: FmArinc429OutputWord;
   arincTakeoffPitchTrim: FmArinc429OutputWord;
   arincTransitionAltitude: FmArinc429OutputWord;
@@ -124,6 +125,17 @@ export class PerformanceSubsystem extends CDUSubsystem {
       512,
       0,
     );
+  }
+
+  setFlexTemp(temp: number | null) {
+    this.takeoffFlexTemp = temp;
+    // We use 0.1 in the simvar to represent "flex temp is set, but to 0"
+    const simvarValue = temp === 0 ? 0.1 : temp;
+    SimVar.SetSimVarValue('L:AIRLINER_TO_FLEX_TEMP', 'Number', !simvarValue ? 0 : simvarValue);
+  }
+
+  isValidFlexTemp(temp: number) {
+    return !(temp < -99 || temp > 99);
   }
 
   update(_deltaTime: number) {
