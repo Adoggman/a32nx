@@ -16,7 +16,7 @@ import { TypeIMessage, TypeIIMessage } from '@cdu/data/NXMessages';
 import { FuelWeightSubsystem } from '@cdu/model/Subsystem/FuelWeightSubsystem';
 import { FlightInformationSubsystem } from '@cdu/model/Subsystem/FlightInformationSubsystem';
 import { FMGCSubsystem } from '@cdu/model/Subsystem/FMGCSubsystem';
-import { SpeedSubsystem } from '@cdu/model/Subsystem/SpeedSubsystem';
+import { PerformanceSubsystem } from '@cdu/model/Subsystem/SpeedSubsystem';
 
 export enum CDUIndex {
   Left = 1,
@@ -35,7 +35,7 @@ export class CDU {
   FuelWeight: FuelWeightSubsystem;
   FlightInformation: FlightInformationSubsystem;
   FMGC: FMGCSubsystem;
-  Speeds: SpeedSubsystem;
+  Performance: PerformanceSubsystem;
   // Services, Managers, Databases
   flightPhaseManager: FlightPhaseManager;
   flightPlanService: FlightPlanService<A320FlightPlanPerformanceData>;
@@ -116,7 +116,7 @@ export class CDU {
     this.FuelWeight = new FuelWeightSubsystem(this);
     this.FlightInformation = new FlightInformationSubsystem(this);
     this.FMGC = new FMGCSubsystem(this);
-    this.Speeds = new SpeedSubsystem(this);
+    this.Performance = new PerformanceSubsystem(this);
   }
 
   setMessage(message: TypeIMessage): void {
@@ -175,7 +175,7 @@ export class CDU {
       const deltaTime = now - this.lastUpdate;
       this.AOC.update(deltaTime);
       this.FMGC.update(deltaTime);
-      this.Speeds.update(deltaTime);
+      this.Performance.update(deltaTime);
       this.lastUpdate = now;
     }
   }

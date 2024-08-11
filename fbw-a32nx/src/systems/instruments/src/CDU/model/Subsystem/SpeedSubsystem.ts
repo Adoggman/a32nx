@@ -6,7 +6,7 @@ import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { Arinc429SignStatusMatrix } from '@flybywiresim/fbw-sdk';
 import { FmgcFlightPhase } from '@shared/flightphase';
 
-export class SpeedSubsystem extends CDUSubsystem {
+export class PerformanceSubsystem extends CDUSubsystem {
   lastGrossWeight: number;
   lastFlapsPosition: number;
   landingGearPosition: number;
@@ -18,6 +18,9 @@ export class SpeedSubsystem extends CDUSubsystem {
   takeoffTrim: number;
   arincDiscreteWord2: FmArinc429OutputWord;
   arincTakeoffPitchTrim: FmArinc429OutputWord;
+  arincTransitionAltitude: FmArinc429OutputWord;
+  arincTransitionLevel: FmArinc429OutputWord;
+  arincBusOutputs: FmArinc429OutputWord[];
 
   constructor(cdu: CDU) {
     super(cdu);
@@ -51,11 +54,19 @@ export class SpeedSubsystem extends CDUSubsystem {
     this.altitude = -1;
     this.isTakeoff = false;
     this.arincDiscreteWord2 = FmArinc429OutputWord.empty('DISCRETE_WORD_2');
-    this.arincDiscreteWord2.value = 0;
-    this.arincDiscreteWord2.ssm = Arinc429SignStatusMatrix.NoComputedData;
     this.arincTakeoffPitchTrim = FmArinc429OutputWord.empty('TO_PITCH_TRIM');
-    this.arincTakeoffPitchTrim.value = 0;
-    this.arincTakeoffPitchTrim.ssm = Arinc429SignStatusMatrix.NoComputedData;
+    this.arincTransitionAltitude = FmArinc429OutputWord.empty('TRANS_ALT');
+    this.arincTransitionLevel = FmArinc429OutputWord.empty('TRANS_LVL');
+    this.arincBusOutputs = [
+      this.arincDiscreteWord2,
+      this.arincTakeoffPitchTrim,
+      this.arincTransitionAltitude,
+      this.arincTransitionLevel,
+    ];
+    this.arincBusOutputs.forEach((word) => {
+      word.value = 0;
+      word.ssm = Arinc429SignStatusMatrix.NoComputedData;
+    });
   }
 
   setTakeoffFlaps(flaps: number) {
@@ -84,6 +95,35 @@ export class SpeedSubsystem extends CDUSubsystem {
       this.arincTakeoffPitchTrim.setBnrValue(this.takeoffTrim ? -this.takeoffTrim : 0, ssm, 12, 180, -180);
       this.tryCheckToData();
     }
+  }
+
+  setTransitionAltitude(newAltitude: number | null) {
+    this.cdu.flightPlanService.setPerformanceData('pilotTransitionAltitude', newAltitude);
+    this.onUpdateAltitude();
+  }
+
+  onUpdateAltitude() {
+    const originTransitionAltitude = this.cdu.flightPlanService.activeOrTemporary?.performanceData.transitionAltitude;
+    this.arincTransitionAltitude.setBnrValue(
+      originTransitionAltitude !== null ? originTransitionAltitude : 0,
+      originTransitionAltitude !== null
+        ? Arinc429SignStatusMatrix.NormalOperation
+        : Arinc429SignStatusMatrix.NoComputedData,
+      17,
+      131072,
+      0,
+    );
+
+    const destinationTansitionLevel = this.cdu.flightPlanService.activeOrTemporary?.performanceData.transitionLevel;
+    this.arincTransitionLevel.setBnrValue(
+      destinationTansitionLevel !== null ? destinationTansitionLevel : 0,
+      destinationTansitionLevel !== null
+        ? Arinc429SignStatusMatrix.NormalOperation
+        : Arinc429SignStatusMatrix.NoComputedData,
+      9,
+      512,
+      0,
+    );
   }
 
   update(_deltaTime: number) {
@@ -140,6 +180,8 @@ export class SpeedSubsystem extends CDUSubsystem {
     SimVar.SetSimVarValue('L:A32NX_SPEEDS_VFEN', 'number', speeds.vfeN);
     SimVar.SetSimVarValue('L:A32NX_SPEEDS_ALPHA_PROTECTION_CALC', 'number', speeds.vs * 1.1);
     SimVar.SetSimVarValue('L:A32NX_SPEEDS_ALPHA_MAX_CALC', 'number', speeds.vs * 1.03);
+
+    this.arincBusOutputs.forEach((word) => word.writeToSimVarIfDirty());
   }
 
   public get flapRetractSpeed() {

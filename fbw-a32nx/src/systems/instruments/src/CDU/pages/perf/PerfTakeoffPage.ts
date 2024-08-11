@@ -44,8 +44,8 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   makeLine1() {
-    const v1Speed = this.CDU.Speeds.v1Speed;
-    const flapRetractSpeed = this.CDU.Speeds.flapRetractSpeed;
+    const v1Speed = this.CDU.Performance.v1Speed;
+    const flapRetractSpeed = this.CDU.Performance.flapRetractSpeed;
     return new CDULine(
       new CDUElement(
         v1Speed ? v1Speed.toFixed(0) : '___',
@@ -66,8 +66,8 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   makeLine2() {
-    const vRSpeed = this.CDU.Speeds.vRSpeed;
-    const slatRetractSpeed = this.CDU.Speeds.slatRetractSpeed;
+    const vRSpeed = this.CDU.Performance.vRSpeed;
+    const slatRetractSpeed = this.CDU.Performance.slatRetractSpeed;
     return new CDULine(
       new CDUElement(
         vRSpeed ? vRSpeed.toFixed(0) : '___',
@@ -97,10 +97,10 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   makeLine3() {
-    const v2Speed = this.CDU.Speeds.v2Speed;
-    const cleanSpeed = this.CDU.Speeds.cleanSpeed;
-    const flaps = this.CDU.Speeds.takeoffFlaps;
-    const ths = this.CDU.Speeds.takeoffTrim;
+    const v2Speed = this.CDU.Performance.v2Speed;
+    const cleanSpeed = this.CDU.Performance.cleanSpeed;
+    const flaps = this.CDU.Performance.takeoffFlaps;
+    const ths = this.CDU.Performance.takeoffTrim;
     const formattedThs =
       ths && isFinite(ths)
         ? ths >= 0 && !Object.is(ths, -0)
@@ -205,12 +205,12 @@ export class PerfTakeoffPage extends DisplayablePage {
       this.scratchpad.setMessage(NXSystemMessages.formatError);
       return;
     }
-    if (!this.CDU.Speeds.isValidVSpeed(v)) {
+    if (!this.CDU.Performance.isValidVSpeed(v)) {
       this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
       return;
     }
     this.scratchpad.removeMessageFromQueue(NXSystemMessages.checkToData.text);
-    this.CDU.Speeds.setV1Speed(v);
+    this.CDU.Performance.setV1Speed(v);
     this.scratchpad.clear();
     this.refresh();
   }
@@ -226,12 +226,12 @@ export class PerfTakeoffPage extends DisplayablePage {
       this.scratchpad.setMessage(NXSystemMessages.formatError);
       return;
     }
-    if (!this.CDU.Speeds.isValidVSpeed(v)) {
+    if (!this.CDU.Performance.isValidVSpeed(v)) {
       this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
       return;
     }
     this.scratchpad.removeMessageFromQueue(NXSystemMessages.checkToData.text);
-    this.CDU.Speeds.setVRSpeed(v);
+    this.CDU.Performance.setVRSpeed(v);
     this.scratchpad.clear();
     this.refresh();
   }
@@ -247,12 +247,12 @@ export class PerfTakeoffPage extends DisplayablePage {
       this.scratchpad.setMessage(NXSystemMessages.formatError);
       return;
     }
-    if (!this.CDU.Speeds.isValidVSpeed(v)) {
+    if (!this.CDU.Performance.isValidVSpeed(v)) {
       this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
       return;
     }
     this.scratchpad.removeMessageFromQueue(NXSystemMessages.checkToData.text);
-    this.CDU.Speeds.setV2Speed(v);
+    this.CDU.Performance.setV2Speed(v);
     this.scratchpad.clear();
     this.refresh();
   }
@@ -260,9 +260,9 @@ export class PerfTakeoffPage extends DisplayablePage {
   onRSK3() {
     // Clear
     if (this.scratchpad.isCLR()) {
-      this.CDU.Speeds.setTakeoffFlaps(null);
-      this.CDU.Speeds.setTakeoffTrim(null);
-      this.CDU.Speeds.tryCheckToData();
+      this.CDU.Performance.setTakeoffFlaps(null);
+      this.CDU.Performance.setTakeoffTrim(null);
+      this.CDU.Performance.tryCheckToData();
       return;
     }
 
@@ -278,7 +278,7 @@ export class PerfTakeoffPage extends DisplayablePage {
       }
 
       const flapsNum = parseInt(flaps);
-      if (!this.CDU.Speeds.isValidFlaps(flapsNum)) {
+      if (!this.CDU.Performance.isValidFlaps(flapsNum)) {
         this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
         return;
       }
@@ -310,7 +310,7 @@ export class PerfTakeoffPage extends DisplayablePage {
           // determine whether the pilot entered DN0.0 or UP0.0.
           thsNum *= -1;
         }
-        if (!isFinite(thsNum) || !this.CDU.Speeds.isValidTakeoffTrim(thsNum)) {
+        if (!isFinite(thsNum) || !this.CDU.Performance.isValidTakeoffTrim(thsNum)) {
           this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
           return false;
         }
@@ -319,13 +319,41 @@ export class PerfTakeoffPage extends DisplayablePage {
     }
 
     if (newFlaps !== null) {
-      this.CDU.Speeds.setTakeoffFlaps(newFlaps);
+      this.CDU.Performance.setTakeoffFlaps(newFlaps);
     }
     if (newThs !== null) {
-      this.CDU.Speeds.setTakeoffTrim(newThs);
+      this.CDU.Performance.setTakeoffTrim(newThs);
     }
     this.refresh();
     this.scratchpad.clear();
+  }
+
+  onLSK4() {
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      this.CDU.Performance.setTransitionAltitude(null);
+      this.scratchpad.clear();
+      this.refresh();
+      return;
+    }
+
+    if (!this.scratchpad.contentIsNumber()) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const num = Math.round(this.scratchpad.getNumber() / 10) * 10;
+    if (num < 1000 || num > 45000) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    this.CDU.Performance.setTransitionAltitude(num);
+    this.scratchpad.clear();
+    this.refresh();
   }
 
   onRefresh() {
