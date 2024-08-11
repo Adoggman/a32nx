@@ -81,6 +81,7 @@ export class SpeedSubsystem extends CDUSubsystem {
         this.takeoffTrim !== null ? Arinc429SignStatusMatrix.NormalOperation : Arinc429SignStatusMatrix.NoComputedData;
 
       this.arincTakeoffPitchTrim.setBnrValue(this.takeoffTrim ? -this.takeoffTrim : 0, ssm, 12, 180, -180);
+      this.tryCheckToData();
     }
   }
 
@@ -188,7 +189,7 @@ export class SpeedSubsystem extends CDUSubsystem {
   }
 
   tryCheckToData() {
-    if (isFinite(this.v1Speed) || isFinite(this.vRSpeed) || isFinite(this.v2Speed)) {
+    if (this.v1Speed || this.vRSpeed || this.v2Speed) {
       this.cdu.addMessageToQueue(NXSystemMessages.checkToData);
     }
   }
