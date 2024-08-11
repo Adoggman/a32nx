@@ -585,9 +585,7 @@ class FMCMainDisplay extends BaseAirliners {
 
         if (this.fmsUpdateThrottler.canUpdate(_deltaTime) !== -1) {
             this.checkSpeedLimit();
-            if (NXDataStore.get('AJH_USE_NEW_CDU', '0') !== '1') {
-                this.navigation.update(_deltaTime);
-            }
+            this.navigation.update(_deltaTime);
             this.getGW();
             this.checkGWParams();
             this.toSpeedsChecks();
@@ -613,11 +611,11 @@ class FMCMainDisplay extends BaseAirliners {
             this.updateProgDistance();
         }
 
+        if (this.guidanceController) {
+            this.guidanceController.update(_deltaTime);
+        }
         if (NXDataStore.get('AJH_USE_NEW_CDU', '0') !== '1') {
-            if (this.guidanceController) {
-                this.guidanceController.update(_deltaTime);
-            }
-
+            // Only send efis symbols from active CDU version
             if (this.efisSymbols) {
                 this.efisSymbols.update(_deltaTime);
             }
