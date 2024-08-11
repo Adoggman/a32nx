@@ -16,7 +16,7 @@ class CDUPerformancePage {
             case FmgcFlightPhases.GOAROUND: CDUPerformancePage.ShowGOAROUNDPage(mcdu); break;
         }
     }
-    static ShowTAKEOFFPage(mcdu) {
+    static ShowTAKEOFFPage(mcdu, hideSync = false) {
         mcdu.clearDisplay();
         mcdu.page.Current = mcdu.page.PerformancePageTakeoff;
         CDUPerformancePage._timer = 0;
@@ -312,7 +312,7 @@ class CDUPerformancePage {
             }
         }
 
-        const canSync = !!SimVar.GetSimVarValue("L:A32NX_EFB_TO_CALC_V1", "knots"); ;
+        const canSync = !hideSync && !!SimVar.GetSimVarValue("L:A32NX_EFB_TO_CALC_V1", "knots"); ;
         const uplinkColor = canSync ? 'white' : 'inop';
 
         let next = "NEXT\xa0";
@@ -345,7 +345,7 @@ class CDUPerformancePage {
         mcdu.onLeftInput[5] = (_value, scratchpadCallback) => {
             const efbV1 = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_V1', 'knots');
             if (!efbV1) {
-                console.log("no V1, not syncing");
+                console.log("Not syncing - EFB calculated values not found");
                 return;
             }
             const efbVR = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_VR', 'knots');
@@ -371,13 +371,15 @@ class CDUPerformancePage {
                 return;
             }
 
-            const setFlaps = mcdu.trySetFlapsTHS(flaps + "/");
-            if (!setFlaps) {
-                scratchpadCallback();
-                return;
+            if (flaps !== mcdu.flaps) {
+                const setFlaps = mcdu.trySetFlapsTHS(flaps + "/");
+                if (!setFlaps) {
+                    scratchpadCallback();
+                    return;
+                }
             }
 
-            const setFlex = mcdu.setPerfTOFlexTemp(flex);
+            const setFlex = mcdu.setPerfTOFlexTemp(flex > 0 ? flex : FMCMainDisplay.clrValue);
             if (!setFlex) {
                 scratchpadCallback();
                 return;
@@ -388,7 +390,7 @@ class CDUPerformancePage {
             SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_VR', 'knots', 0);
             SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLAPS', 'number', 0);
             SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLEX', 'celsius', 0);
-            CDUPerformancePage.ShowTAKEOFFPage(mcdu);
+            CDUPerformancePage.ShowTAKEOFFPage(mcdu, true);
         };
 
         mcdu.setTemplate([
