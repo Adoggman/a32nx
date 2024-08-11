@@ -1,6 +1,14 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { NXSystemMessages } from '@cdu/data/NXMessages';
-import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
+import {
+  CDUColor,
+  CDUElement,
+  CDULine,
+  CDUTextSize,
+  DisplayablePage,
+  makeLines,
+  RefreshRate,
+} from '@cdu/model/CDUPage';
 import { RunwayUtils } from '@fmgc/index';
 import { FmgcFlightPhase } from '@shared/flightphase';
 
@@ -10,6 +18,7 @@ export class PerfTakeoffPage extends DisplayablePage {
 
   constructor(display: CDUDisplay) {
     super(display);
+    this.refreshRate = RefreshRate.Medium;
     this.title = new CDUElement(
       'TAKE OFF RWY ',
       CDUColor.White,
