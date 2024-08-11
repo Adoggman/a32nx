@@ -120,21 +120,21 @@ export class DeparturesPage extends DisplayablePage {
           departure
             ? new CDUElement(
                 (isCurrentDeparture ? '\xa0' : '{') + departure.ident,
-                isCurrentDeparture ? this.currentColor : CDUColor.Cyan,
+                isCurrentDeparture && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
               )
             : new CDUElement(
                 isNoSid ? (this.noneDeparture ? ' ' : '{') + 'NO SID' : '',
-                this.noneDeparture ? this.currentColor : CDUColor.Cyan,
+                this.noneDeparture && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
               ),
           undefined,
           transition
             ? new CDUElement(
                 transition.ident + (isCurrentTransition ? '\xa0' : '}'),
-                isCurrentTransition ? this.currentColor : CDUColor.Cyan,
+                isCurrentTransition && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
               )
             : new CDUElement(
                 isNoTransition ? 'NO TRANS' + (this.noneTransition ? ' ' : '}') : '',
-                this.noneTransition ? this.currentColor : CDUColor.Cyan,
+                this.noneTransition && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
               ),
         ),
       );
@@ -172,7 +172,7 @@ export class DeparturesPage extends DisplayablePage {
       }
       const runway = runways[runwayIndex];
       const isCurrentRunway = this.isCurrentRunway(runway);
-      const color = isCurrentRunway ? this.currentColor : CDUColor.Cyan;
+      const color = isCurrentRunway && !this.hasTemporary ? this.currentColor : CDUColor.Cyan;
       runwayLines.push(
         new CDULine(
           new CDUElement(
