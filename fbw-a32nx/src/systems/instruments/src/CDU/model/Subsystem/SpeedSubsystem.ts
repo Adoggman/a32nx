@@ -1,8 +1,9 @@
 import { NXSystemMessages } from '@cdu/data/NXMessages';
+import { FmArinc429OutputWord } from '@cdu/model/Arinc';
 import { CDU } from '@cdu/model/CDU';
 import { NXSpeeds } from '@cdu/model/Speeds';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
-import { Arinc429SignStatusMatrix, Arinc429Word } from '@flybywiresim/fbw-sdk';
+import { Arinc429SignStatusMatrix } from '@flybywiresim/fbw-sdk';
 import { FmgcFlightPhase } from '@shared/flightphase';
 
 export class SpeedSubsystem extends CDUSubsystem {
@@ -89,7 +90,7 @@ export class SpeedSubsystem extends CDUSubsystem {
     const flightPhase = this.cdu.flightPhaseManager.phase; //const fp = SimVar.GetSimVarValue("L:A32NX_FMGC_FLIGHT_PHASE", "Enum");
     let flapsPosition = SimVar.GetSimVarValue('L:A32NX_FLAPS_HANDLE_INDEX', 'Enum');
     // Check if flaps in takeoff position
-    const isTakeoff = flapsPosition === SimVar.GetSimVarValue('L:A32NX_TO_CONFIG_FLAPS', 'number');
+    const isTOFlapsSelected = flapsPosition === SimVar.GetSimVarValue('L:A32NX_TO_CONFIG_FLAPS', 'number');
 
     // Differentiate between 1 and 1 + F */
     if (flapsPosition === 1 && SimVar.GetSimVarValue('L:A32NX_FLAPS_CONF_INDEX', 'Enum') === 1) {
@@ -106,7 +107,7 @@ export class SpeedSubsystem extends CDUSubsystem {
       grossWeight === this.lastGrossWeight &&
       landingGearPos === this.landingGearPosition &&
       altitude === this.altitude &&
-      isTakeoff === this.isTakeoff
+      isTOFlapsSelected === this.isTakeoff
     ) {
       return;
     }
@@ -114,7 +115,7 @@ export class SpeedSubsystem extends CDUSubsystem {
     /** During Take Off allow to change this.isTo
      * Otherwise if we are in take off config and change the fhi, we no longer are in take off config */
     if (flightPhase === FmgcFlightPhase.Takeoff && Simplane.getAltitudeAboveGround() < 1.5) {
-      this.isTakeoff = isTakeoff;
+      this.isTakeoff = isTOFlapsSelected;
     } else if (this.isTakeoff && this.lastFlapsPosition !== flapsPosition) {
       this.isTakeoff = false;
     }
@@ -202,58 +203,5 @@ export class SpeedSubsystem extends CDUSubsystem {
    */
   round(x: number, r: number = 100): number {
     return Math.round(x / r) * r;
-  }
-}
-
-class FmArinc429OutputWord extends Arinc429Word {
-  name: string;
-  dirty: boolean;
-  ssm: Arinc429SignStatusMatrix;
-  value: number;
-
-  constructor(name, value = 0) {
-    super(0);
-
-    this.name = name;
-    this.dirty = true;
-    this.value = value;
-    this.ssm = 0;
-  }
-
-  setValue(value: number) {
-    if (this.value !== value) {
-      this.dirty = true;
-    }
-    this.value = value;
-  }
-
-  setSsm(ssm: Arinc429SignStatusMatrix) {
-    if (this.ssm !== ssm) {
-      this.dirty = true;
-    }
-    this.ssm = ssm;
-  }
-
-  static empty(name?: string) {
-    return new FmArinc429OutputWord(name ?? 'EMPTY', 0);
-  }
-
-  async writeToSimVarIfDirty() {
-    if (this.dirty) {
-      this.dirty = false;
-      return Promise.all([
-        Arinc429Word.toSimVarValue(`L:A32NX_FM1_${this.name}`, this.value, this.ssm),
-        Arinc429Word.toSimVarValue(`L:A32NX_FM2_${this.name}`, this.value, this.ssm),
-      ]);
-    }
-    return Promise.resolve();
-  }
-
-  setBnrValue(value: number, ssm: Arinc429SignStatusMatrix, bits: number, rangeMax: number, rangeMin = 0) {
-    const quantum = Math.max(Math.abs(rangeMin), rangeMax) / 2 ** bits;
-    const data = Math.max(rangeMin, Math.min(rangeMax, Math.round(value / quantum) * quantum));
-
-    this.value = data;
-    this.ssm = ssm;
   }
 }

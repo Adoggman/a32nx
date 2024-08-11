@@ -261,7 +261,7 @@ export class PerfTakeoffPage extends DisplayablePage {
     // Clear
     if (this.scratchpad.isCLR()) {
       this.CDU.Speeds.setTakeoffFlaps(null);
-      //this.setTakeoffTrim(null);
+      this.CDU.Speeds.setTakeoffTrim(null);
       this.CDU.Speeds.tryCheckToData();
       return;
     }
