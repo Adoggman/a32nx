@@ -611,10 +611,11 @@ class FMCMainDisplay extends BaseAirliners {
             this.updateProgDistance();
         }
 
-        if (this.guidanceController) {
-            this.guidanceController.update(_deltaTime);
-        }
         if (NXDataStore.get('AJH_USE_NEW_CDU', '0') !== '1') {
+            if (this.guidanceController) {
+                this.guidanceController.update(_deltaTime);
+            }
+
             // Only send efis symbols from active CDU version
             if (this.efisSymbols) {
                 this.efisSymbols.update(_deltaTime);
