@@ -1,6 +1,7 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
 import { RunwayUtils } from '@fmgc/index';
+import { FmgcFlightPhase } from '@shared/flightphase';
 
 export class PerfTakeoffPage extends DisplayablePage {
   static readonly pageID: string = 'PERF_TAKEOFF';
@@ -99,7 +100,16 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   makeLine4() {
+    const plan = this.CDU.flightPlanService.activeOrTemporary;
+    const hasOrigin = !!plan?.originAirport;
+    const transAlt = plan?.performanceData.transitionAltitude;
+    const transAltitudeIsFromDatabase = plan?.performanceData.transitionAltitudeIsFromDatabase;
     return {
+      left: new CDUElement(
+        transAlt ? transAlt.toFixed(0) : hasOrigin ? '[\xa0\xa0\xa0\xa0]' : '',
+        CDUColor.Cyan,
+        transAltitudeIsFromDatabase ? CDUTextSize.Small : CDUTextSize.Large,
+      ),
       leftLabel: new CDUElement('TRANS ALT'),
       right: new CDUElement('[\xa0\xa0]°', CDUColor.Cyan),
       rightLabel: new CDUElement('FLEX TO TEMP'),
@@ -107,10 +117,41 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   makeLine5() {
+    const plan = this.CDU.flightPlanService.activeOrTemporary;
+    const hasOrigin = !!plan?.originAirport;
+    const color = hasOrigin
+      ? this.CDU.flightPhaseManager.phase >= FmgcFlightPhase.Takeoff
+        ? CDUColor.Green
+        : CDUColor.Cyan
+      : CDUColor.White;
+    const thrustReductionAlt = plan.performanceData.thrustReductionAltitude;
+    const isThrustReductionManual = thrustReductionAlt && plan.performanceData.thrustReductionAltitudeIsPilotEntered;
+    const accelerationAlt = plan.performanceData.accelerationAltitude;
+    const isAccelerationManual = accelerationAlt && plan.performanceData.accelerationAltitudeIsPilotEntered;
+    const engineOutAlt = plan.performanceData.engineOutAccelerationAltitude;
+    const isEngineOutManual = engineOutAlt && plan.performanceData.engineOutAccelerationAltitudeIsPilotEntered;
     return {
-      left: new CDUElement('-----/-----', CDUColor.White, CDUTextSize.Small),
+      left: new CDUElement(
+        thrustReductionAlt ? thrustReductionAlt.toFixed(0).padStart(5, '\xa0') : '-----',
+        color,
+        isThrustReductionManual ? CDUTextSize.Large : CDUTextSize.Small,
+        new CDUElement(
+          '/',
+          color,
+          CDUTextSize.Large,
+          new CDUElement(
+            accelerationAlt ? accelerationAlt.toFixed(0) : '-----',
+            color,
+            isAccelerationManual ? CDUTextSize.Large : CDUTextSize.Small,
+          ),
+        ),
+      ),
       leftLabel: new CDUElement('THR RED/ACC'),
-      right: new CDUElement('-----', CDUColor.White, CDUTextSize.Small),
+      right: new CDUElement(
+        engineOutAlt ? engineOutAlt.toFixed(0) : '-----',
+        color,
+        isEngineOutManual ? CDUTextSize.Large : CDUTextSize.Small,
+      ),
       rightLabel: new CDUElement('ENG OUT ACC'),
     };
   }
