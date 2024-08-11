@@ -82,7 +82,7 @@ export class PerformanceSubsystem extends CDUSubsystem {
       this.arincDiscreteWord2.setBitValue(16, this.takeoffFlaps === 3);
       this.arincDiscreteWord2.ssm = Arinc429SignStatusMatrix.NormalOperation;
       SimVar.SetSimVarValue('L:A32NX_TO_CONFIG_FLAPS', 'number', this.takeoffFlaps !== null ? this.takeoffFlaps : -1);
-      this.tryCheckToData();
+      this.triggerCheckTakeoffDataMessage();
     }
   }
 
@@ -97,7 +97,7 @@ export class PerformanceSubsystem extends CDUSubsystem {
         this.takeoffTrim !== null ? Arinc429SignStatusMatrix.NormalOperation : Arinc429SignStatusMatrix.NoComputedData;
 
       this.arincTakeoffPitchTrim.setBnrValue(this.takeoffTrim ? -this.takeoffTrim : 0, ssm, 12, 180, -180);
-      this.tryCheckToData();
+      this.triggerCheckTakeoffDataMessage();
     }
   }
 
@@ -259,6 +259,7 @@ export class PerformanceSubsystem extends CDUSubsystem {
   setV1Speed(speed: Knots) {
     this.cdu.flightPlanService.setPerformanceData('v1', speed);
     SimVar.SetSimVarValue('L:AIRLINER_V1_SPEED', 'knots', speed ? speed : NaN);
+    this.checkVSpeeds();
   }
 
   get vRSpeed() {
@@ -268,6 +269,7 @@ export class PerformanceSubsystem extends CDUSubsystem {
   setVRSpeed(speed: Knots) {
     this.cdu.flightPlanService.setPerformanceData('vr', speed);
     SimVar.SetSimVarValue('L:AIRLINER_VR_SPEED', 'knots', speed ? speed : NaN);
+    this.checkVSpeeds();
   }
 
   get v2Speed() {
@@ -277,12 +279,31 @@ export class PerformanceSubsystem extends CDUSubsystem {
   setV2Speed(speed: Knots) {
     this.cdu.flightPlanService.setPerformanceData('v2', speed);
     SimVar.SetSimVarValue('L:AIRLINER_V2_SPEED', 'knots', speed ? speed : NaN);
+    this.checkVSpeeds();
   }
 
-  tryCheckToData() {
+  triggerCheckTakeoffDataMessage() {
     if (this.v1Speed || this.vRSpeed || this.v2Speed) {
       this.cdu.addMessageToQueue(NXSystemMessages.checkToData);
     }
+  }
+
+  checkVSpeeds() {
+    if (!this.areVSpeedsValid()) {
+      this.cdu.addMessageToQueue(
+        NXSystemMessages.vToDisagree.getModifiedMessage('', () => {
+          return this.areVSpeedsValid();
+        }),
+      );
+    }
+  }
+
+  areVSpeedsValid() {
+    return (
+      (!!this.v1Speed && !!this.vRSpeed ? this.v1Speed <= this.vRSpeed : true) &&
+      (!!this.vRSpeed && !!this.v2Speed ? this.vRSpeed <= this.v2Speed : true) &&
+      (!!this.v1Speed && !!this.v2Speed ? this.v1Speed <= this.v2Speed : true)
+    );
   }
 
   /**

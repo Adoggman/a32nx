@@ -121,6 +121,7 @@ export class Scratchpad {
 
   clear() {
     this.typedText.set('');
+    this.messageQueue.updateDisplayedMessage();
   }
 
   clearMessage() {
