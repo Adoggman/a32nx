@@ -1,4 +1,5 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
+import { NXSystemMessages } from '@cdu/data/NXMessages';
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, makeLines } from '@cdu/model/CDUPage';
 import { RunwayUtils } from '@fmgc/index';
 import { FmgcFlightPhase } from '@shared/flightphase';
@@ -19,6 +20,7 @@ export class PerfTakeoffPage extends DisplayablePage {
       ),
     );
     this.lines = this.makeTakeoffPerfLines();
+    this.allowsTyping = true;
   }
 
   makeTakeoffPerfLines() {
@@ -55,7 +57,7 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   makeLine2() {
-    const vRSpeed = this.CDU.Speeds.v2Speed;
+    const vRSpeed = this.CDU.Speeds.vRSpeed;
     const slatRetractSpeed = this.CDU.Speeds.slatRetractSpeed;
     return new CDULine(
       new CDUElement(
@@ -170,6 +172,78 @@ export class PerfTakeoffPage extends DisplayablePage {
       right: new CDUElement('PHASE>'),
       rightLabel: new CDUElement('NEXT\xa0'),
     };
+  }
+
+  onLSK1() {
+    if (this.scratchpad.isCLR() || this.scratchpad.isEmpty()) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    const contents = this.scratchpad.getContents();
+    const v = parseInt(contents);
+    if (!isFinite(v) || !/^\d{2,3}$/.test(contents)) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+    if (!this.CDU.Speeds.isValidVSpeed(v)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+    this.scratchpad.removeMessageFromQueue(NXSystemMessages.checkToData.text);
+    this.CDU.Speeds.setV1Speed(v);
+    this.scratchpad.clear();
+    this.refresh();
+  }
+
+  onLSK2() {
+    if (this.scratchpad.isCLR() || this.scratchpad.isEmpty()) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    const contents = this.scratchpad.getContents();
+    const v = parseInt(contents);
+    if (!isFinite(v) || !/^\d{2,3}$/.test(contents)) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+    if (!this.CDU.Speeds.isValidVSpeed(v)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+    this.scratchpad.removeMessageFromQueue(NXSystemMessages.checkToData.text);
+    this.CDU.Speeds.setVRSpeed(v);
+    this.scratchpad.clear();
+    this.refresh();
+  }
+
+  onLSK3() {
+    if (this.scratchpad.isCLR() || this.scratchpad.isEmpty()) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    const contents = this.scratchpad.getContents();
+    const v = parseInt(contents);
+    if (!isFinite(v) || !/^\d{2,3}$/.test(contents)) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+    if (!this.CDU.Speeds.isValidVSpeed(v)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+    this.scratchpad.removeMessageFromQueue(NXSystemMessages.checkToData.text);
+    this.CDU.Speeds.setV2Speed(v);
+    this.scratchpad.clear();
+    this.refresh();
+  }
+
+  onRefresh() {
+    this.lines = this.makeTakeoffPerfLines();
+  }
+
+  refresh() {
+    this.lines = this.makeTakeoffPerfLines();
+    super.refresh();
   }
 
   private get currentRunway() {

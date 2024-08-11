@@ -116,7 +116,11 @@ export class SpeedSubsystem extends CDUSubsystem {
     return this.cdu.flightPlanService.active.performanceData.v1;
   }
 
-  set v1Speed(speed) {
+  isValidVSpeed(speed: Knots) {
+    return !(speed < 90 || speed > 350);
+  }
+
+  setV1Speed(speed: Knots) {
     this.cdu.flightPlanService.setPerformanceData('v1', speed);
     SimVar.SetSimVarValue('L:AIRLINER_V1_SPEED', 'knots', speed ? speed : NaN);
   }
@@ -125,7 +129,7 @@ export class SpeedSubsystem extends CDUSubsystem {
     return this.cdu.flightPlanService.active.performanceData.vr;
   }
 
-  set vRSpeed(speed) {
+  setVRSpeed(speed: Knots) {
     this.cdu.flightPlanService.setPerformanceData('vr', speed);
     SimVar.SetSimVarValue('L:AIRLINER_VR_SPEED', 'knots', speed ? speed : NaN);
   }
@@ -134,7 +138,7 @@ export class SpeedSubsystem extends CDUSubsystem {
     return this.cdu.flightPlanService.active.performanceData.v2;
   }
 
-  set v2Speed(speed) {
+  setV2Speed(speed: Knots) {
     this.cdu.flightPlanService.setPerformanceData('v2', speed);
     SimVar.SetSimVarValue('L:AIRLINER_V2_SPEED', 'knots', speed ? speed : NaN);
   }
