@@ -109,6 +109,7 @@
 1. [MCDU] Fixed ZFW Autofill with lbs during boarding @ShreyasKallingal
 1. [FWC] Fix NW STRG DISC turning amber too soon - @adoggman (Andrew)
 1. [FMS] Fix VNAV crash for steep approaches - @BlueberryKing (BlueberryKing)
+1. [MCDU] Sync EFB takeoff calculations - @adoggman (Andrew)
 
 ## 0.11.0
 

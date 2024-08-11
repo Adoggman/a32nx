@@ -152,6 +152,11 @@ export const TakeoffWidget = () => {
           );
 
     console.log('takeoff result', perf);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_V1', 'knots', perf.v1);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_V2', 'knots', perf.v2);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_VR', 'knots', perf.vR);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLAPS', 'number', perf.inputs.conf);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLEX', 'celsius', perf.flex);
 
     const formatWeight = (kg: number | undefined): string => {
       return kg !== undefined ? Math.floor(weightUnit === 'lb' ? Units.kilogramToPound(kg) : kg).toFixed(0) : '-';
@@ -225,6 +230,11 @@ export const TakeoffWidget = () => {
         result: undefined,
       }),
     );
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_V1', 'knots', 0);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_V2', 'knots', 0);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_VR', 'knots', 0);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLAPS', 'number', 0);
+    SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLEX', 'celsius', 0);
   };
 
   const syncValuesWithApiMetar = async (icao: string): Promise<void> => {
@@ -491,6 +501,7 @@ export const TakeoffWidget = () => {
   };
 
   const handleClearInputs = (): void => {
+    clearResult();
     dispatch(clearTakeoffValues());
   };
 
@@ -667,7 +678,7 @@ export const TakeoffWidget = () => {
   return (
     <div className="flex h-content-section-reduced flex-row justify-between space-x-10 overflow-hidden">
       <div className="w-full">
-        <div className="flex h-full w-full flex-col justify-between">
+        <div className="flex size-full flex-col justify-between">
           <div className="mb-4">
             <div className="mb-8 mt-4">
               <div className="mt-4 flex flex-row justify-end">

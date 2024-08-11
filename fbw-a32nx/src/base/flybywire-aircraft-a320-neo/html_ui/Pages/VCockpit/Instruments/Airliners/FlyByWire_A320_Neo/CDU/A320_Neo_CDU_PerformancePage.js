@@ -312,6 +312,9 @@ class CDUPerformancePage {
             }
         }
 
+        const canSync = !!SimVar.GetSimVarValue("L:A32NX_EFB_TO_CALC_V1", "knots"); ;
+        const uplinkColor = canSync ? 'white' : 'inop';
+
         let next = "NEXT\xa0";
         let nextPhase = "PHASE>";
         if ((mcdu.unconfirmedV1Speed || mcdu.unconfirmedVRSpeed || mcdu.unconfirmedV2Speed || !mcdu._toFlexChecked) && mcdu.flightPhaseManager.phase < FmgcFlightPhases.TAKEOFF) {
@@ -336,6 +339,58 @@ class CDUPerformancePage {
             };
         }
 
+        mcdu.leftInputDelay[5] = () => {
+            return mcdu.getDelayMedium();
+        };
+        mcdu.onLeftInput[5] = (_value, scratchpadCallback) => {
+            const efbV1 = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_V1', 'knots');
+            if (!efbV1) {
+                console.log("no V1, not syncing");
+                return;
+            }
+            const efbVR = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_VR', 'knots');
+            const efbV2 = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_V2', 'knots');
+            const flaps = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_FLAPS', 'number');
+            const flex = SimVar.GetSimVarValue('L:A32NX_EFB_TO_CALC_FLEX', 'celsius');
+
+            const setV1 = mcdu.trySetV1Speed(efbV1);
+            if (!setV1) {
+                scratchpadCallback();
+                return;
+            }
+
+            const setVR = mcdu.trySetVRSpeed(efbVR);
+            if (!setVR) {
+                scratchpadCallback();
+                return;
+            }
+
+            const setV2 = mcdu.trySetV2Speed(efbV2);
+            if (!setV2) {
+                scratchpadCallback();
+                return;
+            }
+
+            const setFlaps = mcdu.trySetFlapsTHS(flaps + "/");
+            if (!setFlaps) {
+                scratchpadCallback();
+                return;
+            }
+
+            const setFlex = mcdu.setPerfTOFlexTemp(flex);
+            if (!setFlex) {
+                scratchpadCallback();
+                return;
+            }
+
+            SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_V1', 'knots', 0);
+            SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_V2', 'knots', 0);
+            SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_VR', 'knots', 0);
+            SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLAPS', 'number', 0);
+            SimVar.SetSimVarValue('L:A32NX_EFB_TO_CALC_FLEX', 'celsius', 0);
+            CDUPerformancePage.ShowTAKEOFFPage(mcdu);
+        };
+
         mcdu.setTemplate([
             ["TAKE OFF RWY\xa0{green}" + runway.padStart(3, "\xa0") + "{end}[color]" + titleColor],
             ["\xa0V1\xa0\xa0FLP RETR", ""],
@@ -348,8 +403,8 @@ class CDUPerformancePage {
             [`{cyan}${transAltCell}{end}`, flexTakeOffTempCell],
             ["THR\xa0RED/ACC", "ENG\xa0OUT\xa0ACC"],
             [`{${altitudeColour}}${thrRedAcc}{end}`, `{${altitudeColour}}${engOut}{end}`],
-            ["\xa0UPLINK[color]inop", next],
-            ["<TO DATA[color]inop", nextPhase]
+            ["\xa0UPLINK[color]" + uplinkColor, next],
+            ["<TO DATA[color]" + uplinkColor, nextPhase]
         ]);
     }
     static ShowCLBPage(mcdu, confirmAppr = false) {
