@@ -73,7 +73,14 @@ export class PerfTakeoffPage extends DisplayablePage {
         ),
       ),
       new CDUElement('\xa0VR\xa0\xa0SLT RETR'),
-      new CDUElement('----\xa0', CDUColor.Inop),
+      this.currentRunway
+        ? new CDUElement(
+            '[M]',
+            CDUColor.Inop,
+            CDUTextSize.Small,
+            new CDUElement('[\xa0\xa0]*', CDUColor.Inop, CDUTextSize.Large),
+          )
+        : new CDUElement('----\xa0', CDUColor.Inop),
       new CDUElement('TO SHIFT\xa0'),
     );
   }
