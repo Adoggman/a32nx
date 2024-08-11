@@ -1,5 +1,5 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
-import { NXSystemMessages } from '@cdu/data/NXMessages';
+import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 import {
   CDUColor,
   CDUElement,
@@ -358,6 +358,10 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   onRSK4() {
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+
     if (this.scratchpad.isCLR()) {
       this.CDU.Performance.setFlexTemp(null);
       this.scratchpad.clear();
@@ -381,6 +385,122 @@ export class PerfTakeoffPage extends DisplayablePage {
     this.refresh();
   }
 
+  onLSK5() {
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+
+    const plan = this.CDU.flightPlanService.active;
+    const origin = plan?.originAirport;
+    if (this.scratchpad.isCLR()) {
+      const hasDefaultThrRed = plan.performanceData.defaultThrustReductionAltitude !== null;
+      const hasDefaultAcc = plan.performanceData.defaultAccelerationAltitude !== null;
+
+      if (hasDefaultThrRed && hasDefaultAcc) {
+        this.CDU.Performance.setThrottleReductionAltitude(null);
+        this.CDU.Performance.setAccelerationAltitude(null);
+        this.scratchpad.clear();
+        this.refresh();
+        return;
+      }
+
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+
+    if (this.CDU.flightPhaseManager.phase >= FmgcFlightPhase.Takeoff || !origin) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+
+    const contents = this.scratchpad.getContents();
+    const match = contents.match(/^(([0-9]{3,5})\/?)?(\/([0-9]{3,5}))?$/);
+    if (match === null || (match[2] === undefined && match[4] === undefined) || contents.split('/').length > 2) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const thrRed = match[2] !== undefined ? round(parseInt(match[2]), 10) : null;
+    if (thrRed && !this.CDU.Performance.isValidThrottleReductionAltitude(thrRed)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    const accAlt = match[4] !== undefined ? round(parseInt(match[4]), 10) : null;
+    if (accAlt && !this.CDU.Performance.isValidAccelerationAltitude(accAlt)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    // Check acceleration alt above reduction alt
+    const newThrRed = thrRed !== null ? thrRed : plan.performanceData.thrustReductionAltitude;
+    const newAccAlt = accAlt !== null ? accAlt : plan.performanceData.accelerationAltitude;
+    if (newThrRed && newAccAlt && thrRed > accAlt) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    if (thrRed !== null) {
+      this.CDU.Performance.setThrottleReductionAltitude(thrRed);
+    }
+
+    if (accAlt !== null) {
+      this.CDU.Performance.setAccelerationAltitude(accAlt);
+    }
+
+    this.scratchpad.clear();
+    this.refresh();
+  }
+
+  onRSK5() {
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+
+    const plan = this.CDU.flightPlanService.active;
+    if (this.CDU.flightPhaseManager.phase >= FmgcFlightPhase.Takeoff || !plan.originAirport) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+
+    if (this.scratchpad.isCLR()) {
+      const hasDefaultEngineOutAcc = plan.performanceData.defaultEngineOutAccelerationAltitude !== null;
+
+      if (hasDefaultEngineOutAcc) {
+        this.CDU.Performance.setEngineOutAccAlt(null);
+        this.scratchpad.clear();
+        this.refresh();
+        return;
+      }
+
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+
+    const contents = this.scratchpad.getContents();
+    const match = contents.match(/^([0-9]{3,5})$/);
+    if (match === null) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const accAlt = parseInt(match[1]);
+    if (!this.CDU.Performance.isValidEngineOutAccAlt(accAlt)) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    this.CDU.Performance.setEngineOutAccAlt(accAlt);
+    this.scratchpad.clear();
+    this.refresh();
+
+    return true;
+  }
+
+  onRSK6() {
+    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+  }
+
   onRefresh() {
     this.lines = this.makeTakeoffPerfLines();
   }
@@ -393,4 +513,14 @@ export class PerfTakeoffPage extends DisplayablePage {
   private get currentRunway() {
     return this.CDU.flightPlanService.activeOrTemporary.originRunway;
   }
+}
+
+/**
+ * Math.round(x / r) * r
+ * @param x {number} number to be rounded
+ * @param r {number} precision
+ * @returns {number} rounded number
+ */
+function round(x: number, r: number = 100): number {
+  return Math.round(x / r) * r;
 }

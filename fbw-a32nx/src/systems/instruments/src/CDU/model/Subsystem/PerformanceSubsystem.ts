@@ -1,10 +1,13 @@
 import { NXSystemMessages } from '@cdu/data/NXMessages';
 import { FmArinc429OutputWord } from '@cdu/model/Arinc';
 import { CDU } from '@cdu/model/CDU';
-import { NXSpeeds } from '@cdu/model/Speeds';
+import { NXSpeeds } from '@cdu/data/Speeds';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { Arinc429SignStatusMatrix } from '@flybywiresim/fbw-sdk';
 import { FmgcFlightPhase } from '@shared/flightphase';
+
+const minThrottleReductionAlt = 400;
+const maxThrottleReductionAlt = 45000;
 
 export class PerformanceSubsystem extends CDUSubsystem {
   lastGrossWeight: number;
@@ -136,6 +139,39 @@ export class PerformanceSubsystem extends CDUSubsystem {
 
   isValidFlexTemp(temp: number) {
     return !(temp < -99 || temp > 99);
+  }
+
+  setEngineOutAccAlt(altitude: number | null) {
+    this.cdu.flightPlanService.setPerformanceData('pilotEngineOutAccelerationAltitude', altitude);
+  }
+
+  isValidEngineOutAccAlt(altitude: number) {
+    const minimumAltitude = this.originElevation + minThrottleReductionAlt;
+    return !(altitude < minimumAltitude || altitude > maxThrottleReductionAlt);
+  }
+
+  setThrottleReductionAltitude(altitude: number | null) {
+    this.cdu.flightPlanService.setPerformanceData('pilotThrustReductionAltitude', altitude);
+  }
+
+  isValidThrottleReductionAltitude(altitude: number) {
+    const minimumAltitude = this.originElevation + minThrottleReductionAlt;
+    return !(altitude < minimumAltitude || altitude > maxThrottleReductionAlt);
+  }
+
+  setAccelerationAltitude(altitude: number | null) {
+    this.cdu.flightPlanService.setPerformanceData('pilotAccelerationAltitude', altitude);
+  }
+
+  isValidAccelerationAltitude(altitude: number) {
+    const minimumAltitude = this.originElevation + minThrottleReductionAlt;
+    return !(altitude < minimumAltitude || altitude > maxThrottleReductionAlt);
+  }
+
+  private get originElevation() {
+    const origin = this.cdu.flightPlanService.activeOrTemporary.originAirport;
+    const elevation = origin ? origin.location.alt : 0;
+    return elevation;
   }
 
   update(_deltaTime: number) {
