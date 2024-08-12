@@ -238,6 +238,11 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
       case events.PagePerf:
         this.openPage(new PerfTakeoffPage(this));
         return;
+      case events.PageAirport:
+        if (this.currentPage.pageID === FlightPlanPage.pageID) {
+          (this.currentPage as FlightPlanPage).onAirportButton();
+        }
+        return;
       case events.PageUp:
         this.currentPage.onUp();
         return;

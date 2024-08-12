@@ -59,7 +59,7 @@ class PseudoDisplayElement extends FlightPlanDisplayElement {
 }
 
 export class FlightPlanPage extends DisplayablePage {
-  static readonly pageID: string = 'FPLN';
+  static readonly pageID: string = 'FPLN_A';
   _pageID = FlightPlanPage.pageID;
 
   index: number;
@@ -169,25 +169,25 @@ export class FlightPlanPage extends DisplayablePage {
   }
 
   hasFlightPlan() {
-    return !!this.CDU.flightPlanService.activeOrTemporary?.originAirport;
+    return !!this.flightPlan?.originAirport;
   }
 
   getFlightPlanElements(): FlightPlanDisplayElement[] {
-    const hasAlternate = this.CDU.flightPlanService.activeOrTemporary?.alternateFlightPlan?.allLegs.length > 0;
+    const hasAlternate = !!this.flightPlan?.alternateDestinationAirport;
     if (hasAlternate) {
       return [
-        ...this.CDU.flightPlanService.activeOrTemporary.allLegs.map((element) => {
+        ...this.flightPlan.allLegs.map((element) => {
           return this.getDisplayElement(element, false);
         }),
         new PseudoDisplayElement(PseudoLegType.EndOfFlightPlan),
-        ...this.CDU.flightPlanService.activeOrTemporary.alternateFlightPlan.allLegs.map((element) => {
+        ...this.flightPlan.alternateFlightPlan.allLegs.map((element) => {
           return this.getDisplayElement(element, true);
         }),
         new PseudoDisplayElement(PseudoLegType.EndOfAlternateFlightPlan),
       ];
     }
     return [
-      ...this.CDU.flightPlanService.activeOrTemporary.allLegs.map((element) => {
+      ...this.flightPlan.allLegs.map((element) => {
         return this.getDisplayElement(element, false);
       }),
       new PseudoDisplayElement(PseudoLegType.EndOfFlightPlan),
@@ -203,20 +203,50 @@ export class FlightPlanPage extends DisplayablePage {
     }
   }
 
+  onAirportButton() {
+    const rowOffset = 3;
+    const row4Index = this.index + rowOffset;
+    const destIndex = this.destinationLegIndex;
+    const altnIndex = this.flightPlan.alternateFlightPlan.destinationLegIndex + this.flightPlan.allLegs.length + 1;
+
+    // If destination is in row 4, go to alternate
+    if (row4Index === destIndex && altnIndex > 0) {
+      this.index = altnIndex - rowOffset;
+      this.refresh();
+      return;
+    }
+
+    // If alternate is in row 4, go to start
+    if (row4Index === altnIndex) {
+      this.index = 0;
+      this.refresh();
+      return;
+    }
+
+    // Otherwise go to destination
+    this.index = Math.max(destIndex - rowOffset, 0);
+    this.refresh();
+    return;
+  }
+
   get fromIndex() {
     return this.CDU.flightPlanService.activeLegIndex - 1;
   }
 
   get activeIndex() {
-    return this.CDU.flightPlanService.activeLegIndex - 1;
+    return this.CDU.flightPlanService.activeLegIndex;
+  }
+
+  get flightPlan() {
+    return this.CDU.flightPlanService?.activeOrTemporary;
   }
 
   get originLegIndex() {
-    return this.CDU.flightPlanService.activeOrTemporary.originLegIndex;
+    return this.flightPlan.originLegIndex;
   }
 
   get destinationLegIndex() {
-    return this.CDU.flightPlanService.activeOrTemporary.destinationLegIndex;
+    return this.flightPlan.destinationLegIndex;
   }
 
   private get hasTemporary() {
@@ -272,7 +302,7 @@ export class FlightPlanPage extends DisplayablePage {
   }
 
   fromLine(): ICDULine {
-    const origin = this.CDU.flightPlanService.activeOrTemporary.originAirport;
+    const origin = this.flightPlan.originAirport;
     return origin
       ? {
           left: new CDUElement(
@@ -311,10 +341,10 @@ export class FlightPlanPage extends DisplayablePage {
   destLine(): ICDULine {
     const distance = this.CDU.FMGC.guidanceController.alongTrackDistanceToDestination;
     const distanceDisplay = distance ? Math.round(distance).toFixed(0).padStart(4, '\xa0') : '----';
-    return this.CDU.flightPlanService.activeOrTemporary.destinationAirport
+    return this.flightPlan.destinationAirport
       ? {
           left: new CDUElement(
-            this.CDU.flightPlanService.activeOrTemporary.destinationAirport.ident.padEnd(8, '\xa0'),
+            this.flightPlan.destinationAirport.ident.padEnd(8, '\xa0'),
             CDUColor.White,
             CDUTextSize.Large,
             new CDUElement('----\xa0\xa0' + distanceDisplay + '\xa0---.-', CDUColor.White, CDUTextSize.Small),
@@ -401,7 +431,7 @@ export class FlightPlanPage extends DisplayablePage {
   }
 
   onLSK6(): void {
-    if (this.CDU.flightPlanService.activeOrTemporary.destinationAirport) {
+    if (this.flightPlan.destinationAirport) {
       const elements = this.getFlightPlanElements();
       const lastIndex = elements.length - 1;
       const lastElement = elements[lastIndex];
