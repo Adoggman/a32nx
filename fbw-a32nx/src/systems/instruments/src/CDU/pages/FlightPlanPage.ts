@@ -75,7 +75,7 @@ export class FlightPlanPage extends DisplayablePage {
     super(display);
     this.allowsTyping = true;
     this.refreshRate = RefreshRate.Medium;
-    this.title = this.hasTemporary ? new CDUElement('TMPY', this.tempPlanColor) : '';
+    this.title = this.hasTemporary ? new CDUElement('TMPY' + '\xa0'.repeat(8), this.tempPlanColor) : '';
     this.titleLeft = '';
     this.index = index;
     this.arrows.left = true;
@@ -109,9 +109,9 @@ export class FlightPlanPage extends DisplayablePage {
   }
 
   updateTitle() {
-    this.titleLeft =
-      (this.index === this.originLegIndex ? '\xa0FROM' : '').padEnd(14, '\xa0') +
-      (this.CDU.FlightInformation.flightNumber ?? '');
+    const flightNum = this.CDU.FlightInformation.flightNumber;
+    this.titleLeft = this.index === this.originLegIndex ? '\xa0FROM' : '';
+    this.titleRight = flightNum ? flightNum + '\xa0\xa0\xa0' : '';
   }
 
   updateArrows(hasPlan: boolean) {

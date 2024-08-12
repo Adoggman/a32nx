@@ -109,6 +109,9 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         <div class="s-text" id="cdu-title-left">
           {this.currentPage.titleLeft}
         </div>
+        <div class="s-text" id="cdu-title-right">
+          {this.currentPage.titleRight}
+        </div>
         <CDUHeader
           page={this.currentPage}
           arrowLeft={this.currentPage.arrows.left}

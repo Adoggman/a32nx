@@ -41,6 +41,7 @@ export abstract class DisplayablePage {
   pageCurrent?: number;
   pageCount?: number;
   titleLeft?: string;
+  titleRight?: string;
   lines: CDULines;
   defaultMessage?: TypeIMessage;
   arrows: Arrows = { up: false, down: false, left: false, right: false };
