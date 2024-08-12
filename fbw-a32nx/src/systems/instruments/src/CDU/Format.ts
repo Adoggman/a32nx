@@ -1,5 +1,3 @@
-import { CDUScratchpad } from '@cdu/model/Scratchpad';
-
 export const secondsTohhmm = (seconds: Seconds) => {
   if (seconds === 0) return '0000';
   if (!seconds) return '----';
@@ -8,17 +6,9 @@ export const secondsTohhmm = (seconds: Seconds) => {
   return h.toFixed(0).padStart(2, '0') + m.toFixed(0).padStart(2, '0');
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const padBefore = (text: string, width: number) => {
-  const before = Math.floor((width - text.length) / 2);
-  return CDUScratchpad.nbSpace.repeat(before);
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const padAfter = (text: string, width: number) => {
-  const before = Math.floor((width - text.length) / 2);
-  const after = width - (text.length + before);
-  return CDUScratchpad.nbSpace.repeat(after);
+type MultipleOfTen = 1 | 10 | 100 | 1000;
+export const formatAltRounded = (altitude: number, roundTo: MultipleOfTen = 10) => {
+  return (Math.round(altitude / roundTo) * roundTo).toFixed(0);
 };
 
 export const sanitize = (text?: string) => {

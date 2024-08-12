@@ -33,7 +33,10 @@ export class FMGCMenuPage extends DisplayablePage {
       new CDULine(),
       new CDULine(new CDUElement('[\xa0\xa0]', CDUColor.Inop, CDUTextSize.Small), new CDUElement('CHG CODE')),
       new CDULine(
-        new CDUElement(formatNum(this.CDU.Info.idle) + '/' + formatNum(this.CDU.Info.perf), CDUColor.Green),
+        new CDUElement(
+          this.formatIdlePerfNum(this.CDU.Info.idle) + '/' + this.formatIdlePerfNum(this.CDU.Info.perf),
+          CDUColor.Green,
+        ),
         new CDUElement('IDLE/PERF'),
         new CDUElement('STATUS/XLOAD>', CDUColor.Inop),
         new CDUElement('SOFTWARE\xa0'),
@@ -44,11 +47,11 @@ export class FMGCMenuPage extends DisplayablePage {
   onLSK3() {
     this.CDU.setMessage(NXFictionalMessages.notYetImplemented);
   }
-}
 
-const formatNum = (num: number): string => {
-  return num < 0 ? num.toFixed(1) : '+' + num.toFixed(1);
-};
+  formatIdlePerfNum(num: number): string {
+    return num < 0 ? '-' + num.toFixed(1) : '+' + num.toFixed(1);
+  }
+}
 
 const formatActiveDates = (dbIdent: DatabaseIdent): string => {
   const effDay = dbIdent.effectiveFrom.substring(8);

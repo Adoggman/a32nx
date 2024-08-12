@@ -54,7 +54,7 @@ export class LatRevPage extends DisplayablePage {
       {
         left: { text: this.isOrigin ? '<DEPARTURE' : '' },
         right: { text: this.isDestination ? 'ARRIVAL>' : this.isOrigin ? 'FIX INFO>' : '' },
-        centerLabel: new CDUElement(formatLatLong(this.leg.definition.waypoint.location), CDUColor.Green),
+        centerLabel: new CDUElement(this.formatLatLong(this.leg.definition.waypoint.location), CDUColor.Green),
       },
       this.isDestination
         ? EmptyLine
@@ -150,27 +150,27 @@ export class LatRevPage extends DisplayablePage {
   get destinationLegIndex() {
     return this.CDU.flightPlanService.active.destinationLegIndex;
   }
-}
 
-const convertDDToDMS = (degrees: Degrees, isLong: boolean) => {
-  // converts decimal degrees to degrees minutes seconds
-  const M = 0 | ((degrees % 1) * 60e7);
-  let degree;
-  if (isLong) {
-    degree = (0 | (degrees < 0 ? -degrees : degrees)).toString().padStart(3, '0');
-  } else {
-    degree = 0 | (degrees < 0 ? -degrees : degrees);
-  }
-  return {
-    dir: degrees < 0 ? (isLong ? 'W' : 'S') : isLong ? 'E' : 'N',
-    deg: degree,
-    min: Math.abs(0 | (M / 1e7)),
-    sec: Math.abs((0 | (((M / 1e6) % 1) * 6e4)) / 100),
+  convertDDToDMS = (degrees: Degrees, isLong: boolean) => {
+    // converts decimal degrees to degrees minutes seconds
+    const M = 0 | ((degrees % 1) * 60e7);
+    let degree;
+    if (isLong) {
+      degree = (0 | (degrees < 0 ? -degrees : degrees)).toString().padStart(3, '0');
+    } else {
+      degree = 0 | (degrees < 0 ? -degrees : degrees);
+    }
+    return {
+      dir: degrees < 0 ? (isLong ? 'W' : 'S') : isLong ? 'E' : 'N',
+      deg: degree,
+      min: Math.abs(0 | (M / 1e7)),
+      sec: Math.abs((0 | (((M / 1e6) % 1) * 6e4)) / 100),
+    };
   };
-};
 
-const formatLatLong = (location: Coordinates) => {
-  const lat = convertDDToDMS(location.lat, false);
-  const long = convertDDToDMS(location.long, true);
-  return `${lat.deg}°${lat.min}.${Math.ceil(Number(lat.sec / 100))}${lat.dir}/${long.deg}°${long.min}.${Math.ceil(Number(long.sec / 100))}${long.dir}`;
-};
+  formatLatLong = (location: Coordinates) => {
+    const lat = this.convertDDToDMS(location.lat, false);
+    const long = this.convertDDToDMS(location.long, true);
+    return `${lat.deg}°${lat.min}.${Math.ceil(Number(lat.sec / 100))}${lat.dir}/${long.deg}°${long.min}.${Math.ceil(Number(long.sec / 100))}${long.dir}`;
+  };
+}

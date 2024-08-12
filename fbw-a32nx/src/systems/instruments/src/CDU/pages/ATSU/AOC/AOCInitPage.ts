@@ -57,7 +57,7 @@ export class AOCInitPage extends DisplayablePage {
           new CDUElement('CREW DETAILS>', CDUColor.Inop),
         ),
         new CDULine(
-          new CDUElement(formatFOB(this.CDU.getFOB()), CDUColor.Green, CDUTextSize.Small),
+          new CDUElement(this.formatFOB(this.CDU.getFOB()), CDUColor.Green, CDUTextSize.Small),
           new CDUElement('\xa0FOB'),
         ),
         new CDULine(
@@ -102,7 +102,7 @@ export class AOCInitPage extends DisplayablePage {
           new CDUElement('FLT TIME\xa0'),
         ),
         new CDULine(
-          new CDUElement(formatFOB(this.CDU.getFOB()), CDUColor.Green, CDUTextSize.Small),
+          new CDUElement(this.formatFOB(this.CDU.getFOB()), CDUColor.Green, CDUTextSize.Small),
           new CDUElement('\xa0FUEL REM'),
           new CDUElement('-------'),
           new CDUElement('LDG PILOT\xa0'),
@@ -147,8 +147,8 @@ export class AOCInitPage extends DisplayablePage {
     this.lines = this.getLines();
     this.refresh();
   }
-}
 
-const formatFOB = (fob: number) => {
-  return fob.toFixed(1).padStart(6, '\xa0');
-};
+  formatFOB(fob: number) {
+    return fob.toFixed(1).padStart(6, '\xa0');
+  }
+}
