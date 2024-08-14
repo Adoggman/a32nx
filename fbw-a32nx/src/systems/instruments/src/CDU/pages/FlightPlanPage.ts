@@ -3,6 +3,7 @@ import { formatAltRounded } from '@cdu/Format';
 import {
   CDUColor,
   CDUElement,
+  CDULine,
   CDUTextSize,
   DisplayablePage,
   ICDULine,
@@ -74,8 +75,7 @@ export class FlightPlanPage extends DisplayablePage {
   constructor(display: CDUDisplay, index = 0) {
     super(display);
     this.allowsTyping = true;
-    this.refreshRate = RefreshRate.Medium;
-    this.title = this.hasTemporary ? new CDUElement('TMPY' + '\xa0'.repeat(8), this.tempPlanColor) : '';
+    this.refreshRate = RefreshRate.Default;
     this.titleLeft = '';
     this.index = index;
     this.arrows.left = true;
@@ -112,6 +112,7 @@ export class FlightPlanPage extends DisplayablePage {
     const flightNum = this.CDU.FlightInformation.flightNumber;
     this.titleLeft = this.index === this.originLegIndex ? '\xa0FROM' : '';
     this.titleRight = flightNum ? flightNum + '\xa0\xa0\xa0' : '';
+    this.title = this.hasTemporary ? new CDUElement('TMPY' + '\xa0'.repeat(8), this.tempPlanColor) : '';
   }
 
   updateArrows(hasPlan: boolean) {
@@ -126,7 +127,7 @@ export class FlightPlanPage extends DisplayablePage {
       this.endOfFplnLine(),
       this.noAltnFplnLine(),
       undefined,
-      this.destLine(),
+      this.lastLine(),
     );
   }
 
@@ -164,7 +165,7 @@ export class FlightPlanPage extends DisplayablePage {
       }
     }
     lines[0].leftLabel = this.topLabel();
-    lines.push(this.destLine());
+    lines.push(this.lastLine());
     return makeLines(...lines);
   }
 
@@ -362,6 +363,18 @@ export class FlightPlanPage extends DisplayablePage {
         };
   }
 
+  lastLine(): ICDULine {
+    if (this.hasTemporary) {
+      return new CDULine(
+        new CDUElement('{ERASE', CDUColor.Amber),
+        undefined,
+        new CDUElement('INSERT*', CDUColor.Amber),
+      );
+    } else {
+      return this.destLine();
+    }
+  }
+
   pseudoLegLine(pseudoLegType: PseudoLegType): ICDULine {
     switch (pseudoLegType) {
       case PseudoLegType.EndOfFlightPlan:
@@ -431,6 +444,13 @@ export class FlightPlanPage extends DisplayablePage {
   }
 
   onLSK6(): void {
+    if (this.hasTemporary) {
+      this.CDU.flightPlanService.temporaryDelete().then(() => {
+        this.refresh();
+      });
+      return;
+    }
+
     if (this.flightPlan.destinationAirport) {
       const elements = this.getFlightPlanElements();
       const lastIndex = elements.length - 1;
@@ -438,9 +458,16 @@ export class FlightPlanPage extends DisplayablePage {
       if (!('isDiscontinuity' in lastElement || 'isPseudoLeg' in lastElement)) {
         this.openPage(new LatRevPage(this.display, lastElement as FlightPlanLeg, lastIndex));
       } else {
-        throw Error('Tried to open destination Lat Rev page but leg is discontinuity or pseudo leg');
+        throw Error('Failed to open destination Lat Rev page');
       }
     }
+  }
+
+  onRSK6(): void {
+    this.CDU.flightPlanService.temporaryInsert().then(() => {
+      this.refresh();
+    });
+    return;
   }
 
   onDown() {
