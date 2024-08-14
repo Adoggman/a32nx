@@ -10,6 +10,7 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
+import { CDUScratchpad } from '@cdu/model/Scratchpad';
 import { LatRevPage } from '@cdu/pages/LatRevPage';
 import { FlightPlanElement, FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 
@@ -155,7 +156,16 @@ export class FlightPlanPage extends DisplayablePage {
       const leg = element.leg;
       const isAlternate = (element as LegDisplayElement).isAlternate;
       if (leg?.ident) {
-        lines.push(this.legLine(leg, legIndex, hasShownNm, isAlternate));
+        lines.push(
+          this.legLine(
+            leg,
+            legIndex,
+            row,
+            hasShownNm,
+            isAlternate,
+            legIndex + 1 < elements.length ? elements[legIndex + 1]?.leg : undefined,
+          ),
+        );
         this.displayedLegs[row] = { leg: leg, legIndex: legIndex };
         hasShownNm = row > 0 && !!leg.calculated?.distance;
       } else {
@@ -164,7 +174,6 @@ export class FlightPlanPage extends DisplayablePage {
         console.log(leg);
       }
     }
-    lines[0].leftLabel = this.topLabel();
     lines.push(this.lastLine());
     return makeLines(...lines);
   }
@@ -265,14 +274,38 @@ export class FlightPlanPage extends DisplayablePage {
     return legIndex === this.activeIndex ? this.activeLegColor : this.planColor;
   }
 
-  topLabel() {
-    return new CDUElement('\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0');
+  topLabel(annotation: string) {
+    return new CDUElement(`\xa0${annotation ?? ''}`.padEnd(8, '\xa0') + 'TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0');
   }
 
-  legLine(leg: FlightPlanLeg, legIndex: number, hasShownDistNM: boolean, isAlternate: boolean): ICDULine {
+  legLine(
+    leg: FlightPlanLeg,
+    legIndex: number,
+    rowIndex: number,
+    hasShownDistNM: boolean,
+    isAlternate: boolean,
+    nextLeg?: FlightPlanLeg,
+  ): ICDULine {
     const showTime = legIndex === this.fromIndex;
     const legColor = this.getColorForLeg(legIndex, isAlternate);
-    const identElement = new CDUElement(leg.ident.padEnd(8, '\xa0'), legColor);
+    let ident = leg.ident;
+
+    // forced turn indication if next leg is not a course reversal
+    if (
+      nextLeg &&
+      nextLeg.isDiscontinuity === false &&
+      this.legTurnIsForced(nextLeg) &&
+      !this.legTypeIsCourseReversal(nextLeg)
+    ) {
+      if (nextLeg.definition.turnDirection === 'L') {
+        ident += '{';
+      } else {
+        ident += '}';
+      }
+    } else if (leg.definition.overfly) {
+      ident += CDUScratchpad.overflyValue;
+    }
+    const identElement = new CDUElement(ident.padEnd(8, '\xa0'), legColor);
     const timeElement = new CDUElement(
       (showTime ? '0000' : '----').padEnd(6, '\xa0'),
       showTime ? legColor : CDUColor.White,
@@ -287,18 +320,25 @@ export class FlightPlanPage extends DisplayablePage {
         )
       : new CDUElement('/\xa0-----', CDUColor.White);
 
-    identElement.secondElement = timeElement;
-    timeElement.secondElement = speedElement;
-    speedElement.secondElement = altElement;
+    let labelElement: CDUElement;
+    if (rowIndex === 0) {
+      // top row
+      labelElement = this.topLabel(leg.annotation);
+    } else {
+      const identLabel = new CDUElement(('\xa0' + leg.annotation).padEnd(8, '\xa0'), CDUColor.White);
+      const timeLabel = new CDUElement('\xa0'.repeat(6));
+      const speedAltLabel = new CDUElement(
+        leg.calculated?.distance ? leg.calculated.distance.toFixed(0) + (hasShownDistNM ? '' : 'NM') : '',
+        legColor,
+      );
+      labelElement = CDUElement.stringTogether(identLabel, timeLabel, speedAltLabel);
+    }
 
-    const label = new CDUElement(
-      '\xa0'.repeat(17) +
-        (leg.calculated?.distance ? leg.calculated.distance.toFixed(0) + (hasShownDistNM ? '' : 'NM') : ''),
-      this.planColor,
-    );
+    const lineElement = CDUElement.stringTogether(identElement, timeElement, speedElement, altElement);
+
     return {
-      left: identElement,
-      leftLabel: label,
+      left: lineElement,
+      leftLabel: labelElement,
     };
   }
 
@@ -481,5 +521,26 @@ export class FlightPlanPage extends DisplayablePage {
   onUp() {
     this.index = (this.index + 1) % this.maxIndex;
     this.refresh();
+  }
+
+  legTypeIsCourseReversal(leg: FlightPlanLeg) {
+    switch (leg.type) {
+      case 'HA':
+      case 'HF':
+      case 'HM':
+      case 'PI':
+        return true;
+      default:
+    }
+    return false;
+  }
+
+  legTurnIsForced(leg: FlightPlanLeg): boolean {
+    // forced turns are only for straight legs
+    return (
+      (leg.definition.turnDirection === 'L' /* Left */ || leg.definition.turnDirection === 'R') /* Right */ &&
+      leg.type !== 'AF' &&
+      leg.type !== 'RF'
+    );
   }
 }

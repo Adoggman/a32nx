@@ -227,7 +227,7 @@ export class CDUDisplay extends DisplayComponent<CDUProps> {
         this.scratchpad.typeCharacter('/');
         return;
       case events.OVFY:
-        this.scratchpad.typeCharacter(CDUScratchpad.ovfyValue);
+        this.scratchpad.typeCharacter(CDUScratchpad.overflyValue);
         return;
       case events.PageMenu:
         this.openPage(new MCDUMenuPage(this));

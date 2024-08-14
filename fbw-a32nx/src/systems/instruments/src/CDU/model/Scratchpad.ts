@@ -8,7 +8,7 @@ import { recallMessageById } from '@fmgc/index';
 
 export namespace CDUScratchpad {
   export const clrValue = '\xa0\xa0\xa0\xa0\xa0CLR';
-  export const ovfyValue = '\u0394';
+  export const overflyValue = '\u0394';
   export const _AvailableKeys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   export const nbSpace = '\xa0';
 }

@@ -152,6 +152,13 @@ export class CDUElement implements ICDUElement {
     this.size = size;
     this.secondElement = secondPart;
   }
+
+  static stringTogether(...elements: CDUElement[]): CDUElement {
+    for (let i = 1; i < elements.length; i++) {
+      elements[i - 1].secondElement = elements[i];
+    }
+    return elements[0];
+  }
 }
 
 export class CDULine implements ICDULine {
