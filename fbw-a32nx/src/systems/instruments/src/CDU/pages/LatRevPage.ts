@@ -23,9 +23,10 @@ export class LatRevPage extends DisplayablePage {
 
   isOrigin: boolean;
   isDestination: boolean;
+  isPPOS: boolean;
   isNormal: boolean;
 
-  constructor(display: CDUDisplay, leg: FlightPlanLeg, legIndex: number) {
+  constructor(display: CDUDisplay, leg?: FlightPlanLeg, legIndex?: number) {
     super(display);
     this.leg = leg;
     this.legIndex = legIndex;
@@ -38,12 +39,13 @@ export class LatRevPage extends DisplayablePage {
         'FROM ',
         CDUColor.White,
         CDUTextSize.Small,
-        new CDUElement(this.leg.ident, CDUColor.Green, CDUTextSize.Large),
+        new CDUElement(this.leg?.ident ?? 'PPOS', CDUColor.Green, CDUTextSize.Large),
       ),
     );
 
-    this.isOrigin = this.legIndex === this.originLegIndex;
-    this.isDestination = this.legIndex === this.destinationLegIndex;
+    this.isPPOS = !this.leg;
+    this.isOrigin = this.isPPOS || this.legIndex === this.originLegIndex;
+    this.isDestination = !this.isPPOS && this.legIndex === this.destinationLegIndex;
     this.isNormal = !this.isOrigin && !this.isDestination;
 
     this.lines = this.makeLatRevLines();
@@ -52,30 +54,36 @@ export class LatRevPage extends DisplayablePage {
   makeLatRevLines() {
     return makeLines(
       {
-        left: { text: this.isOrigin ? '<DEPARTURE' : '' },
+        left: { text: this.isOrigin && !this.isPPOS ? '<DEPARTURE' : '' },
         right: { text: this.isDestination ? 'ARRIVAL>' : this.isOrigin ? 'FIX INFO>' : '' },
-        centerLabel: new CDUElement(this.formatLatLong(this.leg.definition.waypoint.location), CDUColor.Green),
+        centerLabel: this.isPPOS
+          ? undefined
+          : new CDUElement(this.formatLatLong(this.leg.definition.waypoint.location), CDUColor.Green),
       },
       this.isDestination
         ? EmptyLine
         : new CDULine(
-            new CDUElement('<OFFSET', CDUColor.Inop),
+            this.isPPOS ? undefined : new CDUElement('<OFFSET', CDUColor.Inop),
             undefined,
             new CDUElement('[\xa0\xa0]°/[\xa0]°/[]', CDUColor.Inop),
             new CDUElement('LL XING/INCR/NO', CDUColor.Inop),
           ),
-      new CDULine(
-        this.isNormal ? new CDUElement('<HOLD') : undefined,
-        undefined,
-        new CDUElement('[\xa0\xa0\xa0\xa0]', CDUColor.Cyan, CDUTextSize.Small),
-        new CDUElement('NEXT WPT\xa0'),
-      ),
-      new CDULine(
-        !this.isOrigin ? new CDUElement('<ALTN', CDUColor.Cyan) : undefined,
-        !this.isOrigin ? new CDUElement(' ENABLE', CDUColor.Cyan) : undefined,
-        this.isDestination ? undefined : new CDUElement('[\xa0\xa0]', CDUColor.Cyan, CDUTextSize.Small),
-        this.isDestination ? undefined : new CDUElement('NEW DEST\xa0'),
-      ),
+      this.isPPOS
+        ? undefined
+        : new CDULine(
+            this.isNormal ? new CDUElement('<HOLD') : undefined,
+            undefined,
+            new CDUElement('[\xa0\xa0\xa0\xa0]', CDUColor.Cyan, CDUTextSize.Small),
+            new CDUElement('NEXT WPT\xa0'),
+          ),
+      this.isPPOS
+        ? undefined
+        : new CDULine(
+            !this.isOrigin ? new CDUElement('<ALTN', CDUColor.Cyan) : undefined,
+            !this.isOrigin ? new CDUElement(' ENABLE', CDUColor.Cyan) : undefined,
+            this.isDestination ? undefined : new CDUElement('[\xa0\xa0]', CDUColor.Cyan, CDUTextSize.Small),
+            this.isDestination ? undefined : new CDUElement('NEW DEST\xa0'),
+          ),
       this.isNormal
         ? new CDULineRight(new CDUElement('AIRWAYS>'))
         : this.isDestination

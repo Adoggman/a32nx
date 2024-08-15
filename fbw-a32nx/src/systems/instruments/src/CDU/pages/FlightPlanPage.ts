@@ -70,6 +70,7 @@ export class FlightPlanPage extends DisplayablePage {
   _pageID = FlightPlanPage.pageID;
 
   // #region Properties
+
   index: number;
   maxIndex: number;
   displayedLegs: [FPLeg, FPLeg, FPLeg, FPLeg, FPLeg] = [undefined, undefined, undefined, undefined, undefined];
@@ -495,6 +496,12 @@ export class FlightPlanPage extends DisplayablePage {
     if (this.displayedLegs[0]) {
       const element = this.displayedLegs[0];
       this.openPage(new LatRevPage(this.display, element.leg, element.legIndex));
+      return;
+    }
+
+    if (!this.hasOrigin) {
+      this.openPage(new LatRevPage(this.display));
+      return;
     }
   }
 
