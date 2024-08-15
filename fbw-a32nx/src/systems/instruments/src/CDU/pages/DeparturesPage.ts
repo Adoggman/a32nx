@@ -1,11 +1,6 @@
 import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, ICDULine, makeLines } from '@cdu/model/CDUPage';
-import {
-  Airport,
-  Departure,
-  ProcedureTransition,
-  Runway,
-} from '../../../../../../../fbw-common/src/systems/navdata/shared';
-import { RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/src';
+import { Airport, Departure, ProcedureTransition, Runway } from '@navdata';
+import { RunwayUtils } from '@systems/shared';
 import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
 import { NXSystemMessages } from '@cdu/data/NXMessages';
 import { NXUnits } from '@flybywiresim/fbw-sdk';

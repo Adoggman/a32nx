@@ -1,7 +1,7 @@
 import { NXDataStore, NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDU, CDUIndex } from '@cdu/model/CDU';
 import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
-import { ISimbriefData } from '../../../../../../../../fbw-common/src/systems/instruments/src/EFB/Apis/Simbrief';
+import { ISimbriefData } from '@efb/Apis/Simbrief';
 import { CDUSubsystem } from '@cdu/model/Subsystem';
 import { SimbriefUplinkHandler } from '@fmgc/flightplanning/uplink/SimBriefUplinkAdapter';
 import { PilotWaypoint } from '@fmgc/flightplanning/DataManager';

@@ -12,7 +12,7 @@ import {
 import { CDUScratchpad } from '@cdu/model/Scratchpad';
 import { SimbriefStatus } from '@cdu/model/Subsystem/SimbriefSubsystem';
 import { InitFuelPredPage } from '@cdu/pages/InitFuelPredPage';
-import { Airport } from '../../../../../../../fbw-common/src/systems/navdata';
+import { Airport } from '@navdata';
 import { FmgcFlightPhase } from '@shared/flightphase';
 import { CDUDisplay } from '@cdu/CDUDisplay';
 

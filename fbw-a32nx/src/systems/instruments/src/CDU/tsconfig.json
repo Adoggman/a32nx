@@ -29,6 +29,9 @@
         "@flybywiresim/pfd": ["../../../fbw-common/src/systems/instruments/src/PFD/index.ts"],
         "@flybywiresim/msfs-avionics-common": ["../../../fbw-common/src/systems/instruments/src/MsfsAvionicsCommon/index.ts"],
         "@cdu/*": ["./instruments/src/CDU/*"],
+        "@navdata": ["../../../fbw-common/src/systems/navdata/shared/index.ts"],
+        "@systems/shared": ["../../../fbw-common/src/systems/shared/src/index.ts"],
+        "@efb/*": ["../../../fbw-common/src/systems/instruments/src/EFB/*"],
       }
     }
   }

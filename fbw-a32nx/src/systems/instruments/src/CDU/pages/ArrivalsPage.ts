@@ -1,22 +1,6 @@
-import {
-  CDUColor,
-  CDUElement,
-  CDULine,
-  CDULineRight,
-  CDUTextSize,
-  DisplayablePage,
-  ICDULine,
-  makeLines,
-} from '@cdu/model/CDUPage';
-import {
-  Airport,
-  Approach,
-  ApproachType,
-  Arrival,
-  ProcedureTransition,
-  Runway,
-} from '../../../../../../../fbw-common/src/systems/navdata/shared';
-import { ApproachUtils, RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/src';
+import { CDUColor, CDUElement, CDULine, CDUTextSize, DisplayablePage, ICDULine, makeLines } from '@cdu/model/CDUPage';
+import { Airport, Approach, ApproachType, Arrival, ProcedureTransition, Runway } from '@navdata';
+import { ApproachUtils, RunwayUtils } from '@systems/shared';
 import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
 import { NXUnits } from '@flybywiresim/fbw-sdk';
 import { CDUDisplay } from '@cdu/CDUDisplay';
@@ -41,7 +25,6 @@ export class ArrivalsPage extends DisplayablePage {
   noneTransition: boolean;
   //ilsSystems: Promise<IlsNavaid[]>;
   sortedApproaches: Approach[];
-  isNoArrival: boolean;
 
   private get currentApproach() {
     return this.CDU.flightPlanService.activeOrTemporary.approach;
@@ -87,9 +70,21 @@ export class ArrivalsPage extends DisplayablePage {
     return [undefined, ...this.CDU.flightPlanService.activeOrTemporary.availableArrivals.slice()];
   }
 
+  private get availableVias() {
+    return this.CDU.flightPlanService.activeOrTemporary.availableApproachVias;
+  }
+
+  private get hasAvailableVias() {
+    return this.availableVias.length > 0;
+  }
+
   private rowsShown = 3;
   private get numApproaches() {
     return this.sortedApproaches.length + this.runways.length;
+  }
+
+  private get hasArrival() {
+    return this.currentArrival || this.noneArrival;
   }
 
   private get numArrivals() {
@@ -249,53 +244,33 @@ export class ArrivalsPage extends DisplayablePage {
 
   makeArrivalLines() {
     const arrivals = this.availableArrivals;
-    //     const transitions = this.currentDeparture ? this.currentDeparture.enrouteTransitions : [];
+    const transitions = this.currentArrival ? [undefined, ...this.currentArrival.enrouteTransitions] : [];
     const arrivalLines: ICDULine[] = [];
     for (let row = 0; row < this.rowsShown; row++) {
       const sharedIndex = this.index + row;
-      if (sharedIndex >= arrivals.length) {
-        arrivalLines.push(undefined);
-        continue;
+
+      let arrivalElement = undefined;
+      if (sharedIndex < arrivals.length) {
+        const arrival = arrivals[sharedIndex];
+        const isCurrentArrival = this.isCurrentArrival(arrival);
+        const color = isCurrentArrival && !this.hasTemporary ? this.currentColor : CDUColor.Cyan;
+        arrivalElement = arrival
+          ? new CDUElement((isCurrentArrival ? '\xa0' : '{') + arrival.ident, color)
+          : new CDUElement((isCurrentArrival ? '\xa0' : '{') + 'NO STAR', color);
       }
-      const arrival = arrivals[sharedIndex];
-      const isCurrentArrival = this.isCurrentArrival(arrival);
-      const color = isCurrentArrival && !this.hasTemporary ? this.currentColor : CDUColor.Cyan;
-      arrivalLines.push(
-        new CDULine(
-          arrival
-            ? new CDUElement((isCurrentArrival ? '\xa0' : '{') + arrival.ident, color)
-            : new CDUElement((isCurrentArrival ? '\xa0' : '{') + 'NO STAR', color),
-        ),
-      );
+
+      let transitionElement = undefined;
+      if (sharedIndex < transitions.length) {
+        const transition = transitions[sharedIndex];
+        const isCurrentTransition = this.isCurrentTransition(transition);
+        const color = isCurrentTransition && !this.hasTemporary ? this.currentColor : CDUColor.Cyan;
+        transitionElement = transition
+          ? new CDUElement(transition.ident + (isCurrentTransition ? '\xa0' : '}'), color)
+          : new CDUElement('NO TRANS' + (isCurrentTransition ? '\xa0' : '}'), color);
+      }
+
+      arrivalLines.push(new CDULine(arrivalElement, undefined, transitionElement));
     }
-    //       const isNoSid = sharedIndex === departures.length;
-    //       const transition = sharedIndex < transitions.length ? transitions[sharedIndex] : undefined;
-    //       const isNoTransition = sharedIndex === transitions.length && transitions.length !== 0;
-    //       const isCurrentTransition = this.isCurrentTransition(transition);
-    //       departureLines.push(
-    //         new CDULine(
-    //           departure
-    //             ? new CDUElement(
-    //                 (isCurrentDeparture ? '\xa0' : '{') + departure.ident,
-    //                 isCurrentDeparture && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
-    //               )
-    //             : new CDUElement(
-    //                 isNoSid ? (this.noneArrival ? ' ' : '{') + 'NO SID' : '',
-    //                 this.noneArrival && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
-    //               ),
-    //           undefined,
-    //           transition
-    //             ? new CDUElement(
-    //                 transition.ident + (isCurrentTransition ? '\xa0' : '}'),
-    //                 isCurrentTransition && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
-    //               )
-    //             : new CDUElement(
-    //                 isNoTransition ? 'NO TRANS' + (this.noneTransition ? ' ' : '}') : '',
-    //                 this.noneTransition && !this.hasTemporary ? this.currentColor : CDUColor.Cyan,
-    //               ),
-    //         ),
-    //       );
-    // }
 
     arrivalLines[0].leftLabel = new CDUElement(
       'STARS\xa0\xa0',
@@ -330,18 +305,23 @@ export class ArrivalsPage extends DisplayablePage {
           )
         : '------',
       '\xa0APPR',
-      this.currentArrival || this.noneArrival
+      this.hasArrival
         ? new CDUElement(this.currentArrival ? this.currentArrival.ident : 'NONE', this.currentColor)
         : '------',
       'STAR\xa0',
-      this.currentApproach ? new CDUElement('NONE', this.currentColor) : new CDUElement('------', CDUColor.White),
+      this.currentApproach && !this.hasAvailableVias
+        ? new CDUElement('NONE', this.currentColor)
+        : new CDUElement('------', CDUColor.White),
       'VIA',
     );
   }
 
   secondLine(): ICDULine {
-    return new CDULineRight(
-      this.currentArrival || this.noneArrival ? new CDUElement('NONE', this.currentColor) : '------',
+    const hasVias = this.hasAvailableVias;
+    return new CDULine(
+      hasVias ? new CDUElement('<VIAS') : undefined,
+      hasVias ? new CDUElement('\xa0APPR') : undefined,
+      this.hasArrival ? new CDUElement('NONE', this.currentColor) : '------',
       'TRANS\xa0',
     );
   }
@@ -357,12 +337,6 @@ export class ArrivalsPage extends DisplayablePage {
   // #region Elements and Labels
 
   approachLabel(approach: Approach, runway: Runway, color: CDUColor) {
-    // const matchingIls =
-    //   approach.type === ApproachType.Ils
-    //     ? this.ilsSystems.find((ils) => finalLeg && finalLeg.recommendedNavaid && ils.databaseId === finalLeg.recommendedNavaid.databaseId,)
-    //     : undefined;
-    //const hasIls = !!matchingIls;
-    //const ilsText = hasIls ? `${matchingIls.ident.padStart(6)}/${matchingIls.frequency.toFixed(2)}` : '';
     return new CDUElement(
       '\xa0\xa0\xa0' + runway.magneticBearing.toFixed(0).padStart(3, '0'),
       color,
