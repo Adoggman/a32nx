@@ -10,6 +10,7 @@ import {
   CDUTextSize,
   EmptyLine,
 } from '@cdu/model/CDUPage';
+import { ArrivalsPage } from '@cdu/pages/ArrivalsPage';
 import { DeparturesPage } from '@cdu/pages/DeparturesPage';
 import { Coordinates } from '@fmgc/flightplanning/data/geo';
 import { FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
@@ -122,7 +123,7 @@ export class LatRevPage extends DisplayablePage {
   onRSK1() {
     if (this.isDestination) {
       // ARRIVAL >
-      this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+      this.openPage(new ArrivalsPage(this.display));
       return;
     }
     if (this.isOrigin) {
