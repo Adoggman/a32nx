@@ -157,7 +157,7 @@ export class FlightPlanPage extends DisplayablePage {
 
   makeEmptyFplnLines() {
     return makeLines(
-      this.fromLine(),
+      this.pposLine(),
       this.discontinuityLine(),
       this.endOfFplnLine(),
       this.noAltnFplnLine(),
@@ -191,18 +191,22 @@ export class FlightPlanPage extends DisplayablePage {
       }
       const leg = element.leg;
       const isAlternate = (element as LegDisplayElement).isAlternate;
-      if (leg?.ident) {
-        lines.push(
-          this.legLine(
-            leg,
-            legIndex,
-            row,
-            hasShownNm,
-            isAlternate,
-            lastLeg,
-            legIndex + 1 < elements.length ? elements[legIndex + 1]?.leg : undefined,
-          ),
-        );
+      if (leg) {
+        if (legIndex === this.originLegIndex) {
+          lines.push(this.originLine(row));
+        } else {
+          lines.push(
+            this.legLine(
+              leg,
+              legIndex,
+              row,
+              hasShownNm,
+              isAlternate,
+              lastLeg,
+              legIndex + 1 < elements.length ? elements[legIndex + 1]?.leg : undefined,
+            ),
+          );
+        }
         this.displayedLegs[row] = { leg: leg, legIndex: legIndex };
         hasShownNm = row > 0 && !!leg.calculated?.distance;
         lastLeg = leg;
@@ -231,7 +235,7 @@ export class FlightPlanPage extends DisplayablePage {
     const legColor = this.getColorForLeg(legIndex, isAlternate);
     const identElement = this.legIdentElement(leg, nextLeg, legColor);
     const timeElement = this.timeElement(legIndex, legColor);
-    const speedElement = this.speedElement();
+    const speedElement = this.speedElement(leg, legIndex);
     const altElement = this.altitudeElement(legColor, legIndex, leg);
 
     const lineElement = CDUElement.stringTogether(identElement, timeElement, speedElement, altElement);
@@ -248,41 +252,35 @@ export class FlightPlanPage extends DisplayablePage {
     };
   }
 
-  fromLine(): ICDULine {
+  originLine(rowIndex: number): ICDULine {
     const origin = this.flightPlan.originAirport;
-    return origin
-      ? {
-          left: new CDUElement(
-            origin.ident.padEnd(8, '\xa0'),
-            this.planColor,
-            CDUTextSize.Large,
-            new CDUElement(
-              '0000',
-              this.planColor,
-              CDUTextSize.Large,
-              new CDUElement(
-                '\xa0\xa0---',
-                CDUColor.White,
-                CDUTextSize.Small,
-                new CDUElement(
-                  '/' + formatAltRounded(origin.location.alt, 10).padStart(6, '\xa0'),
-                  this.planColor,
-                  CDUTextSize.Large,
-                ),
-              ),
-            ),
-          ),
-          leftLabel: new CDUElement('\xa0FROM\xa0\xa0\xa0TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0'),
-        }
-      : {
-          left: new CDUElement(
-            'PPOS\xa0\xa0\xa0\xa0',
-            this.planColor,
-            CDUTextSize.Large,
-            new CDUElement('----\xa0\xa0\xa0\xa0\xa0/\xa0-----'),
-          ),
-          leftLabel: new CDUElement('\xa0FROM\xa0\xa0\xa0TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0'),
-        };
+    return {
+      left: CDUElement.stringTogether(
+        new CDUElement(origin.ident.padEnd(8, '\xa0'), this.planColor, CDUTextSize.Large),
+        new CDUElement('0000', this.planColor, CDUTextSize.Large),
+        this.CDU.Performance.v1Speed
+          ? new CDUElement(this.CDU.Performance.v1Speed.toFixed(0).padStart(5, '\xa0'), this.planColor)
+          : new CDUElement('\xa0\xa0---', CDUColor.White, CDUTextSize.Small),
+        new CDUElement(
+          '/' + formatAltRounded(origin.location.alt, 10).padStart(6, '\xa0'),
+          this.planColor,
+          CDUTextSize.Large,
+        ),
+      ),
+      leftLabel: rowIndex === 0 ? this.topLabel() : undefined,
+    };
+  }
+
+  pposLine() {
+    return {
+      left: new CDUElement(
+        'PPOS\xa0\xa0\xa0\xa0',
+        this.planColor,
+        CDUTextSize.Large,
+        new CDUElement('----\xa0\xa0\xa0\xa0\xa0/\xa0-----'),
+      ),
+      leftLabel: new CDUElement('\xa0FROM\xa0\xa0\xa0TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0'),
+    };
   }
 
   destLine(): ICDULine {
@@ -352,6 +350,106 @@ export class FlightPlanPage extends DisplayablePage {
 
   unknownLine(isTopLine: boolean = false): ICDULine {
     return { center: new CDUElement('-----UNHANDLED LEG------'), leftLabel: isTopLine ? this.topLabel() : undefined };
+  }
+
+  // #endregion
+
+  // #region Elements and Labels
+
+  getDisplayElement(element: FlightPlanElement, isAlternate: boolean) {
+    if (element.isDiscontinuity) {
+      return new DiscontinuityDisplayElement();
+    } else {
+      return new LegDisplayElement(element as FlightPlanLeg, isAlternate);
+    }
+  }
+
+  topLabel(annotation: string = '') {
+    return new CDUElement(`\xa0${annotation ?? ''}`.padEnd(8, '\xa0') + 'TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0');
+  }
+
+  lineLabel(
+    rowIndex: number,
+    legIndex: number,
+    lastLeg: FlightPlanLeg,
+    leg: FlightPlanLeg,
+    legColor: CDUColor,
+    hasShownDistNM: boolean,
+    labelElement: CDUElement,
+  ) {
+    const identLabel = new CDUElement(('\xa0' + leg.annotation).padEnd(8, '\xa0'), CDUColor.White);
+    const bearingTrack = this.getBearingOrTrack(rowIndex, legIndex, lastLeg, leg);
+    const timeLabel = new CDUElement(bearingTrack.padEnd(7, '\xa0'), legColor);
+    const speedAltLabel = new CDUElement(
+      leg.calculated?.distanceWithTransitions
+        ? leg.calculated.distanceWithTransitions.toFixed(0).padStart(4, '\xa0') + (hasShownDistNM ? '' : 'NM')
+        : '',
+      legColor,
+    );
+    labelElement = CDUElement.stringTogether(identLabel, timeLabel, speedAltLabel);
+    return labelElement;
+  }
+
+  timeElement(legIndex: number, legColor: CDUColor) {
+    const showTime = legIndex === this.fromIndex;
+    const timeElement = new CDUElement(
+      (showTime ? '0000' : '----').padEnd(6, '\xa0'),
+      showTime ? legColor : CDUColor.White,
+    );
+    return timeElement;
+  }
+
+  speedElement(leg: FlightPlanLeg, legIndex: number) {
+    if (legIndex === this.fromIndex) {
+      return new CDUElement('\xa0\xa0\xa0');
+    }
+    return new CDUElement('---', CDUColor.White);
+  }
+
+  altitudeElement(legColor: CDUColor, legIndex: number, leg: FlightPlanLeg) {
+    const alt: number = (leg.definition.waypoint?.location as any)?.alt;
+    let altElement: CDUElement;
+    if (alt) {
+      altElement = new CDUElement(
+        '/' + formatAltRounded(alt, 10).padStart(6, '\xa0'),
+        legColor,
+        legIndex === this.fromIndex ? CDUTextSize.Large : CDUTextSize.Small,
+      );
+    } else if (this.legHasAltConstraint(leg)) {
+      const altitudeConstraint = this.formatAltConstraint(
+        leg.altitudeConstraint,
+        leg.constraintType === WaypointConstraintType.CLB,
+      );
+      altElement = new CDUElement(
+        '/' + altitudeConstraint.padStart(6, '\xa0'),
+        this.altConstraintColor,
+        leg.hasPilotEnteredAltitudeConstraint() ? CDUTextSize.Large : CDUTextSize.Small,
+      );
+    } else {
+      altElement = new CDUElement('/\xa0-----', CDUColor.White);
+    }
+    return altElement;
+  }
+
+  legIdentElement(leg: FlightPlanLeg, nextLeg: FlightPlanLeg, legColor: CDUColor): CDUElement {
+    let ident = leg.ident;
+
+    // forced turn indication if next leg is not a course reversal
+    if (
+      nextLeg &&
+      nextLeg.isDiscontinuity === false &&
+      this.legTurnIsForced(nextLeg) &&
+      !this.legTypeIsCourseReversal(nextLeg)
+    ) {
+      if (nextLeg.definition.turnDirection === 'L') {
+        ident += '{';
+      } else {
+        ident += '}';
+      }
+    } else if (leg.definition.overfly) {
+      ident += CDUScratchpad.overflyValue;
+    }
+    return new CDUElement(ident.padEnd(8, '\xa0'), legColor);
   }
 
   // #endregion
@@ -457,103 +555,6 @@ export class FlightPlanPage extends DisplayablePage {
     this.index = Math.max(destIndex - rowOffset, 0);
     this.refresh();
     return;
-  }
-
-  // #endregion
-
-  // #region Elements and Labels
-
-  getDisplayElement(element: FlightPlanElement, isAlternate: boolean) {
-    if (element.isDiscontinuity) {
-      return new DiscontinuityDisplayElement();
-    } else {
-      return new LegDisplayElement(element as FlightPlanLeg, isAlternate);
-    }
-  }
-
-  topLabel(annotation: string = '') {
-    return new CDUElement(`\xa0${annotation ?? ''}`.padEnd(8, '\xa0') + 'TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0');
-  }
-
-  lineLabel(
-    rowIndex: number,
-    legIndex: number,
-    lastLeg: FlightPlanLeg,
-    leg: FlightPlanLeg,
-    legColor: CDUColor,
-    hasShownDistNM: boolean,
-    labelElement: CDUElement,
-  ) {
-    const identLabel = new CDUElement(('\xa0' + leg.annotation).padEnd(8, '\xa0'), CDUColor.White);
-    const bearingTrack = this.getBearingOrTrack(rowIndex, legIndex, lastLeg, leg);
-    const timeLabel = new CDUElement(bearingTrack.padEnd(7, '\xa0'), legColor);
-    const speedAltLabel = new CDUElement(
-      leg.calculated?.distanceWithTransitions
-        ? leg.calculated.distanceWithTransitions.toFixed(0).padStart(4, '\xa0') + (hasShownDistNM ? '' : 'NM')
-        : '',
-      legColor,
-    );
-    labelElement = CDUElement.stringTogether(identLabel, timeLabel, speedAltLabel);
-    return labelElement;
-  }
-
-  timeElement(legIndex: number, legColor: CDUColor) {
-    const showTime = legIndex === this.fromIndex;
-    const timeElement = new CDUElement(
-      (showTime ? '0000' : '----').padEnd(6, '\xa0'),
-      showTime ? legColor : CDUColor.White,
-    );
-    return timeElement;
-  }
-
-  speedElement() {
-    return new CDUElement('---', CDUColor.White);
-  }
-
-  altitudeElement(legColor: CDUColor, legIndex: number, leg: FlightPlanLeg) {
-    const alt: number = (leg.definition.waypoint?.location as any)?.alt;
-    let altElement: CDUElement;
-    if (alt) {
-      altElement = new CDUElement(
-        '/' + formatAltRounded(alt, 10).padStart(6, '\xa0'),
-        legColor,
-        legIndex === this.fromIndex ? CDUTextSize.Large : CDUTextSize.Small,
-      );
-    } else if (this.legHasAltConstraint(leg)) {
-      const altitudeConstraint = this.formatAltConstraint(
-        leg.altitudeConstraint,
-        leg.constraintType === WaypointConstraintType.CLB,
-      );
-      altElement = new CDUElement(
-        '/' + altitudeConstraint.padStart(6, '\xa0'),
-        this.altConstraintColor,
-        leg.hasPilotEnteredAltitudeConstraint() ? CDUTextSize.Large : CDUTextSize.Small,
-      );
-    } else {
-      altElement = new CDUElement('/\xa0-----', CDUColor.White);
-    }
-    return altElement;
-  }
-
-  legIdentElement(leg: FlightPlanLeg, nextLeg: FlightPlanLeg, legColor: CDUColor): CDUElement {
-    let ident = leg.ident;
-
-    // forced turn indication if next leg is not a course reversal
-    if (
-      nextLeg &&
-      nextLeg.isDiscontinuity === false &&
-      this.legTurnIsForced(nextLeg) &&
-      !this.legTypeIsCourseReversal(nextLeg)
-    ) {
-      if (nextLeg.definition.turnDirection === 'L') {
-        ident += '{';
-      } else {
-        ident += '}';
-      }
-    } else if (leg.definition.overfly) {
-      ident += CDUScratchpad.overflyValue;
-    }
-    return new CDUElement(ident.padEnd(8, '\xa0'), legColor);
   }
 
   // #endregion
