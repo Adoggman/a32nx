@@ -135,6 +135,7 @@ export class FlightInformationSubsystem extends CDUSubsystem {
   }
 
   onFlightPlanUplinked() {
-    this.flightNumber = this.cdu.Simbrief.Data.airline + this.cdu.Simbrief.Data.flightNumber;
+    const airline = this.cdu.Simbrief.Data.airline;
+    this.flightNumber = (typeof airline === 'string' ? airline : '') + this.cdu.Simbrief.Data.flightNumber;
   }
 }
