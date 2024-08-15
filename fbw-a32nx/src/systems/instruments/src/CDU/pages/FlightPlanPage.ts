@@ -542,14 +542,13 @@ export class FlightPlanPage extends DisplayablePage {
     }
 
     if (this.flightPlan.destinationAirport) {
-      const elements = this.getFlightPlanElements();
-      const lastIndex = elements.length - 1;
-      const lastElement = elements[lastIndex];
-      if (!('isDiscontinuity' in lastElement || 'isPseudoLeg' in lastElement)) {
-        this.openPage(new LatRevPage(this.display, lastElement as FlightPlanLeg, lastIndex));
-      } else {
-        throw Error('Failed to open destination Lat Rev page');
+      let destLeg = this.flightPlan.destinationLeg;
+      if (destLeg.isDiscontinuity) {
+        console.error('Destination leg is a discontinuity. How did you get in this situation???');
+        return;
       }
+      destLeg = destLeg as FlightPlanLeg;
+      this.openPage(new LatRevPage(this.display, destLeg, this.flightPlan.destinationLegIndex));
     }
   }
 
