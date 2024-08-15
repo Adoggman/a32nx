@@ -193,7 +193,7 @@ export class FlightPlanPage extends DisplayablePage {
       const isAlternate = (element as LegDisplayElement).isAlternate;
       if (leg) {
         if (legIndex === this.originLegIndex) {
-          lines.push(this.originLine(row));
+          lines.push(this.originLine(leg, row));
         } else {
           lines.push(
             this.legLine(
@@ -252,22 +252,22 @@ export class FlightPlanPage extends DisplayablePage {
     };
   }
 
-  originLine(rowIndex: number): ICDULine {
+  originLine(leg: FlightPlanLeg, rowIndex: number): ICDULine {
     const origin = this.flightPlan.originAirport;
     return {
       left: CDUElement.stringTogether(
-        new CDUElement(origin.ident.padEnd(8, '\xa0'), this.planColor, CDUTextSize.Large),
+        new CDUElement(leg.ident.padEnd(8, '\xa0'), this.planColor, CDUTextSize.Large),
         new CDUElement('0000', this.planColor, CDUTextSize.Large),
         this.CDU.Performance.v1Speed
           ? new CDUElement(this.CDU.Performance.v1Speed.toFixed(0).padStart(5, '\xa0'), this.planColor)
-          : new CDUElement('\xa0\xa0---', CDUColor.White, CDUTextSize.Small),
+          : new CDUElement('\xa0\xa0---', CDUColor.White),
         new CDUElement(
           '/' + formatAltRounded(origin.location.alt, 10).padStart(6, '\xa0'),
           this.planColor,
           CDUTextSize.Large,
         ),
       ),
-      leftLabel: rowIndex === 0 ? this.topLabel() : undefined,
+      leftLabel: rowIndex === 0 ? this.topLabel(leg.annotation) : undefined,
     };
   }
 
