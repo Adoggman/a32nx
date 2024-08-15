@@ -12,10 +12,9 @@ import {
   Airport,
   Approach,
   ApproachType,
-  Departure,
+  Arrival,
   ProcedureTransition,
   Runway,
-  IlsNavaid,
 } from '../../../../../../../fbw-common/src/systems/navdata/shared';
 import { ApproachUtils, RunwayUtils } from '../../../../../../../fbw-common/src/systems/shared/src';
 import { FlightPlanPage } from '@cdu/pages/FlightPlanPage';
@@ -31,14 +30,79 @@ enum PageMode {
 export class ArrivalsPage extends DisplayablePage {
   static readonly pageID: string = 'ARRIVALS';
   _pageID = ArrivalsPage.pageID;
+
+  // #region Properties
+
   index: number;
   airport: Airport;
   mode: PageMode;
   noneArrival: boolean;
   noneApproach: boolean;
   noneTransition: boolean;
-  ilsSystems: Promise<IlsNavaid[]>;
+  //ilsSystems: Promise<IlsNavaid[]>;
   sortedApproaches: Approach[];
+  isNoArrival: boolean;
+
+  private get currentApproach() {
+    return this.CDU.flightPlanService.activeOrTemporary.approach;
+  }
+
+  private get currentDestinationRunway() {
+    return this.CDU.flightPlanService.activeOrTemporary.destinationRunway;
+  }
+
+  private get currentArrival() {
+    return this.CDU.flightPlanService.activeOrTemporary.arrival;
+  }
+
+  private get currentTransition() {
+    return this.CDU.flightPlanService.activeOrTemporary.arrivalEnrouteTransition;
+  }
+
+  private get maxIndex() {
+    return (this.isApproachMode ? this.numApproaches : Math.max(this.numArrivals, this.numTransitions)) - 1;
+  }
+
+  private get isApproachMode() {
+    return this.mode === PageMode.Approach;
+  }
+
+  private get isArrivalMode() {
+    return this.mode === PageMode.Arrival;
+  }
+
+  private get hasTemporary() {
+    return this.CDU.flightPlanService.hasTemporary;
+  }
+
+  private get currentColor() {
+    return this.hasTemporary ? CDUColor.Yellow : CDUColor.Green;
+  }
+
+  private get runways() {
+    return this.CDU.flightPlanService.activeOrTemporary.availableDestinationRunways;
+  }
+
+  private get availableArrivals() {
+    return [undefined, ...this.CDU.flightPlanService.activeOrTemporary.availableArrivals.slice()];
+  }
+
+  private rowsShown = 3;
+  private get numApproaches() {
+    return this.sortedApproaches.length + this.runways.length;
+  }
+
+  private get numArrivals() {
+    return this.availableArrivals.length;
+  }
+
+  private get numTransitions() {
+    return this.currentArrival ? this.currentArrival.enrouteTransitions.length : 0;
+  }
+
+  // #endregion
+
+  // #region Page
 
   constructor(display: CDUDisplay) {
     super(display);
@@ -48,17 +112,8 @@ export class ArrivalsPage extends DisplayablePage {
     this.arrows = { up: true, down: false, left: true, right: true };
     this.mode = PageMode.Approach;
 
-    this.ilsSystems = this.CDU.navigationDatabase.backendDatabase.getIlsAtAirport(this.airport.ident);
-
-    this.sortedApproaches = this.CDU.flightPlanService.activeOrTemporary.availableApproaches
-      .slice()
-      // The A320 cannot fly TACAN approaches
-      .filter(({ type }) => type !== ApproachType.Tacan)
-      // Filter out approaches with no matching runway
-      // Approaches not going to a specific runway (i.e circling approaches are filtered out at DB level)
-      .filter((a) => !!this.runways.find((rw) => rw.ident === a.runwayIdent))
-      // Sort the approaches in Honeywell's documented order
-      .sort((a, b) => ApproachTypeOrder[a.type] - ApproachTypeOrder[b.type]);
+    //this.ilsSystems = this.CDU.navigationDatabase.backendDatabase.getIlsAtAirport(this.airport.ident);
+    this.sortedApproaches = this.sortApproaches(this.CDU.flightPlanService.activeOrTemporary.availableApproaches);
 
     this.title = new CDUElement(
       'ARRIVAL ',
@@ -86,45 +141,9 @@ export class ArrivalsPage extends DisplayablePage {
     this.arrows.up = this.index + this.rowsShown < this.maxIndex;
   }
 
-  private get currentApproach() {
-    return this.CDU.flightPlanService.activeOrTemporary.approach;
-  }
+  // #endregion
 
-  private get currentDestinationRunway() {
-    return this.CDU.flightPlanService.activeOrTemporary.destinationRunway;
-  }
-
-  private get currentArrival() {
-    return this.CDU.flightPlanService.activeOrTemporary.arrival;
-  }
-
-  private get currentTransition() {
-    return this.CDU.flightPlanService.activeOrTemporary.arrivalEnrouteTransition;
-  }
-
-  private get maxIndex() {
-    return this.isApproachMode ? this.numApproaches() : Math.max(this.numDepartures() + 1, this.numTransitions() + 1);
-  }
-
-  private get isApproachMode() {
-    return this.mode === PageMode.Approach;
-  }
-
-  private get isArrivalMode() {
-    return this.mode === PageMode.Arrival;
-  }
-
-  private get hasTemporary() {
-    return this.CDU.flightPlanService.hasTemporary;
-  }
-
-  private get currentColor() {
-    return this.hasTemporary ? CDUColor.Yellow : CDUColor.Green;
-  }
-
-  private get runways() {
-    return this.CDU.flightPlanService.activeOrTemporary.availableDestinationRunways;
-  }
+  // #region Lines
 
   makeLines() {
     if (this.isApproachMode) {
@@ -165,14 +184,17 @@ export class ArrivalsPage extends DisplayablePage {
             ),
           );
           lastRunway = runway;
+          lastColor = color;
         } else {
           approachLines.push({
             leftLabel: lastApproach || lastRunway ? this.approachLabel(lastApproach, lastRunway, lastColor) : undefined,
           });
           lastApproach = undefined;
           lastRunway = undefined;
+          lastColor = undefined;
         }
         lastApproach = undefined;
+
         continue;
       }
       const approach = approaches[approachIndex];
@@ -211,7 +233,7 @@ export class ArrivalsPage extends DisplayablePage {
       new CDUElement('AVAILABLE', CDUColor.White, CDUTextSize.Small),
     );
     const lastLine = this.bottomLine();
-    if (lastApproach) {
+    if (lastApproach || lastRunway) {
       lastLine.leftLabel = this.approachLabel(lastApproach, lastRunway, lastColor);
     }
 
@@ -226,16 +248,29 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   makeArrivalLines() {
-    //     const departures = this.getArrivals();
+    const arrivals = this.availableArrivals;
     //     const transitions = this.currentDeparture ? this.currentDeparture.enrouteTransitions : [];
-    //     const departureLines: ICDULine[] = [];
-    //     for (let row = 0; row < 4; row++) {
-    //       const sharedIndex = this.index + row;
-    //       const departure = sharedIndex < departures.length ? departures[sharedIndex] : undefined;
+    const arrivalLines: ICDULine[] = [];
+    for (let row = 0; row < this.rowsShown; row++) {
+      const sharedIndex = this.index + row;
+      if (sharedIndex >= arrivals.length) {
+        arrivalLines.push(undefined);
+        continue;
+      }
+      const arrival = arrivals[sharedIndex];
+      const isCurrentArrival = this.isCurrentArrival(arrival);
+      const color = isCurrentArrival && !this.hasTemporary ? this.currentColor : CDUColor.Cyan;
+      arrivalLines.push(
+        new CDULine(
+          arrival
+            ? new CDUElement((isCurrentArrival ? '\xa0' : '{') + arrival.ident, color)
+            : new CDUElement((isCurrentArrival ? '\xa0' : '{') + 'NO STAR', color),
+        ),
+      );
+    }
     //       const isNoSid = sharedIndex === departures.length;
     //       const transition = sharedIndex < transitions.length ? transitions[sharedIndex] : undefined;
     //       const isNoTransition = sharedIndex === transitions.length && transitions.length !== 0;
-    //       const isCurrentDeparture = this.isCurrentArrival(departure);
     //       const isCurrentTransition = this.isCurrentTransition(transition);
     //       departureLines.push(
     //         new CDULine(
@@ -261,12 +296,65 @@ export class ArrivalsPage extends DisplayablePage {
     //         ),
     //       );
     // }
-    //     departureLines[0].leftLabel = new CDUElement('SIDS');
-    //     departureLines[0].centerLabel = new CDUElement('AVAILABLE');
-    //     departureLines[0].rightLabel = new CDUElement('TRANS');
 
-    this.lines = makeLines(this.topLine(), this.secondLine(), undefined, undefined, undefined, this.bottomLine());
+    arrivalLines[0].leftLabel = new CDUElement(
+      'STARS\xa0\xa0',
+      CDUColor.White,
+      CDUTextSize.Large,
+      new CDUElement('AVAILABLE', CDUColor.White, CDUTextSize.Small),
+    );
+    arrivalLines[0].rightLabel = new CDUElement('TRANS', CDUColor.White, CDUTextSize.Large);
+    this.lines = makeLines(
+      this.topLine(),
+      this.secondLine(),
+      arrivalLines[0],
+      arrivalLines[1],
+      arrivalLines[2],
+      this.bottomLine(),
+    );
   }
+
+  // #endregion
+
+  // #region Line
+
+  topLine(): ICDULine {
+    return new CDULine(
+      this.currentApproach || this.currentDestinationRunway
+        ? new CDUElement(
+            this.currentApproach
+              ? ApproachUtils.shortApproachName(this.currentApproach)
+              : RunwayUtils.runwayString(this.currentDestinationRunway.ident),
+            this.currentColor,
+            CDUTextSize.Large,
+          )
+        : '------',
+      '\xa0APPR',
+      this.currentArrival || this.noneArrival
+        ? new CDUElement(this.currentArrival ? this.currentArrival.ident : 'NONE', this.currentColor)
+        : '------',
+      'STAR\xa0',
+      this.currentApproach ? new CDUElement('NONE', this.currentColor) : new CDUElement('------', CDUColor.White),
+      'VIA',
+    );
+  }
+
+  secondLine(): ICDULine {
+    return new CDULineRight(
+      this.currentArrival || this.noneArrival ? new CDUElement('NONE', this.currentColor) : '------',
+      'TRANS\xa0',
+    );
+  }
+
+  bottomLine(): ICDULine {
+    return this.hasTemporary
+      ? new CDULine(new CDUElement('{ERASE', CDUColor.Amber), undefined, new CDUElement('INSERT*', CDUColor.Amber))
+      : new CDULine('<RETURN');
+  }
+
+  // #endregion
+
+  // #region Elements and Labels
 
   approachLabel(approach: Approach, runway: Runway, color: CDUColor) {
     // const matchingIls =
@@ -289,6 +377,24 @@ export class ArrivalsPage extends DisplayablePage {
     );
   }
 
+  // #endregion
+
+  // #region Helpers
+
+  sortApproaches(approaches: Approach[]) {
+    return (
+      approaches
+        .slice()
+        // The A320 cannot fly TACAN approaches
+        .filter(({ type }) => type !== ApproachType.Tacan)
+        // Filter out approaches with no matching runway
+        // Approaches not going to a specific runway (i.e circling approaches are filtered out at DB level)
+        .filter((a) => !!this.runways.find((rw) => rw.ident === a.runwayIdent))
+        // Sort the approaches in Honeywell's documented order
+        .sort((a, b) => ApproachTypeOrder[a.type] - ApproachTypeOrder[b.type])
+    );
+  }
+
   private isCurrentApproach(approach: Approach) {
     return this.currentApproach && this.currentApproach.ident === approach.ident;
   }
@@ -299,59 +405,26 @@ export class ArrivalsPage extends DisplayablePage {
     );
   }
 
-  private isCurrentArrival(departure: Departure) {
-    return this.currentArrival && departure && this.currentArrival.databaseId === departure.databaseId;
+  private isCurrentArrival(arrival: Arrival) {
+    return (
+      (this.noneArrival && !arrival) ||
+      (this.currentArrival && arrival && this.currentArrival.databaseId === arrival.databaseId)
+    );
   }
 
   private isCurrentTransition(transition: ProcedureTransition) {
     return this.currentTransition && transition && this.currentTransition.databaseId === transition.databaseId;
   }
 
-  topLine(): ICDULine {
-    return new CDULine(
-      this.currentApproach || this.currentDestinationRunway
-        ? new CDUElement(
-            this.currentApproach
-              ? ApproachUtils.shortApproachName(this.currentApproach)
-              : RunwayUtils.runwayString(this.currentDestinationRunway.ident),
-            this.currentColor,
-            CDUTextSize.Large,
-          )
-        : '------',
-      '\xa0APPR',
-      '------',
-      'STAR\xa0',
-      this.currentApproach ? new CDUElement('NONE', this.currentColor) : new CDUElement('------', CDUColor.White),
-      'VIA',
-    );
+  setMode(mode: PageMode) {
+    this.index = 0;
+    this.mode = mode;
+    this.refresh();
   }
 
-  secondLine(): ICDULine {
-    return new CDULineRight('------', 'TRANS\xa0');
-  }
+  // #endregion
 
-  bottomLine(): ICDULine {
-    return this.hasTemporary
-      ? new CDULine(new CDUElement('{ERASE', CDUColor.Amber), undefined, new CDUElement('INSERT*', CDUColor.Amber))
-      : new CDULine('<RETURN');
-  }
-
-  getArrivals() {
-    return this.CDU.flightPlanService.activeOrTemporary.availableArrivals;
-  }
-
-  private rowsShown = 3;
-  numApproaches() {
-    return this.sortedApproaches.length + this.runways.length;
-  }
-
-  numDepartures() {
-    return this.getArrivals().length;
-  }
-
-  numTransitions() {
-    return this.currentArrival ? this.currentArrival.enrouteTransitions.length : 0;
-  }
+  // #region Data Setting
 
   trySetApproach(approach: Approach) {
     if (this.isCurrentApproach(approach)) {
@@ -374,57 +447,8 @@ export class ArrivalsPage extends DisplayablePage {
     });
   }
 
-  //   trySetDeparture(departure: Departure) {
-  //     if (this.isCurrentArrival(departure)) {
-  //       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
-  //       return;
-  //     }
-  //     this.noneArrival = !departure;
-  //     this.CDU.flightPlanService.setDepartureProcedure(departure?.databaseId).then(() => {
-  //       this.refresh();
-  //     });
-  //   }
-
-  //   trySetTransition(transition: ProcedureTransition) {
-  //     if (transition && this.isCurrentTransition(transition)) {
-  //       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
-  //       return;
-  //     }
-  //     this.noneTransition = !transition;
-  //     this.CDU.flightPlanService.setDepartureEnrouteTransition(transition?.databaseId).then(() => {
-  //       this.refresh();
-  //     });
-  //   }
-
-  onLSK3() {
-    const index = this.index;
-    if (this.isApproachMode) {
-      this.trySetApproachAtIndex(index);
-    } else if (this.isArrivalMode) {
-      //this.trySetDepartureAtIndex(index);
-    }
-  }
-
-  onLSK4() {
-    const index = this.index + 1;
-    if (this.isApproachMode) {
-      this.trySetApproachAtIndex(index);
-    } else if (this.isArrivalMode) {
-      //this.trySetDepartureAtIndex(index);
-    }
-  }
-
-  onLSK5() {
-    const index = this.index + 2;
-    if (this.isApproachMode) {
-      this.trySetApproachAtIndex(index);
-    } else if (this.isArrivalMode) {
-      //this.trySetDepartureAtIndex(index);
-    }
-  }
-
   trySetApproachAtIndex(index: number) {
-    if (index >= this.numApproaches()) {
+    if (index >= this.numApproaches) {
       return;
     }
     if (index < this.sortedApproaches.length) {
@@ -436,56 +460,13 @@ export class ArrivalsPage extends DisplayablePage {
     }
   }
 
-  //   trySetDepartureAtIndex(index: number) {
-  //     if (index > this.numDepartures()) {
-  //       return;
-  //     }
-  //     if (index === this.numDepartures()) {
-  //       this.trySetDeparture(null);
-  //       return;
-  //     }
-  //     const departure = this.getArrivals()[index];
-  //     this.trySetDeparture(departure);
-  //   }
-
-  onLSK6() {
-    if (this.hasTemporary) {
-      this.CDU.flightPlanService.temporaryDelete().then(() => {
-        this.display.openPage(new FlightPlanPage(this.display));
-      });
-    } else {
-      // <RETURN
-      this.display.openPage(new FlightPlanPage(this.display));
+  trySetArrivalAtIndex(index: number) {
+    if (index > this.numArrivals) {
+      return;
     }
+    const arrival = this.availableArrivals[index];
+    this.trySetArrival(arrival);
   }
-
-  //   onRSK2() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 0);
-  //   }
-
-  //   onRSK3() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 1);
-  //   }
-
-  //   onRSK4() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 2);
-  //   }
-
-  //   onRSK5() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 3);
-  //   }
 
   //   trySetTransitionAtIndex(index: number) {
   //     if (index > this.numTransitions()) {
@@ -498,13 +479,31 @@ export class ArrivalsPage extends DisplayablePage {
   //     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
   //   }
 
-  onRSK6() {
-    if (this.hasTemporary) {
-      this.CDU.flightPlanService.temporaryInsert().then(() => {
-        this.openPage(new FlightPlanPage(this.display));
-      });
+  trySetArrival(arrival: Arrival) {
+    if (this.isCurrentArrival(arrival)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
     }
+    this.noneArrival = !arrival;
+    this.CDU.flightPlanService.setArrival(arrival?.databaseId).then(() => {
+      this.refresh();
+    });
   }
+
+  //   trySetTransition(transition: ProcedureTransition) {
+  //     if (transition && this.isCurrentTransition(transition)) {
+  //       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+  //       return;
+  //     }
+  //     this.noneTransition = !transition;
+  //     this.CDU.flightPlanService.setDepartureEnrouteTransition(transition?.databaseId).then(() => {
+  //       this.refresh();
+  //     });
+  //   }
+
+  // #endregion
+
+  // #region Input Handling
 
   onUp() {
     if (this.index + this.rowsShown > this.maxIndex) {
@@ -539,11 +538,81 @@ export class ArrivalsPage extends DisplayablePage {
     }
   }
 
-  setMode(mode: PageMode) {
-    this.index = 0;
-    this.mode = mode;
-    this.refresh();
+  onLSK3() {
+    const index = this.index;
+    if (this.isApproachMode) {
+      this.trySetApproachAtIndex(index);
+    } else if (this.isArrivalMode) {
+      this.trySetArrivalAtIndex(index);
+    }
   }
+
+  onLSK4() {
+    const index = this.index + 1;
+    if (this.isApproachMode) {
+      this.trySetApproachAtIndex(index);
+    } else if (this.isArrivalMode) {
+      this.trySetArrivalAtIndex(index);
+    }
+  }
+
+  onLSK5() {
+    const index = this.index + 2;
+    if (this.isApproachMode) {
+      this.trySetApproachAtIndex(index);
+    } else if (this.isArrivalMode) {
+      this.trySetArrivalAtIndex(index);
+    }
+  }
+
+  onLSK6() {
+    if (this.hasTemporary) {
+      this.CDU.flightPlanService.temporaryDelete().then(() => {
+        this.display.openPage(new FlightPlanPage(this.display));
+      });
+    } else {
+      // <RETURN
+      this.display.openPage(new FlightPlanPage(this.display));
+    }
+  }
+
+  onRSK6() {
+    if (this.hasTemporary) {
+      this.CDU.flightPlanService.temporaryInsert().then(() => {
+        this.openPage(new FlightPlanPage(this.display));
+      });
+    }
+  }
+
+  //   onRSK2() {
+  //     if (!this.isArrivalMode || !this.currentDeparture) {
+  //       return;
+  //     }
+  //     this.trySetTransitionAtIndex(this.index + 0);
+  //   }
+
+  //   onRSK3() {
+  //     if (!this.isArrivalMode || !this.currentDeparture) {
+  //       return;
+  //     }
+  //     this.trySetTransitionAtIndex(this.index + 1);
+  //   }
+
+  //   onRSK4() {
+  //     if (!this.isArrivalMode || !this.currentDeparture) {
+  //       return;
+  //     }
+  //     this.trySetTransitionAtIndex(this.index + 2);
+  //   }
+
+  //   onRSK5() {
+  //     if (!this.isArrivalMode || !this.currentDeparture) {
+  //       return;
+  //     }
+  //     this.trySetTransitionAtIndex(this.index + 3);
+  //   }
+
+  // #endregion
 }
 
 const ApproachTypeOrder = Object.freeze({

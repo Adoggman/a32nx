@@ -323,9 +323,10 @@ export class FlightPlanPage extends DisplayablePage {
   destLine(): ICDULine {
     const distance = this.CDU.FMGC.guidanceController.alongTrackDistanceToDestination;
     const distanceDisplay = distance ? Math.round(distance).toFixed(0).padStart(4, '\xa0') : '----';
-    const destIdent = this.flightPlan.destinationRunway
-      ? this.flightPlan.destinationRunway.ident
-      : this.flightPlan.destinationAirport.ident;
+    let destIdent = this.flightPlan.destinationAirport?.ident ?? '-------';
+    if (this.flightPlan.destinationRunway) {
+      destIdent = this.flightPlan.destinationRunway.ident;
+    }
     return this.flightPlan.destinationAirport
       ? {
           left: new CDUElement(

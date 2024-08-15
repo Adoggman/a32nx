@@ -76,7 +76,7 @@ export class DeparturesPage extends DisplayablePage {
   }
 
   private get maxIndex() {
-    return this.isRunwaysMode ? this.numRunways() : Math.max(this.numDepartures() + 1, this.numTransitions() + 1);
+    return (this.isRunwaysMode ? this.numRunways() : Math.max(this.numDepartures() + 1, this.numTransitions() + 1)) - 1;
   }
 
   private get isRunwaysMode() {
