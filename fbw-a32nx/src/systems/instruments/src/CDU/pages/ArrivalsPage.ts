@@ -23,8 +23,8 @@ export class ArrivalsPage extends DisplayablePage {
   noneArrival: boolean;
   noneApproach: boolean;
   noneTransition: boolean;
-  //ilsSystems: Promise<IlsNavaid[]>;
   sortedApproaches: Approach[];
+  filteredArrivals: Arrival[];
 
   private get currentApproach() {
     return this.CDU.flightPlanService.activeOrTemporary.approach;
@@ -66,10 +66,6 @@ export class ArrivalsPage extends DisplayablePage {
     return this.CDU.flightPlanService.activeOrTemporary.availableDestinationRunways;
   }
 
-  private get availableArrivals() {
-    return [undefined, ...this.CDU.flightPlanService.activeOrTemporary.availableArrivals.slice()];
-  }
-
   private get availableVias() {
     return this.CDU.flightPlanService.activeOrTemporary.availableApproachVias;
   }
@@ -88,7 +84,7 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   private get numArrivals() {
-    return this.availableArrivals.length;
+    return this.filteredArrivals.length;
   }
 
   private get numTransitions() {
@@ -141,11 +137,42 @@ export class ArrivalsPage extends DisplayablePage {
   // #region Lines
 
   makeLines() {
+    this.makeFilteredArrivals();
     if (this.isApproachMode) {
       this.makeApproachLines();
     } else {
       this.makeArrivalLines();
     }
+  }
+
+  makeFilteredArrivals() {
+    const availableArrivals = this.CDU.flightPlanService.activeOrTemporary.availableArrivals;
+    if (this.currentDestinationRunway) {
+      this.filteredArrivals = [
+        undefined,
+        ...availableArrivals.filter((arrival) => {
+          return (
+            arrival.runwayTransitions.length === 0 ||
+            this.arrivalHasRunwayTransition(arrival, this.currentDestinationRunway)
+          );
+        }),
+      ];
+    } else {
+      this.filteredArrivals = [undefined, ...availableArrivals];
+    }
+  }
+
+  arrivalHasRunwayTransition(arrival: Arrival, runway: Runway) {
+    return arrival.runwayTransitions.find((transition) => {
+      return this.transitionIsForRunway(transition, runway);
+    });
+  }
+
+  transitionIsForRunway(transition: ProcedureTransition, runway: Runway) {
+    return (
+      transition.ident === runway.ident ||
+      (transition.ident.charAt(6) === 'B' && transition.ident.substring(4, 6) === runway.ident.substring(4, 6))
+    );
   }
 
   makeApproachLines() {
@@ -243,7 +270,7 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   makeArrivalLines() {
-    const arrivals = this.availableArrivals;
+    const arrivals = this.filteredArrivals;
     const transitions = this.currentArrival ? [undefined, ...this.currentArrival.enrouteTransitions] : [];
     const arrivalLines: ICDULine[] = [];
     for (let row = 0; row < this.rowsShown; row++) {
@@ -438,7 +465,7 @@ export class ArrivalsPage extends DisplayablePage {
     if (index > this.numArrivals) {
       return;
     }
-    const arrival = this.availableArrivals[index];
+    const arrival = this.filteredArrivals[index];
     this.trySetArrival(arrival);
   }
 
