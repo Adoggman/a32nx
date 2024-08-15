@@ -12,9 +12,12 @@ import {
 } from '@cdu/model/CDUPage';
 import { CDUScratchpad } from '@cdu/model/Scratchpad';
 import { LatRevPage } from '@cdu/pages/LatRevPage';
+import { WaypointConstraintType } from '@fmgc/flightplanning/data/constraint';
 import { FlightPlanElement, FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
 
 type FPLeg = { leg: FlightPlanLeg; legIndex: number } | undefined;
+
+// #region Enums/Classes
 
 const enum PseudoLegType {
   EndOfFlightPlan,
@@ -60,6 +63,8 @@ class PseudoDisplayElement extends FlightPlanDisplayElement {
   }
 }
 
+// #endregion
+
 export class FlightPlanPage extends DisplayablePage {
   static readonly pageID: string = 'FPLN_A';
   _pageID = FlightPlanPage.pageID;
@@ -72,6 +77,9 @@ export class FlightPlanPage extends DisplayablePage {
   activePlanColor = CDUColor.Green;
   alternatePlanColor = CDUColor.Cyan;
   activeLegColor = CDUColor.White;
+  altConstraintColor = CDUColor.Magenta;
+
+  // #region Page
 
   constructor(display: CDUDisplay, index = 0) {
     super(display);
@@ -120,6 +128,7 @@ export class FlightPlanPage extends DisplayablePage {
     this.arrows.up = hasPlan;
     this.arrows.down = hasPlan;
   }
+  // #endregion Page
 
   makeEmptyFplnLines() {
     return makeLines(
@@ -291,8 +300,100 @@ export class FlightPlanPage extends DisplayablePage {
     lastLeg?: FlightPlanLeg,
     nextLeg?: FlightPlanLeg,
   ): ICDULine {
-    const showTime = legIndex === this.fromIndex;
     const legColor = this.getColorForLeg(legIndex, isAlternate);
+    const identElement = this.legIdentElement(leg, nextLeg, legColor);
+    const timeElement = this.timeElement(legIndex, legColor);
+    const speedElement = this.speedElement();
+    const altElement = this.altitudeElement(legColor, legIndex, leg);
+
+    const lineElement = CDUElement.stringTogether(identElement, timeElement, speedElement, altElement);
+    let labelElement: CDUElement;
+    if (rowIndex === 0) {
+      labelElement = this.topLabel(leg.annotation);
+    } else {
+      labelElement = this.lineLabel(rowIndex, legIndex, lastLeg, leg, legColor, hasShownDistNM, labelElement);
+    }
+
+    return {
+      left: lineElement,
+      leftLabel: labelElement,
+    };
+  }
+
+  private lineLabel(
+    rowIndex: number,
+    legIndex: number,
+    lastLeg: FlightPlanLeg,
+    leg: FlightPlanLeg,
+    legColor: CDUColor,
+    hasShownDistNM: boolean,
+    labelElement: CDUElement,
+  ) {
+    const identLabel = new CDUElement(('\xa0' + leg.annotation).padEnd(8, '\xa0'), CDUColor.White);
+    const bearingTrack = this.getBearingOrTrack(rowIndex, legIndex, lastLeg, leg);
+    const timeLabel = new CDUElement(bearingTrack.padEnd(7, '\xa0'), legColor);
+    const speedAltLabel = new CDUElement(
+      leg.calculated?.distanceWithTransitions
+        ? leg.calculated.distanceWithTransitions.toFixed(0).padStart(4, '\xa0') + (hasShownDistNM ? '' : 'NM')
+        : '',
+      legColor,
+    );
+    labelElement = CDUElement.stringTogether(identLabel, timeLabel, speedAltLabel);
+    return labelElement;
+  }
+
+  private getBearingOrTrack(rowIndex: number, legIndex: number, lastLeg: FlightPlanLeg, leg: FlightPlanLeg) {
+    let bearingTrack = '';
+    if (rowIndex === 1) {
+      const trueBearing = SimVar.GetSimVarValue('L:A32NX_EFIS_L_TO_WPT_BEARING', 'Degrees');
+      if (legIndex === this.activeIndex && trueBearing !== null && trueBearing >= 0) {
+        bearingTrack = `BRG${trueBearing.toFixed(0).padStart(3, '0')}\u00b0`;
+      }
+    } else if (rowIndex === 2) {
+      bearingTrack = this.formatTrack(lastLeg, leg);
+    }
+    return bearingTrack;
+  }
+
+  private timeElement(legIndex: number, legColor: CDUColor) {
+    const showTime = legIndex === this.fromIndex;
+    const timeElement = new CDUElement(
+      (showTime ? '0000' : '----').padEnd(6, '\xa0'),
+      showTime ? legColor : CDUColor.White,
+    );
+    return timeElement;
+  }
+
+  private speedElement() {
+    return new CDUElement('---', CDUColor.White);
+  }
+
+  private altitudeElement(legColor: CDUColor, legIndex: number, leg: FlightPlanLeg) {
+    const alt: number = (leg.definition.waypoint?.location as any)?.alt;
+    let altElement: CDUElement;
+    if (alt) {
+      altElement = new CDUElement(
+        '/' + formatAltRounded(alt, 10).padStart(6, '\xa0'),
+        legColor,
+        legIndex === this.fromIndex ? CDUTextSize.Large : CDUTextSize.Small,
+      );
+    } else if (this.legHasAltConstraint(leg)) {
+      const altitudeConstraint = this.formatAltConstraint(
+        leg.altitudeConstraint,
+        leg.constraintType === WaypointConstraintType.CLB,
+      );
+      altElement = new CDUElement(
+        '/' + altitudeConstraint.padStart(6, '\xa0'),
+        this.altConstraintColor,
+        leg.hasPilotEnteredAltitudeConstraint() ? CDUTextSize.Large : CDUTextSize.Small,
+      );
+    } else {
+      altElement = new CDUElement('/\xa0-----', CDUColor.White);
+    }
+    return altElement;
+  }
+
+  private legIdentElement(leg: FlightPlanLeg, nextLeg: FlightPlanLeg, legColor: CDUColor): CDUElement {
     let ident = leg.ident;
 
     // forced turn indication if next leg is not a course reversal
@@ -310,53 +411,7 @@ export class FlightPlanPage extends DisplayablePage {
     } else if (leg.definition.overfly) {
       ident += CDUScratchpad.overflyValue;
     }
-    const identElement = new CDUElement(ident.padEnd(8, '\xa0'), legColor);
-    const timeElement = new CDUElement(
-      (showTime ? '0000' : '----').padEnd(6, '\xa0'),
-      showTime ? legColor : CDUColor.White,
-    );
-    const speedElement = new CDUElement('---', CDUColor.White);
-    const alt: number = (leg.definition.waypoint?.location as any)?.alt;
-    const altElement = alt
-      ? new CDUElement(
-          '/' + formatAltRounded(alt, 10).padStart(6, '\xa0'),
-          legColor,
-          legIndex === this.fromIndex ? CDUTextSize.Large : CDUTextSize.Small,
-        )
-      : new CDUElement('/\xa0-----', CDUColor.White);
-
-    let labelElement: CDUElement;
-    if (rowIndex === 0) {
-      // top row
-      labelElement = this.topLabel(leg.annotation);
-    } else {
-      let bearingTrack = '';
-      if (rowIndex === 1) {
-        const trueBearing = SimVar.GetSimVarValue('L:A32NX_EFIS_L_TO_WPT_BEARING', 'Degrees');
-        if (legIndex === this.activeIndex && trueBearing !== null && trueBearing >= 0) {
-          bearingTrack = `BRG${trueBearing.toFixed(0).padStart(3, '0')}\u00b0`;
-        }
-      } else if (rowIndex === 2) {
-        bearingTrack = this.formatTrack(lastLeg, leg);
-      }
-
-      const identLabel = new CDUElement(('\xa0' + leg.annotation).padEnd(8, '\xa0'), CDUColor.White);
-      const timeLabel = new CDUElement(bearingTrack.padEnd(7, '\xa0'), legColor);
-      const speedAltLabel = new CDUElement(
-        leg.calculated?.distanceWithTransitions
-          ? leg.calculated.distanceWithTransitions.toFixed(0).padStart(4, '\xa0') + (hasShownDistNM ? '' : 'NM')
-          : '',
-        legColor,
-      );
-      labelElement = CDUElement.stringTogether(identLabel, timeLabel, speedAltLabel);
-    }
-
-    const lineElement = CDUElement.stringTogether(identElement, timeElement, speedElement, altElement);
-
-    return {
-      left: lineElement,
-      leftLabel: labelElement,
-    };
+    return new CDUElement(ident.padEnd(8, '\xa0'), legColor);
   }
 
   fromLine(): ICDULine {
@@ -583,5 +638,59 @@ export class FlightPlanPage extends DisplayablePage {
     );
     const track = A32NX_Util.trueToMagnetic(tr, magVar);
     return `TRK${track.toFixed(0).padStart(3, '0')}\u00b0`;
+  }
+
+  legHasAltConstraint(leg: FlightPlanLeg): boolean {
+    return leg.hasPilotEnteredAltitudeConstraint() || leg.hasDatabaseAltitudeConstraint();
+  }
+
+  formatAltConstraint(constraint, useTransAlt: boolean) {
+    if (!constraint) {
+      return '';
+    }
+
+    // Altitude constraint types "G" and "H" are not shown in the flight plan
+    switch (constraint.altitudeDescriptor) {
+      case '@': // AtAlt1
+      case 'I': // AtAlt1GsIntcptAlt2
+      case 'X': // AtAlt1AngleAlt2
+        return this.formatAltitudeOrLevel(constraint.altitude1, useTransAlt);
+      case '+': // AtOrAboveAlt1
+      case 'J': // AtOrAboveAlt1GsIntcptAlt2
+      case 'V': // AtOrAboveAlt1AngleAlt2
+        return '+' + this.formatAltitudeOrLevel(constraint.altitude1, useTransAlt);
+      case '-': // AtOrBelowAlt1
+      case 'Y': // AtOrBelowAlt1AngleAlt2
+        return '-' + this.formatAltitudeOrLevel(constraint.altitude1, useTransAlt);
+      case 'B': // BetweenAlt1Alt2
+        return 'WINDOW';
+      case 'C': // AtOrAboveAlt2:
+        return '+' + this.formatAltitudeOrLevel(constraint.altitude2, useTransAlt);
+      default:
+        return '';
+    }
+  }
+
+  formatAltitudeOrLevel(alt: number, useTransAlt: boolean) {
+    const activePlan = this.CDU.flightPlanService.active;
+
+    let isFl = false;
+    if (useTransAlt) {
+      const transAlt = activePlan.performanceData.transitionAltitude;
+      isFl = transAlt !== null && alt > transAlt;
+    } else {
+      const transLevel = activePlan.performanceData.transitionLevel;
+      isFl = transLevel !== null && alt >= transLevel * 100;
+    }
+
+    if (isFl) {
+      return `FL${(alt / 100).toFixed(0).padStart(3, '0')}`;
+    }
+
+    return this.formatAlt(alt);
+  }
+
+  formatAlt(alt: number) {
+    return (Math.round(alt / 10) * 10).toFixed(0);
   }
 }
