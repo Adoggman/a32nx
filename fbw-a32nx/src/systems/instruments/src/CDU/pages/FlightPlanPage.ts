@@ -69,6 +69,7 @@ export class FlightPlanPage extends DisplayablePage {
   static readonly pageID: string = 'FPLN_A';
   _pageID = FlightPlanPage.pageID;
 
+  // #region Properties
   index: number;
   maxIndex: number;
   displayedLegs: [FPLeg, FPLeg, FPLeg, FPLeg, FPLeg] = [undefined, undefined, undefined, undefined, undefined];
@@ -78,6 +79,40 @@ export class FlightPlanPage extends DisplayablePage {
   alternatePlanColor = CDUColor.Cyan;
   activeLegColor = CDUColor.White;
   altConstraintColor = CDUColor.Magenta;
+
+  get fromIndex() {
+    return this.CDU.flightPlanService.activeLegIndex - 1;
+  }
+
+  get activeIndex() {
+    return this.CDU.flightPlanService.activeLegIndex;
+  }
+
+  get flightPlan() {
+    return this.CDU.flightPlanService?.activeOrTemporary;
+  }
+
+  get originLegIndex() {
+    return this.flightPlan.originLegIndex;
+  }
+
+  get destinationLegIndex() {
+    return this.flightPlan.destinationLegIndex;
+  }
+
+  private get hasTemporary() {
+    return this.CDU.flightPlanService.hasTemporary;
+  }
+
+  private get planColor() {
+    return this.hasTemporary ? this.tempPlanColor : this.activePlanColor;
+  }
+
+  private get hasOrigin() {
+    return !!this.flightPlan?.originAirport;
+  }
+
+  // #endregion
 
   // #region Page
 
@@ -102,7 +137,7 @@ export class FlightPlanPage extends DisplayablePage {
   }
 
   drawPage() {
-    const hasPlan = this.hasFlightPlan();
+    const hasPlan = this.hasOrigin;
     this.updateArrows(hasPlan);
     this.updateTitle();
 
@@ -267,7 +302,7 @@ export class FlightPlanPage extends DisplayablePage {
           CDUTextSize.Large,
         ),
       ),
-      leftLabel: rowIndex === 0 ? this.topLabel(leg.annotation) : undefined,
+      leftLabel: rowIndex === 0 ? this.topLabel(leg.annotation) : new CDUElement('\xa0' + leg.annotation),
     };
   }
 
@@ -560,38 +595,6 @@ export class FlightPlanPage extends DisplayablePage {
   // #endregion
 
   // #region Helpers
-
-  hasFlightPlan() {
-    return !!this.flightPlan?.originAirport;
-  }
-
-  get fromIndex() {
-    return this.CDU.flightPlanService.activeLegIndex - 1;
-  }
-
-  get activeIndex() {
-    return this.CDU.flightPlanService.activeLegIndex;
-  }
-
-  get flightPlan() {
-    return this.CDU.flightPlanService?.activeOrTemporary;
-  }
-
-  get originLegIndex() {
-    return this.flightPlan.originLegIndex;
-  }
-
-  get destinationLegIndex() {
-    return this.flightPlan.destinationLegIndex;
-  }
-
-  private get hasTemporary() {
-    return this.CDU.flightPlanService.hasTemporary;
-  }
-
-  private get planColor() {
-    return this.hasTemporary ? this.tempPlanColor : this.activePlanColor;
-  }
 
   getColorForLeg(legIndex: number, isAlternate: boolean) {
     if (isAlternate) {
