@@ -136,6 +136,7 @@ export class FlightPlanPage extends DisplayablePage {
     this.displayedLegs = [undefined, undefined, undefined, undefined, undefined];
     const lines: ICDULine[] = [];
     let hasShownNm = false;
+    let lastLeg = undefined;
     for (let row = 0; row < 5; row++) {
       let legIndex = this.index + row;
       if (legIndex >= elements.length) {
@@ -145,12 +146,13 @@ export class FlightPlanPage extends DisplayablePage {
       const element = elements[legIndex];
       if (element.isDiscontinuity) {
         this.displayedLegs[row] = undefined;
-        lines.push(this.discontinuityLine());
+        lines.push(this.discontinuityLine(row === 0));
+        lastLeg = undefined;
         continue;
       }
       if (element.isPseudo) {
         this.displayedLegs[row] = undefined;
-        lines.push(this.pseudoLegLine((element as PseudoDisplayElement).pseudoLegType));
+        lines.push(this.pseudoLegLine((element as PseudoDisplayElement).pseudoLegType, row === 0));
         continue;
       }
       const leg = element.leg;
@@ -163,13 +165,15 @@ export class FlightPlanPage extends DisplayablePage {
             row,
             hasShownNm,
             isAlternate,
+            lastLeg,
             legIndex + 1 < elements.length ? elements[legIndex + 1]?.leg : undefined,
           ),
         );
         this.displayedLegs[row] = { leg: leg, legIndex: legIndex };
         hasShownNm = row > 0 && !!leg.calculated?.distance;
+        lastLeg = leg;
       } else {
-        lines.push(this.unknownLine());
+        lines.push(this.unknownLine(row === 0));
         console.log('Unknown leg');
         console.log(leg);
       }
@@ -274,7 +278,7 @@ export class FlightPlanPage extends DisplayablePage {
     return legIndex === this.activeIndex ? this.activeLegColor : this.planColor;
   }
 
-  topLabel(annotation: string) {
+  topLabel(annotation: string = '') {
     return new CDUElement(`\xa0${annotation ?? ''}`.padEnd(8, '\xa0') + 'TIME\xa0\xa0SPD/ALT\xa0\xa0\xa0');
   }
 
@@ -284,6 +288,7 @@ export class FlightPlanPage extends DisplayablePage {
     rowIndex: number,
     hasShownDistNM: boolean,
     isAlternate: boolean,
+    lastLeg?: FlightPlanLeg,
     nextLeg?: FlightPlanLeg,
   ): ICDULine {
     const showTime = legIndex === this.fromIndex;
@@ -325,10 +330,22 @@ export class FlightPlanPage extends DisplayablePage {
       // top row
       labelElement = this.topLabel(leg.annotation);
     } else {
+      let bearingTrack = '';
+      if (rowIndex === 1) {
+        const trueBearing = SimVar.GetSimVarValue('L:A32NX_EFIS_L_TO_WPT_BEARING', 'Degrees');
+        if (legIndex === this.activeIndex && trueBearing !== null && trueBearing >= 0) {
+          bearingTrack = `BRG${trueBearing.toFixed(0).padStart(3, '0')}\u00b0`;
+        }
+      } else if (rowIndex === 2) {
+        bearingTrack = this.formatTrack(lastLeg, leg);
+      }
+
       const identLabel = new CDUElement(('\xa0' + leg.annotation).padEnd(8, '\xa0'), CDUColor.White);
-      const timeLabel = new CDUElement('\xa0'.repeat(6));
+      const timeLabel = new CDUElement(bearingTrack.padEnd(7, '\xa0'), legColor);
       const speedAltLabel = new CDUElement(
-        leg.calculated?.distance ? leg.calculated.distance.toFixed(0) + (hasShownDistNM ? '' : 'NM') : '',
+        leg.calculated?.distanceWithTransitions
+          ? leg.calculated.distanceWithTransitions.toFixed(0).padStart(4, '\xa0') + (hasShownDistNM ? '' : 'NM')
+          : '',
         legColor,
       );
       labelElement = CDUElement.stringTogether(identLabel, timeLabel, speedAltLabel);
@@ -415,37 +432,37 @@ export class FlightPlanPage extends DisplayablePage {
     }
   }
 
-  pseudoLegLine(pseudoLegType: PseudoLegType): ICDULine {
+  pseudoLegLine(pseudoLegType: PseudoLegType, isTopRow: boolean): ICDULine {
     switch (pseudoLegType) {
       case PseudoLegType.EndOfFlightPlan:
-        return this.endOfFplnLine();
+        return this.endOfFplnLine(isTopRow);
       case PseudoLegType.EndOfAlternateFlightPlan:
-        return this.endOfAltnFplnLine();
+        return this.endOfAltnFplnLine(isTopRow);
       case PseudoLegType.NoAltnernateFlightPlan:
-        return this.noAltnFplnLine();
+        return this.noAltnFplnLine(isTopRow);
       default:
         break;
     }
   }
 
-  discontinuityLine(): ICDULine {
-    return { center: new CDUElement('---F-PLN DISCONTINUITY--') };
+  discontinuityLine(isTopLine: boolean = false): ICDULine {
+    return { center: new CDUElement('---F-PLN DISCONTINUITY--'), leftLabel: isTopLine ? this.topLabel() : undefined };
   }
 
-  endOfFplnLine(): ICDULine {
-    return { center: new CDUElement('------END OF F-PLN------') };
+  endOfFplnLine(isTopLine: boolean = false): ICDULine {
+    return { center: new CDUElement('------END OF F-PLN------'), leftLabel: isTopLine ? this.topLabel() : undefined };
   }
 
-  endOfAltnFplnLine(): ICDULine {
-    return { center: new CDUElement('---END OF ALTN F-PLN---') };
+  endOfAltnFplnLine(isTopLine: boolean = false): ICDULine {
+    return { center: new CDUElement('---END OF ALTN F-PLN---'), leftLabel: isTopLine ? this.topLabel() : undefined };
   }
 
-  noAltnFplnLine(): ICDULine {
-    return { center: new CDUElement('-----NO ALTN F-PLN------') };
+  noAltnFplnLine(isTopLine: boolean = false): ICDULine {
+    return { center: new CDUElement('-----NO ALTN F-PLN------'), leftLabel: isTopLine ? this.topLabel() : undefined };
   }
 
-  unknownLine(): ICDULine {
-    return { center: new CDUElement('-----UNHANDLED LEG------') };
+  unknownLine(isTopLine: boolean = false): ICDULine {
+    return { center: new CDUElement('-----UNHANDLED LEG------'), leftLabel: isTopLine ? this.topLabel() : undefined };
   }
 
   onLSK1(): void {
@@ -542,5 +559,29 @@ export class FlightPlanPage extends DisplayablePage {
       leg.type !== 'AF' &&
       leg.type !== 'RF'
     );
+  }
+
+  formatTrack(from: FlightPlanLeg, to: FlightPlanLeg) {
+    // TODO: Does this show something for non-waypoint terminated legs?
+    if (
+      !from ||
+      !from.definition ||
+      !from.definition.waypoint ||
+      !from.definition.waypoint.location ||
+      !to ||
+      !to.definition ||
+      !to.definition.waypoint ||
+      to.definition.type === 'HM'
+    ) {
+      return '';
+    }
+
+    const magVar = Facilities.getMagVar(from.definition.waypoint.location.lat, from.definition.waypoint.location.long);
+    const tr = Avionics.Utils.computeGreatCircleHeading(
+      from.definition.waypoint.location,
+      to.definition.waypoint.location,
+    );
+    const track = A32NX_Util.trueToMagnetic(tr, magVar);
+    return `TRK${track.toFixed(0).padStart(3, '0')}\u00b0`;
   }
 }
