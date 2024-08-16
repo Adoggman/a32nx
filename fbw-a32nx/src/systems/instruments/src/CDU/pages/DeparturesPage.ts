@@ -284,6 +284,7 @@ export class DeparturesPage extends DisplayablePage {
       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
       return;
     }
+    this.clearDeparture();
     this.CDU.flightPlanService.setOriginRunway(runway.ident).then(() => {
       this.setMode(PageMode.Departure);
     });
@@ -295,9 +296,14 @@ export class DeparturesPage extends DisplayablePage {
       return;
     }
     this.noneDeparture = !departure;
+    this.clearTransition();
     this.CDU.flightPlanService.setDepartureProcedure(departure?.databaseId).then(() => {
       this.refresh();
     });
+  }
+
+  clearDeparture() {
+    this.CDU.flightPlanService.setDepartureProcedure(undefined);
   }
 
   trySetTransition(transition: ProcedureTransition) {
@@ -309,6 +315,10 @@ export class DeparturesPage extends DisplayablePage {
     this.CDU.flightPlanService.setDepartureEnrouteTransition(transition?.databaseId).then(() => {
       this.refresh();
     });
+  }
+
+  clearTransition() {
+    this.CDU.flightPlanService.setDepartureEnrouteTransition(undefined);
   }
 
   onLSK2() {
