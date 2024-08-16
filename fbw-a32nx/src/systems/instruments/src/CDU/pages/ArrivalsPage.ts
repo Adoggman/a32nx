@@ -22,8 +22,8 @@ export class ArrivalsPage extends DisplayablePage {
   airport: Airport;
   mode: PageMode;
   noneArrival: boolean;
-  noneApproach: boolean;
   noneTransition: boolean;
+  noneVia: boolean;
   sortedApproaches: Approach[];
   filteredArrivals: Arrival[];
 
@@ -41,6 +41,10 @@ export class ArrivalsPage extends DisplayablePage {
 
   private get currentTransition() {
     return this.CDU.flightPlanService.activeOrTemporary.arrivalEnrouteTransition;
+  }
+
+  private get currentVia() {
+    return this.CDU.flightPlanService.activeOrTemporary.approachVia;
   }
 
   private get maxIndex() {
@@ -97,6 +101,14 @@ export class ArrivalsPage extends DisplayablePage {
     return this.currentArrival || this.noneArrival;
   }
 
+  private get hasVia() {
+    return this.currentVia || this.noneVia;
+  }
+
+  private get numVias() {
+    return this.availableVias.length;
+  }
+
   private get numArrivals() {
     return this.filteredArrivals.length;
   }
@@ -117,7 +129,6 @@ export class ArrivalsPage extends DisplayablePage {
     this.arrows = { up: true, down: false, left: true, right: true };
     this.mode = PageMode.Approach;
 
-    //this.ilsSystems = this.CDU.navigationDatabase.backendDatabase.getIlsAtAirport(this.airport.ident);
     this.sortedApproaches = this.sortApproaches(this.CDU.flightPlanService.activeOrTemporary.availableApproaches);
 
     this.title = new CDUElement(
@@ -131,6 +142,13 @@ export class ArrivalsPage extends DisplayablePage {
         new CDUElement(this.airport.ident + '\xa0\xa0', CDUColor.Green, CDUTextSize.Large),
       ),
     );
+
+    // Show empty as NONE if we have previously saved an approach
+    if (this.currentApproach) {
+      this.noneVia = !this.currentVia;
+      this.noneArrival = !this.currentArrival;
+      this.noneTransition = !this.currentTransition;
+    }
 
     this.makeLines();
   }
@@ -333,10 +351,10 @@ export class ArrivalsPage extends DisplayablePage {
       }
       const via = availableVias[index];
       if (!via) {
-        viaLines.push(new CDULine(new CDUElement('{NO VIA', CDUColor.Cyan)));
+        viaLines.push(new CDULine(new CDUElement((this.isCurrentVia(via) ? ' ' : '{') + 'NO VIA', CDUColor.Cyan)));
         continue;
       }
-      viaLines.push(new CDULine(new CDUElement('{' + via.ident, CDUColor.Cyan)));
+      viaLines.push(new CDULine(new CDUElement((this.isCurrentVia(via) ? ' ' : '{') + via.ident, CDUColor.Cyan)));
     }
     viaLines[0].leftLabel = new CDUElement('APPR VIAS');
     this.lines = makeLines(this.topLine(), viaLines[0], viaLines[1], viaLines[2], viaLines[3], this.bottomLine());
@@ -362,8 +380,8 @@ export class ArrivalsPage extends DisplayablePage {
         ? new CDUElement(this.currentArrival ? this.currentArrival.ident : 'NONE', this.currentColor)
         : '------',
       'STAR\xa0',
-      this.currentApproach && !this.hasAvailableVias
-        ? new CDUElement('NONE', this.currentColor)
+      this.hasVia || this.numVias === 0
+        ? new CDUElement(this.currentVia ? this.currentVia.ident : 'NONE', this.currentColor)
         : new CDUElement('------', CDUColor.White),
       'VIA',
     );
@@ -408,6 +426,12 @@ export class ArrivalsPage extends DisplayablePage {
 
   // #region Helpers
 
+  private clearNones() {
+    this.noneArrival = false;
+    this.noneVia = false;
+    this.noneTransition = false;
+  }
+
   private sortApproaches(approaches: Approach[]) {
     return (
       approaches
@@ -439,6 +463,10 @@ export class ArrivalsPage extends DisplayablePage {
     );
   }
 
+  private isCurrentVia(via: ProcedureTransition) {
+    return (this.noneVia && !via) || (this.currentVia && via && this.currentVia.databaseId === via.databaseId);
+  }
+
   private isCurrentTransition(transition: ProcedureTransition) {
     return this.currentTransition && transition && this.currentTransition.databaseId === transition.databaseId;
   }
@@ -466,12 +494,26 @@ export class ArrivalsPage extends DisplayablePage {
 
   // #region Data Setting
 
+  trySetApproachAtIndex(index: number) {
+    if (index >= this.numApproaches) {
+      return;
+    }
+    if (index < this.sortedApproaches.length) {
+      const approach = this.sortedApproaches[index];
+      this.trySetApproach(approach);
+    } else {
+      const runway = this.runways[index - this.sortedApproaches.length];
+      this.trySetDestinationRunway(runway);
+    }
+  }
+
   trySetApproach(approach: Approach) {
     if (this.isCurrentApproach(approach)) {
       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
       return;
     }
     this.CDU.flightPlanService.setApproach(approach.databaseId).then(() => {
+      this.clearNones();
       this.setMode(this.hasAvailableVias ? PageMode.Via : PageMode.Arrival);
     });
   }
@@ -487,25 +529,46 @@ export class ArrivalsPage extends DisplayablePage {
     });
   }
 
-  trySetApproachAtIndex(index: number) {
-    if (index >= this.numApproaches) {
-      return;
-    }
-    if (index < this.sortedApproaches.length) {
-      const approach = this.sortedApproaches[index];
-      this.trySetApproach(approach);
-    } else {
-      const runway = this.runways[index - this.sortedApproaches.length];
-      this.trySetDestinationRunway(runway);
-    }
-  }
-
   trySetArrivalAtIndex(index: number) {
     if (index > this.numArrivals) {
       return;
     }
     const arrival = this.filteredArrivals[index];
     this.trySetArrival(arrival);
+  }
+
+  trySetArrival(arrival: Arrival) {
+    if (this.isCurrentArrival(arrival)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    this.noneArrival = !arrival;
+    this.CDU.flightPlanService.setArrival(arrival?.databaseId).then(() => {
+      this.noneTransition = false;
+      this.refresh();
+    });
+  }
+
+  trySetViaAtIndex(index: number) {
+    if (index > this.numVias) {
+      return;
+    }
+    if (index === 0) {
+      this.trySetVia(undefined);
+      return;
+    }
+    this.trySetVia(this.availableVias[index - 1]);
+  }
+
+  trySetVia(via: ProcedureTransition) {
+    if (this.isCurrentVia(via)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    this.noneVia = !via;
+    this.CDU.flightPlanService.setApproachVia(via?.databaseId).then(() => {
+      this.setMode(PageMode.Arrival);
+    });
   }
 
   //   trySetTransitionAtIndex(index: number) {
@@ -518,17 +581,6 @@ export class ArrivalsPage extends DisplayablePage {
   //     }
   //     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
   //   }
-
-  trySetArrival(arrival: Arrival) {
-    if (this.isCurrentArrival(arrival)) {
-      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
-      return;
-    }
-    this.noneArrival = !arrival;
-    this.CDU.flightPlanService.setArrival(arrival?.databaseId).then(() => {
-      this.refresh();
-    });
-  }
 
   //   trySetTransition(transition: ProcedureTransition) {
   //     if (transition && this.isCurrentTransition(transition)) {
@@ -563,34 +615,36 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   onLeft() {
-    if (this.isApproachMode) {
-      this.setMode(PageMode.Arrival);
-    } else {
+    if (this.isArrivalMode) {
       this.setMode(PageMode.Approach);
+    } else {
+      this.setMode(PageMode.Arrival);
     }
   }
 
   onRight() {
-    if (this.isApproachMode) {
-      this.setMode(PageMode.Arrival);
-    } else {
+    if (this.isArrivalMode) {
       this.setMode(PageMode.Approach);
+    } else {
+      this.setMode(PageMode.Arrival);
     }
   }
 
   onLSK2() {
     if (this.isViaMode) {
-      this.setMode(PageMode.Arrival);
-      return;
+      this.trySetViaAtIndex(this.index);
     } else {
       if (this.hasAvailableVias) {
         this.setMode(PageMode.Via);
-        return;
       }
     }
   }
 
   onLSK3() {
+    if (this.isViaMode) {
+      this.trySetViaAtIndex(this.index + 1);
+      return;
+    }
     const index = this.index;
     if (this.isApproachMode) {
       this.trySetApproachAtIndex(index);
@@ -600,6 +654,10 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   onLSK4() {
+    if (this.isViaMode) {
+      this.trySetViaAtIndex(this.index + 2);
+      return;
+    }
     const index = this.index + 1;
     if (this.isApproachMode) {
       this.trySetApproachAtIndex(index);
@@ -609,6 +667,10 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   onLSK5() {
+    if (this.isViaMode) {
+      this.trySetViaAtIndex(this.index + 3);
+      return;
+    }
     const index = this.index + 2;
     if (this.isApproachMode) {
       this.trySetApproachAtIndex(index);
