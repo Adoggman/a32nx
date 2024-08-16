@@ -525,6 +525,8 @@ export class ArrivalsPage extends DisplayablePage {
       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
       return;
     }
+    this.clearVia();
+    this.clearArrival();
     this.CDU.flightPlanService.setApproach(approach.databaseId).then(() => {
       this.clearNones();
       this.setMode(this.hasAvailableVias ? PageMode.Via : PageMode.Arrival);
@@ -537,6 +539,8 @@ export class ArrivalsPage extends DisplayablePage {
       return;
     }
     this.CDU.flightPlanService.setApproach(undefined);
+    this.clearVia();
+    this.clearArrival();
     this.CDU.flightPlanService.setDestinationRunway(runway.ident).then(() => {
       this.setMode(this.hasAvailableVias ? PageMode.Via : PageMode.Arrival);
     });
@@ -556,10 +560,15 @@ export class ArrivalsPage extends DisplayablePage {
       return;
     }
     this.noneArrival = !arrival;
+    this.clearTransition();
     this.CDU.flightPlanService.setArrival(arrival?.databaseId).then(() => {
       this.noneTransition = false;
       this.refresh();
     });
+  }
+
+  clearArrival() {
+    this.CDU.flightPlanService.setArrival(undefined);
   }
 
   trySetViaAtIndex(index: number) {
@@ -584,6 +593,10 @@ export class ArrivalsPage extends DisplayablePage {
     });
   }
 
+  clearVia() {
+    this.CDU.flightPlanService.setApproachVia(undefined);
+  }
+
   trySetTransitionAtIndex(index: number) {
     if (index > this.numTransitions) {
       return;
@@ -604,6 +617,10 @@ export class ArrivalsPage extends DisplayablePage {
     this.CDU.flightPlanService.setArrivalEnrouteTransition(transition?.databaseId).then(() => {
       this.refresh();
     });
+  }
+
+  clearTransition() {
+    this.CDU.flightPlanService.setArrivalEnrouteTransition(undefined);
   }
 
   // #endregion
