@@ -9,6 +9,7 @@ import { NXSystemMessages } from '@cdu/data/NXMessages';
 enum PageMode {
   Approach,
   Arrival,
+  Via,
 }
 
 export class ArrivalsPage extends DisplayablePage {
@@ -43,7 +44,16 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   private get maxIndex() {
-    return (this.isApproachMode ? this.numApproaches : Math.max(this.numArrivals, this.numTransitions)) - 1;
+    switch (this.mode) {
+      case PageMode.Approach:
+        return this.numApproaches - 1;
+      case PageMode.Arrival:
+        return Math.max(this.numArrivals, this.numTransitions) - 1;
+      case PageMode.Via:
+        return this.availableVias.length - 1;
+      default:
+        throw new Error('Invalid page mode on Arrivals page');
+    }
   }
 
   private get isApproachMode() {
@@ -52,6 +62,10 @@ export class ArrivalsPage extends DisplayablePage {
 
   private get isArrivalMode() {
     return this.mode === PageMode.Arrival;
+  }
+
+  private get isViaMode() {
+    return this.mode === PageMode.Via;
   }
 
   private get hasTemporary() {
@@ -129,7 +143,7 @@ export class ArrivalsPage extends DisplayablePage {
 
   updateArrows() {
     this.arrows.down = this.index > 0;
-    this.arrows.up = this.index + this.rowsShown < this.maxIndex;
+    this.arrows.up = this.index + this.rowsShown <= this.maxIndex;
   }
 
   // #endregion
@@ -140,8 +154,12 @@ export class ArrivalsPage extends DisplayablePage {
     this.makeFilteredArrivals();
     if (this.isApproachMode) {
       this.makeApproachLines();
-    } else {
+    } else if (this.isArrivalMode) {
       this.makeArrivalLines();
+    } else if (this.isViaMode) {
+      this.makeViaLines();
+    } else {
+      throw new Error('Invalid mode on Arrivals page');
     }
   }
 
@@ -160,19 +178,6 @@ export class ArrivalsPage extends DisplayablePage {
     } else {
       this.filteredArrivals = [undefined, ...availableArrivals];
     }
-  }
-
-  arrivalHasRunwayTransition(arrival: Arrival, runway: Runway) {
-    return arrival.runwayTransitions.find((transition) => {
-      return this.transitionIsForRunway(transition, runway);
-    });
-  }
-
-  transitionIsForRunway(transition: ProcedureTransition, runway: Runway) {
-    return (
-      transition.ident === runway.ident ||
-      (transition.ident.charAt(6) === 'B' && transition.ident.substring(4, 6) === runway.ident.substring(4, 6))
-    );
   }
 
   makeApproachLines() {
@@ -316,6 +321,27 @@ export class ArrivalsPage extends DisplayablePage {
     );
   }
 
+  private numViaRows = 4;
+  makeViaLines() {
+    const availableVias = [undefined, ...this.availableVias];
+    const viaLines: CDULine[] = [];
+    for (let row = 0; row < this.numViaRows; row++) {
+      const index = this.index + row;
+      if (index >= availableVias.length) {
+        viaLines.push(undefined);
+        continue;
+      }
+      const via = availableVias[index];
+      if (!via) {
+        viaLines.push(new CDULine(new CDUElement('{NO VIA', CDUColor.Cyan)));
+        continue;
+      }
+      viaLines.push(new CDULine(new CDUElement('{' + via.ident, CDUColor.Cyan)));
+    }
+    viaLines[0].leftLabel = new CDUElement('APPR VIAS');
+    this.lines = makeLines(this.topLine(), viaLines[0], viaLines[1], viaLines[2], viaLines[3], this.bottomLine());
+  }
+
   // #endregion
 
   // #region Line
@@ -382,7 +408,7 @@ export class ArrivalsPage extends DisplayablePage {
 
   // #region Helpers
 
-  sortApproaches(approaches: Approach[]) {
+  private sortApproaches(approaches: Approach[]) {
     return (
       approaches
         .slice()
@@ -417,10 +443,23 @@ export class ArrivalsPage extends DisplayablePage {
     return this.currentTransition && transition && this.currentTransition.databaseId === transition.databaseId;
   }
 
-  setMode(mode: PageMode) {
+  private setMode(mode: PageMode) {
     this.index = 0;
     this.mode = mode;
     this.refresh();
+  }
+
+  private arrivalHasRunwayTransition(arrival: Arrival, runway: Runway) {
+    return arrival.runwayTransitions.find((transition) => {
+      return this.transitionIsForRunway(transition, runway);
+    });
+  }
+
+  private transitionIsForRunway(transition: ProcedureTransition, runway: Runway) {
+    return (
+      transition.ident === runway.ident ||
+      (transition.ident.charAt(6) === 'B' && transition.ident.substring(4, 6) === runway.ident.substring(4, 6))
+    );
   }
 
   // #endregion
@@ -433,7 +472,7 @@ export class ArrivalsPage extends DisplayablePage {
       return;
     }
     this.CDU.flightPlanService.setApproach(approach.databaseId).then(() => {
-      this.setMode(PageMode.Arrival);
+      this.setMode(this.hasAvailableVias ? PageMode.Via : PageMode.Arrival);
     });
   }
 
@@ -444,7 +483,7 @@ export class ArrivalsPage extends DisplayablePage {
     }
     this.CDU.flightPlanService.setApproach(undefined);
     this.CDU.flightPlanService.setDestinationRunway(runway.ident).then(() => {
-      this.setMode(PageMode.Arrival);
+      this.setMode(this.hasAvailableVias ? PageMode.Via : PageMode.Arrival);
     });
   }
 
@@ -511,7 +550,7 @@ export class ArrivalsPage extends DisplayablePage {
       return;
     }
 
-    this.index = this.index + this.rowsShown;
+    this.index = this.index + (this.isViaMode ? this.numViaRows : this.rowsShown);
     this.refresh();
   }
 
@@ -519,7 +558,7 @@ export class ArrivalsPage extends DisplayablePage {
     if (this.index <= 0) {
       return;
     }
-    if (this.isApproachMode || this.isArrivalMode) this.index = this.index - this.rowsShown;
+    this.index = this.index - (this.isViaMode ? this.numViaRows : this.rowsShown);
     this.refresh();
   }
 
@@ -536,6 +575,18 @@ export class ArrivalsPage extends DisplayablePage {
       this.setMode(PageMode.Arrival);
     } else {
       this.setMode(PageMode.Approach);
+    }
+  }
+
+  onLSK2() {
+    if (this.isViaMode) {
+      this.setMode(PageMode.Arrival);
+      return;
+    } else {
+      if (this.hasAvailableVias) {
+        this.setMode(PageMode.Via);
+        return;
+      }
     }
   }
 
