@@ -101,6 +101,10 @@ export class ArrivalsPage extends DisplayablePage {
     return this.currentArrival || this.noneArrival;
   }
 
+  private get hasApproach() {
+    return this.currentApproach || this.currentDestinationRunway;
+  }
+
   private get hasVia() {
     return this.currentVia || this.noneVia;
   }
@@ -115,6 +119,10 @@ export class ArrivalsPage extends DisplayablePage {
 
   private get numTransitions() {
     return this.currentArrival ? this.currentArrival.enrouteTransitions.length : 0;
+  }
+
+  private get hasTransition() {
+    return this.noneTransition || this.currentTransition;
   }
 
   // #endregion
@@ -310,7 +318,7 @@ export class ArrivalsPage extends DisplayablePage {
       }
 
       let transitionElement = undefined;
-      if (sharedIndex < transitions.length) {
+      if (sharedIndex < transitions.length && this.numTransitions > 0) {
         const transition = transitions[sharedIndex];
         const isCurrentTransition = this.isCurrentTransition(transition);
         const color = isCurrentTransition && !this.hasTemporary ? this.currentColor : CDUColor.Cyan;
@@ -380,7 +388,7 @@ export class ArrivalsPage extends DisplayablePage {
         ? new CDUElement(this.currentArrival ? this.currentArrival.ident : 'NONE', this.currentColor)
         : '------',
       'STAR\xa0',
-      this.hasVia || this.numVias === 0
+      this.hasVia || (this.hasApproach && this.numVias === 0)
         ? new CDUElement(this.currentVia ? this.currentVia.ident : 'NONE', this.currentColor)
         : new CDUElement('------', CDUColor.White),
       'VIA',
@@ -392,7 +400,9 @@ export class ArrivalsPage extends DisplayablePage {
     return new CDULine(
       hasVias ? new CDUElement('<VIAS') : undefined,
       hasVias ? new CDUElement('\xa0APPR') : undefined,
-      this.hasArrival ? new CDUElement('NONE', this.currentColor) : '------',
+      this.hasTransition || (this.hasArrival && this.numTransitions === 0)
+        ? new CDUElement(this.currentTransition ? this.currentTransition.ident : 'NONE', this.currentColor)
+        : '------',
       'TRANS\xa0',
     );
   }
@@ -468,7 +478,10 @@ export class ArrivalsPage extends DisplayablePage {
   }
 
   private isCurrentTransition(transition: ProcedureTransition) {
-    return this.currentTransition && transition && this.currentTransition.databaseId === transition.databaseId;
+    return (
+      (this.noneTransition && !transition) ||
+      (this.currentTransition && transition && this.currentTransition.databaseId === transition.databaseId)
+    );
   }
 
   private setMode(mode: PageMode) {
@@ -571,27 +584,27 @@ export class ArrivalsPage extends DisplayablePage {
     });
   }
 
-  //   trySetTransitionAtIndex(index: number) {
-  //     if (index > this.numTransitions()) {
-  //       return;
-  //     }
-  //     if (index === this.numTransitions()) {
-  //       this.trySetTransition(null);
-  //       return;
-  //     }
-  //     this.trySetTransition(this.currentDeparture.enrouteTransitions[index]);
-  //   }
+  trySetTransitionAtIndex(index: number) {
+    if (index > this.numTransitions) {
+      return;
+    }
+    if (index === 0) {
+      this.trySetTransition(null);
+      return;
+    }
+    this.trySetTransition(this.currentArrival.enrouteTransitions[index - 1]);
+  }
 
-  //   trySetTransition(transition: ProcedureTransition) {
-  //     if (transition && this.isCurrentTransition(transition)) {
-  //       this.scratchpad.setMessage(NXSystemMessages.notAllowed);
-  //       return;
-  //     }
-  //     this.noneTransition = !transition;
-  //     this.CDU.flightPlanService.setDepartureEnrouteTransition(transition?.databaseId).then(() => {
-  //       this.refresh();
-  //     });
-  //   }
+  trySetTransition(transition: ProcedureTransition) {
+    if (transition && this.isCurrentTransition(transition)) {
+      this.scratchpad.setMessage(NXSystemMessages.notAllowed);
+      return;
+    }
+    this.noneTransition = !transition;
+    this.CDU.flightPlanService.setArrivalEnrouteTransition(transition?.databaseId).then(() => {
+      this.refresh();
+    });
+  }
 
   // #endregion
 
@@ -698,33 +711,26 @@ export class ArrivalsPage extends DisplayablePage {
     }
   }
 
-  //   onRSK2() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 0);
-  //   }
+  onRSK3() {
+    if (!this.isArrivalMode || this.numTransitions === 0) {
+      return;
+    }
+    this.trySetTransitionAtIndex(this.index);
+  }
 
-  //   onRSK3() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 1);
-  //   }
+  onRSK4() {
+    if (!this.isArrivalMode || this.numTransitions === 0) {
+      return;
+    }
+    this.trySetTransitionAtIndex(this.index + 1);
+  }
 
-  //   onRSK4() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 2);
-  //   }
-
-  //   onRSK5() {
-  //     if (!this.isArrivalMode || !this.currentDeparture) {
-  //       return;
-  //     }
-  //     this.trySetTransitionAtIndex(this.index + 3);
-  //   }
+  onRSK5() {
+    if (!this.isArrivalMode || this.numTransitions === 0) {
+      return;
+    }
+    this.trySetTransitionAtIndex(this.index + 2);
+  }
 
   // #endregion
 }
