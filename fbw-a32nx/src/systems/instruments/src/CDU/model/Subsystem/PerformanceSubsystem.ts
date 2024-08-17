@@ -75,6 +75,7 @@ export class PerformanceSubsystem extends CDUSubsystem {
 
   setTakeoffFlaps(flaps: number) {
     if (flaps !== this.takeoffFlaps) {
+      const previousFlaps = this.takeoffFlaps;
       this.takeoffFlaps = flaps;
       this.arincDiscreteWord2.setBitValue(13, this.takeoffFlaps === 0);
       this.arincDiscreteWord2.setBitValue(14, this.takeoffFlaps === 1);
@@ -82,12 +83,15 @@ export class PerformanceSubsystem extends CDUSubsystem {
       this.arincDiscreteWord2.setBitValue(16, this.takeoffFlaps === 3);
       this.arincDiscreteWord2.ssm = Arinc429SignStatusMatrix.NormalOperation;
       SimVar.SetSimVarValue('L:A32NX_TO_CONFIG_FLAPS', 'number', this.takeoffFlaps !== null ? this.takeoffFlaps : -1);
-      this.triggerCheckTakeoffDataMessage();
+      if (previousFlaps) {
+        this.triggerCheckTakeoffDataMessage();
+      }
     }
   }
 
   setTakeoffTrim(ths: number) {
     if (ths !== this.takeoffTrim) {
+      const previousTrim = this.takeoffTrim;
       this.takeoffTrim = ths;
       // legacy vars
       SimVar.SetSimVarValue('L:A32NX_TO_CONFIG_THS', 'degree', this.takeoffTrim ? this.takeoffTrim : 0);
@@ -97,7 +101,9 @@ export class PerformanceSubsystem extends CDUSubsystem {
         this.takeoffTrim !== null ? Arinc429SignStatusMatrix.NormalOperation : Arinc429SignStatusMatrix.NoComputedData;
 
       this.arincTakeoffPitchTrim.setBnrValue(this.takeoffTrim ? -this.takeoffTrim : 0, ssm, 12, 180, -180);
-      this.triggerCheckTakeoffDataMessage();
+      if (previousTrim) {
+        this.triggerCheckTakeoffDataMessage();
+      }
     }
   }
 
