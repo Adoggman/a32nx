@@ -92,7 +92,7 @@ export class FMGCSubsystem extends CDUSubsystem implements GuidanceControllerInf
   }
 
   getZeroFuelWeight(): Kilograms {
-    return undefined;
+    return this.cdu.FuelWeight.zeroFuelWeight;
   }
 
   getFOB(): Tonnes {
@@ -100,7 +100,7 @@ export class FMGCSubsystem extends CDUSubsystem implements GuidanceControllerInf
   }
 
   getV2Speed(): Knots {
-    return undefined;
+    return this.cdu.Performance?.v2Speed;
   }
 
   getTropoPause(): Feet {
@@ -140,47 +140,47 @@ export class FMGCSubsystem extends CDUSubsystem implements GuidanceControllerInf
   }
 
   getTakeoffFlapsSetting(): FlapConf | undefined {
-    return undefined;
+    return this.cdu.Performance?.takeoffFlaps;
   }
 
   getApproachSpeed(): Knots {
-    return undefined;
+    return this.cdu.Performance?.speeds?.vapp;
   }
 
   getFlapRetractionSpeed(): Knots {
-    return undefined;
+    return this.cdu.Performance?.flapRetractSpeed;
   }
 
   getSlatRetractionSpeed(): Knots {
-    return undefined;
+    return this.cdu.Performance?.slatRetractSpeed;
   }
 
   getCleanSpeed(): Knots {
-    return undefined;
+    return this.cdu.Performance?.cleanSpeed;
   }
 
   getTripWind(): Knots {
-    return undefined;
+    return undefined; // TODO
   }
 
   getWinds(): FmcWinds {
-    return { climb: [], cruise: [], des: [], alternate: null };
+    return { climb: [], cruise: [], des: [], alternate: null }; // TODO
   }
 
   getApproachWind(): FmcWindVector {
-    return { direction: undefined, speed: undefined };
+    return { direction: undefined, speed: undefined }; // TODO
   }
 
   getApproachQnh(): number {
-    return undefined;
+    return undefined; // TODO
   }
 
   getApproachTemperature(): Celsius {
-    return undefined;
+    return undefined; // TODO
   }
 
   getDestEFOB(_useFob: boolean): number {
-    return undefined;
+    return undefined; // TODO
   }
 
   getDepartureElevation(): Feet | null {
