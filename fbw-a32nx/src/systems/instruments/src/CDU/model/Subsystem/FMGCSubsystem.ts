@@ -92,7 +92,7 @@ export class FMGCSubsystem extends CDUSubsystem implements GuidanceControllerInf
   }
 
   getZeroFuelWeight(): Kilograms {
-    return this.cdu.FuelWeight.zeroFuelWeight;
+    return NXUnits.tonnesToLbs(this.cdu.FuelWeight.zeroFuelWeight);
   }
 
   getFOB(): Tonnes {

@@ -1,5 +1,6 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
-import { formatAltRounded } from '@cdu/Format';
+import { formatAltitudeOrLevel, formatAltRounded, secondsTohhmm, secondsToUTC } from '@cdu/Format';
+import { CDU } from '@cdu/model/CDU';
 import {
   CDUColor,
   CDUElement,
@@ -14,6 +15,8 @@ import { CDUScratchpad } from '@cdu/model/Scratchpad';
 import { LatRevPage } from '@cdu/pages/LatRevPage';
 import { WaypointConstraintType } from '@fmgc/flightplanning/data/constraint';
 import { FlightPlanElement, FlightPlanLeg } from '@fmgc/flightplanning/legs/FlightPlanLeg';
+import { VerticalWaypointPrediction } from '@fmgc/guidance/vnav/profile/NavGeometryProfile';
+import { FmgcFlightPhase } from '@shared/flightphase';
 
 type FPLeg = { leg: FlightPlanLeg; legIndex: number } | undefined;
 
@@ -113,6 +116,11 @@ export class FlightPlanPage extends DisplayablePage {
     return !!this.flightPlan?.originAirport;
   }
 
+  private get isFlying() {
+    const flightPhase = this.CDU.flightPhaseManager.phase;
+    return flightPhase >= FmgcFlightPhase.Takeoff && flightPhase != FmgcFlightPhase.Done;
+  }
+
   // #endregion
 
   // #region Page
@@ -149,8 +157,14 @@ export class FlightPlanPage extends DisplayablePage {
     }
 
     const elements = this.getFlightPlanElements();
+
+    const fmsGeometryProfile = this.CDU.FMGC.guidanceController.vnavDriver.mcduProfile;
+    //const fmsPseudoWaypoints = this.CDU.FMGC.guidanceController.currentPseudoWaypoints;
+
+    const waypointPredictions =
+      fmsGeometryProfile && fmsGeometryProfile.isReadyToDisplay ? fmsGeometryProfile.waypointPredictions : undefined;
     this.maxIndex = elements.length;
-    this.lines = this.makeFplnLines(elements);
+    this.lines = this.makeFplnLines(elements, waypointPredictions);
   }
 
   updateTitle() {
@@ -202,7 +216,7 @@ export class FlightPlanPage extends DisplayablePage {
     );
   }
 
-  makeFplnLines(elements: FlightPlanDisplayElement[]) {
+  makeFplnLines(elements: FlightPlanDisplayElement[], waypointPredictions: Map<number, VerticalWaypointPrediction>) {
     this.displayedLegs = [undefined, undefined, undefined, undefined, undefined];
     const lines: ICDULine[] = [];
     let hasShownNm = false;
@@ -232,16 +246,10 @@ export class FlightPlanPage extends DisplayablePage {
         if (legIndex === this.originLegIndex) {
           lines.push(this.originLine(leg, row));
         } else {
+          const prediction = waypointPredictions ? waypointPredictions.get(legIndex) : undefined;
+          const nextLeg = legIndex + 1 < elements.length ? elements[legIndex + 1]?.leg : undefined;
           lines.push(
-            this.legLine(
-              leg,
-              legIndex,
-              row,
-              hasShownNm,
-              isAlternate || isMissedApproach,
-              lastLeg,
-              legIndex + 1 < elements.length ? elements[legIndex + 1]?.leg : undefined,
-            ),
+            this.legLine(leg, legIndex, row, hasShownNm, isAlternate || isMissedApproach, lastLeg, nextLeg, prediction),
           );
         }
         this.displayedLegs[row] = { leg: leg, legIndex: legIndex };
@@ -268,14 +276,15 @@ export class FlightPlanPage extends DisplayablePage {
     isAlternateOrMissed: boolean,
     lastLeg?: FlightPlanLeg,
     nextLeg?: FlightPlanLeg,
+    prediction?: VerticalWaypointPrediction,
   ): ICDULine {
     const legColor = this.getColorForLeg(legIndex, isAlternateOrMissed);
     const identElement = this.legIdentElement(leg, nextLeg, legColor);
-    const timeElement = this.timeElement(legIndex, legColor);
-    const speedElement = this.speedElement(leg, legIndex);
-    const altElement = this.altitudeElement(legColor, legIndex, leg);
+    const timeElement = this.timeElement(legIndex, prediction, legColor);
+    const speedElements = this.speedElements(leg, legIndex, prediction, legColor);
+    const altElements = this.altitudeElements(leg, legIndex, prediction, legColor);
 
-    const lineElement = CDUElement.stringTogether(identElement, timeElement, speedElement, altElement);
+    const lineElement = CDUElement.stringTogether(identElement, timeElement, ...speedElements, ...altElements);
     let labelElement: CDUElement;
     if (rowIndex === 0) {
       labelElement = this.topLabel(leg.annotation);
@@ -323,6 +332,12 @@ export class FlightPlanPage extends DisplayablePage {
   destLine(): ICDULine {
     const distance = this.CDU.FMGC.guidanceController.alongTrackDistanceToDestination;
     const distanceDisplay = distance ? Math.round(distance).toFixed(0).padStart(4, '\xa0') : '----';
+    const timeRemaining = this.CDU.FMGC.guidanceController.vnavDriver?.mcduProfile?.getTimeToDestination();
+    let timeDisplay = '----';
+    if (Number.isFinite(timeRemaining)) {
+      const utcTime = this.CDU.getTimeUTC();
+      timeDisplay = this.isFlying ? secondsToUTC(utcTime + timeRemaining) : secondsTohhmm(timeRemaining);
+    }
     let destIdent = this.flightPlan.destinationAirport?.ident ?? '-------';
     if (this.flightPlan.destinationRunway) {
       destIdent = this.flightPlan.destinationRunway.ident;
@@ -333,7 +348,7 @@ export class FlightPlanPage extends DisplayablePage {
             destIdent.padEnd(8, '\xa0'),
             CDUColor.White,
             CDUTextSize.Large,
-            new CDUElement('----\xa0\xa0' + distanceDisplay + '\xa0---.-', CDUColor.White, CDUTextSize.Small),
+            new CDUElement(timeDisplay + '\xa0\xa0' + distanceDisplay + '\xa0---.-', CDUColor.White, CDUTextSize.Small),
           ),
           leftLabel: new CDUElement('\xa0DEST\xa0\xa0\xa0TIME\xa0\xa0DIST\xa0\xa0EFOB'),
         }
@@ -431,24 +446,66 @@ export class FlightPlanPage extends DisplayablePage {
     return labelElement;
   }
 
-  timeElement(legIndex: number, legColor: CDUColor) {
-    const showTime = legIndex === this.fromIndex;
-    const timeElement = new CDUElement(
-      (showTime ? '0000' : '----').padEnd(6, '\xa0'),
-      showTime ? legColor : CDUColor.White,
-    );
-    return timeElement;
-  }
-
-  speedElement(leg: FlightPlanLeg, legIndex: number) {
-    if (legIndex === this.fromIndex) {
-      return new CDUElement('\xa0\xa0\xa0');
+  timeElement(legIndex: number, prediction: VerticalWaypointPrediction, legColor: CDUColor) {
+    let timeCell = '----';
+    let color = CDUColor.White;
+    const timeSize = legIndex === this.flightPlan.fromLegIndex ? CDUTextSize.Large : CDUTextSize.Small;
+    if (prediction && prediction.secondsFromPresent) {
+      const utcTime = CDU.getTimeUTC();
+      timeCell = this.isFlying
+        ? secondsToUTC(utcTime + prediction.secondsFromPresent)
+        : secondsTohhmm(prediction.secondsFromPresent);
+      color = legColor;
     }
-    return new CDUElement('---', CDUColor.White);
+
+    return new CDUElement(timeCell.padEnd(5, '\xa0'), color, timeSize);
   }
 
-  altitudeElement(legColor: CDUColor, legIndex: number, leg: FlightPlanLeg) {
-    let altElement: CDUElement;
+  speedElements(leg: FlightPlanLeg, legIndex: number, prediction: VerticalWaypointPrediction, legColor: CDUColor) {
+    const isFromLeg = legIndex === this.fromIndex;
+    let speedConstraint = leg.type === 'HM' ? '\xa0\xa0\xa0' : '---';
+    let speedPrefix = new CDUElement('\xa0');
+    let color = CDUColor.White;
+    const size = isFromLeg ? CDUTextSize.Large : CDUTextSize.Small;
+
+    if (!this.hasTemporary && leg.type !== 'HM') {
+      if (isFromLeg) {
+        speedConstraint = '\xa0\xa0\xa0';
+      } else if (prediction && prediction.speed) {
+        speedConstraint =
+          prediction.speed < 1 ? this.formatMachNumber(prediction.speed) : Math.round(prediction.speed).toFixed(0);
+        color = legColor;
+        if (prediction.speedConstraint) {
+          speedPrefix = new CDUElement(
+            '*',
+            prediction.isSpeedConstraintMet ? CDUColor.Magenta : CDUColor.Amber,
+            CDUTextSize.Large,
+          );
+        }
+      } else if (leg.hasPilotEnteredSpeedConstraint()) {
+        speedConstraint = Math.round(leg.pilotEnteredSpeedConstraint.speed).toFixed(0);
+        color = CDUColor.Magenta;
+      } else if (leg.hasDatabaseSpeedConstraint()) {
+        speedConstraint = Math.round(leg.definition.speed).toFixed(0);
+        color = CDUColor.Magenta;
+      }
+    }
+    const speedElement = new CDUElement(speedConstraint, color, size);
+    return [speedPrefix, speedElement];
+  }
+
+  altitudeElements(
+    leg: FlightPlanLeg,
+    legIndex: number,
+    prediction: VerticalWaypointPrediction,
+    legColor: CDUColor,
+  ): CDUElement[] {
+    let altElement = new CDUElement('/\xa0-----', CDUColor.White);
+    if (this.hasTemporary) {
+      return [altElement];
+    }
+    const isFromLeg = legIndex === this.flightPlan.fromLegIndex;
+
     if (legIndex === this.flightPlan.destinationLegIndex) {
       // Destination
       altElement = this.flightPlan.destinationRunway
@@ -462,6 +519,22 @@ export class FlightPlanPage extends DisplayablePage {
             legColor,
             legIndex === this.fromIndex ? CDUTextSize.Large : CDUTextSize.Small,
           );
+    } else if (prediction && prediction.altitude) {
+      const hasConstraint = this.legHasAltConstraint(leg) && !isFromLeg;
+      const altPrefix = new CDUElement(
+        hasConstraint ? '*' : '\xa0',
+        prediction.isAltitudeConstraintMet ? CDUColor.Magenta : CDUColor.Amber,
+        CDUTextSize.Large,
+      );
+      const altitudeString = formatAltitudeOrLevel(
+        this.flightPlan,
+        prediction.altitude,
+        this.getLegConstraintType(leg, legIndex) === WaypointConstraintType.CLB,
+      ).padStart(5, '\xa0');
+      const altitude = new CDUElement(altitudeString, legColor, isFromLeg ? CDUTextSize.Large : CDUTextSize.Small);
+
+      const slash = new CDUElement('/', legColor, isFromLeg ? CDUTextSize.Large : CDUTextSize.Small);
+      return [slash, altPrefix, altitude];
     } else if (this.legHasAltConstraint(leg)) {
       // Altitude constraint
       const altitudeConstraint = this.formatAltConstraint(
@@ -477,7 +550,7 @@ export class FlightPlanPage extends DisplayablePage {
       // None of the above
       altElement = new CDUElement('/\xa0-----', CDUColor.White);
     }
-    return altElement;
+    return [altElement];
   }
 
   legIdentElement(leg: FlightPlanLeg, nextLeg: FlightPlanLeg, legColor: CDUColor): CDUElement {
@@ -615,6 +688,14 @@ export class FlightPlanPage extends DisplayablePage {
 
   // #region Helpers
 
+  getLegConstraintType(leg: FlightPlanLeg, legIndex: number) {
+    if (leg.constraintType !== WaypointConstraintType.Unknown) {
+      return leg.constraintType;
+    }
+
+    return this.flightPlan.autoConstraintTypeForLegIndex(legIndex);
+  }
+
   getColorForLeg(legIndex: number, isAlternate: boolean) {
     if (isAlternate) {
       return this.alternatePlanColor;
@@ -732,5 +813,10 @@ export class FlightPlanPage extends DisplayablePage {
   formatAlt(alt: number) {
     return (Math.round(alt / 10) * 10).toFixed(0);
   }
+
+  formatMachNumber(rawNumber: number) {
+    return (Math.round(100 * rawNumber) / 100).toFixed(2).slice(1);
+  }
+
   // #endregion
 }

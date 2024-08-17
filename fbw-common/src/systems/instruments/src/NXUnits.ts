@@ -64,4 +64,8 @@ export class NXUnits {
   static lbsToKg(value: number | string): Kilograms {
     return +value * kgsPerLb;
   }
+
+  static tonnesToLbs(value: number): Pounds {
+    return value * 1000 * lbsPerKg;
+  }
 }
