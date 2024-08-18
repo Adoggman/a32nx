@@ -91,7 +91,7 @@ export class Scratchpad {
   }
 
   isEmpty() {
-    return this.typedText.get().length === 0 && !this.currentMessage;
+    return this.typedText.get().length === 0;
   }
 
   isCLR() {
