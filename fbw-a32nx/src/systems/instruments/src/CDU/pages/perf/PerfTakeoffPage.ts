@@ -1,5 +1,5 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
-import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
+import { NXSystemMessages } from '@cdu/data/NXMessages';
 import {
   CDUColor,
   CDUElement,
@@ -9,6 +9,7 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
+import { PerfClimbPage } from '@cdu/pages/perf/PerClimbPage';
 import { RunwayUtils } from '@fmgc/index';
 import { FmgcFlightPhase } from '@shared/flightphase';
 
@@ -498,7 +499,7 @@ export class PerfTakeoffPage extends DisplayablePage {
   }
 
   onRSK6() {
-    this.scratchpad.setMessage(NXFictionalMessages.notYetImplementedTS);
+    this.openPage(new PerfClimbPage(this.display));
   }
 
   onRefresh() {

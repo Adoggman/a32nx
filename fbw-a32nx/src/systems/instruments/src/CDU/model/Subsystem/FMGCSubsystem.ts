@@ -56,6 +56,16 @@ export class FMGCSubsystem extends CDUSubsystem implements GuidanceControllerInf
     this.navigation.update(deltaTime);
     this.efisSymbols.update(deltaTime, [this.cdu.sideLetter]);
   }
+  currentAltitude() {
+    return SimVar.GetSimVarValue('INDICATED ALTITUDE', 'feet');
+  }
+
+  getCurrentClimbManagedSpeed() {
+    const altitude = this.currentAltitude();
+    const speedLimits = this.getClimbSpeedLimit();
+    const managedClimbSpeed = this.getManagedClimbSpeed();
+    return altitude < speedLimits.underAltitude ? Math.min(speedLimits.speed, managedClimbSpeed) : managedClimbSpeed;
+  }
 
   getManagedClimbSpeed(): Knots {
     const costIndex = this.cdu.FlightInformation.costIndex ?? 0;
