@@ -9,7 +9,7 @@ import {
   makeLines,
   RefreshRate,
 } from '@cdu/model/CDUPage';
-import { PerfClimbPage } from '@cdu/pages/perf/PerClimbPage';
+import { PerfClimbPage } from '@cdu/pages/perf/PerfClimbPage';
 import { RunwayUtils } from '@fmgc/index';
 import { FmgcFlightPhase } from '@shared/flightphase';
 
@@ -20,6 +20,7 @@ export class PerfTakeoffPage extends DisplayablePage {
   constructor(display: CDUDisplay) {
     super(display);
     this.refreshRate = RefreshRate.Medium;
+    this.allowsTyping = true;
     this.title = new CDUElement(
       'TAKE OFF RWY ',
       CDUColor.White,

@@ -26,6 +26,19 @@ export class PerformanceSubsystem extends CDUSubsystem {
   arincTransitionLevel: FmArinc429OutputWord;
   arincBusOutputs: FmArinc429OutputWord[];
 
+  private _preSelectedClimbSpeed: Knots;
+
+  public get preSelectedClimbSpeed(): Knots {
+    return this._preSelectedClimbSpeed;
+  }
+
+  setPreSelectedClimbSpeed(value: Knots) {
+    this._preSelectedClimbSpeed = value;
+    if (this.isTakeoffFlightPhase()) {
+      this.updatePreSelSpeedMach(value);
+    }
+  }
+
   constructor(cdu: CDU) {
     super(cdu);
     console.log(`[CDU${cdu.Index}] Initializing Speed subsystem`);
@@ -38,6 +51,24 @@ export class PerformanceSubsystem extends CDUSubsystem {
 
   isValidTakeoffTrim(ths: number) {
     return !(ths < -5 || ths > 7);
+  }
+
+  updatePreSelSpeedMach(speed: Mach) {
+    // The timeout is required to create a delay for the current value to be read and the new one to be set
+    setTimeout(() => {
+      if (speed) {
+        if (speed > 1) {
+          SimVar.SetSimVarValue('L:A32NX_SpeedPreselVal', 'knots', speed);
+          SimVar.SetSimVarValue('L:A32NX_MachPreselVal', 'mach', -1);
+        } else {
+          SimVar.SetSimVarValue('L:A32NX_SpeedPreselVal', 'knots', -1);
+          SimVar.SetSimVarValue('L:A32NX_MachPreselVal', 'mach', speed);
+        }
+      } else {
+        SimVar.SetSimVarValue('L:A32NX_SpeedPreselVal', 'knots', -1);
+        SimVar.SetSimVarValue('L:A32NX_MachPreselVal', 'mach', -1);
+      }
+    }, 200);
   }
 
   init() {
@@ -320,5 +351,9 @@ export class PerformanceSubsystem extends CDUSubsystem {
    */
   round(x: number, r: number = 100): number {
     return Math.round(x / r) * r;
+  }
+
+  private isTakeoffFlightPhase() {
+    return this.cdu.flightPhaseManager.phase === FmgcFlightPhase.Takeoff;
   }
 }

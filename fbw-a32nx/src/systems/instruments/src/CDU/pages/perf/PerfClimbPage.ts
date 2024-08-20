@@ -1,5 +1,5 @@
 import { CDUDisplay } from '@cdu/CDUDisplay';
-import { NXFictionalMessages } from '@cdu/data/NXMessages';
+import { NXFictionalMessages, NXSystemMessages } from '@cdu/data/NXMessages';
 import { formatAltitudeOrLevel } from '@cdu/Format';
 import {
   CDUColor,
@@ -27,6 +27,8 @@ export class PerfClimbPage extends DisplayablePage {
     super(display);
     this.title = new CDUElement('\xa0CLB', this.isClimbFlightPhase() ? CDUColor.Green : CDUColor.White);
     this.refreshRate = RefreshRate.Default;
+    this.allowsTyping = true;
+
     this.lines = makeLines(...this.getLines());
   }
 
@@ -74,9 +76,12 @@ export class PerfClimbPage extends DisplayablePage {
   managedLine(): ICDULine {
     let speedDisplay = '\xa0---/---';
     let speedColor = CDUColor.White;
-    if (typeof this.CDU.FlightInformation.costIndex === 'number') {
+    if (this.hasCostIndex()) {
+      const showManagedSpeed = this.hasFromToPair() && this.hasCostIndex();
+      const canClickManagedSpeed =
+        showManagedSpeed && this.CDU.Performance.preSelectedClimbSpeed && !this.isClimbFlightPhase();
       const climbSpeed = this.CDU.FMGC.getCurrentClimbManagedSpeed();
-      speedDisplay = '\xa0' + climbSpeed.toFixed();
+      speedDisplay = (canClickManagedSpeed ? '*' : '\xa0') + climbSpeed.toFixed();
       speedColor = CDUColor.Green;
     }
     return {
@@ -86,8 +91,9 @@ export class PerfClimbPage extends DisplayablePage {
   }
 
   preselLine(): ICDULine {
+    const preselSpeed = this.CDU.Performance.preSelectedClimbSpeed;
     return {
-      left: new CDUElement('*[ ]', CDUColor.Cyan),
+      left: new CDUElement(preselSpeed ? '\xa0' + preselSpeed.toFixed(0) : '*[ ]', CDUColor.Cyan),
       leftLabel: new CDUElement('PRESEL'),
     };
   }
@@ -106,10 +112,8 @@ export class PerfClimbPage extends DisplayablePage {
   // #region Elements and Labels
 
   costIndexElement(): CDUElement {
-    const hasFromToPair =
-      this.CDU.flightPlanService.active.originAirport && this.CDU.flightPlanService.active.destinationAirport;
-    if (hasFromToPair) {
-      if (typeof this.CDU.FlightInformation.costIndex === 'number') {
+    if (this.hasFromToPair()) {
+      if (this.hasCostIndex()) {
         return new CDUElement(this.CDU.FlightInformation.costIndex.toFixed(0), CDUColor.Cyan);
       } else {
         return new CDUElement('___', CDUColor.Amber);
@@ -138,11 +142,19 @@ export class PerfClimbPage extends DisplayablePage {
 
   // #region Helpers
 
-  isClimbFlightPhase() {
+  private hasFromToPair(): boolean {
+    return !!(this.CDU.flightPlanService.active.originAirport && this.CDU.flightPlanService.active.destinationAirport);
+  }
+
+  private hasCostIndex(): boolean {
+    return typeof this.CDU.FlightInformation.costIndex === 'number';
+  }
+
+  private isClimbFlightPhase() {
     return this.CDU.flightPhaseManager.phase === FmgcFlightPhase.Climb;
   }
 
-  isTakeoffFlightPhase() {
+  private isTakeoffFlightPhase() {
     return this.CDU.flightPhaseManager.phase === FmgcFlightPhase.Takeoff;
   }
 
@@ -156,6 +168,50 @@ export class PerfClimbPage extends DisplayablePage {
       return;
     }
     this.openPage(new PerfTakeoffPage(this.display));
+  }
+
+  onLSK3() {
+    const showManagedSpeed = this.hasFromToPair() && this.hasCostIndex();
+    const canClickManagedSpeed =
+      showManagedSpeed && this.CDU.Performance.preSelectedClimbSpeed && !this.isClimbFlightPhase();
+    if (!canClickManagedSpeed) {
+      return;
+    }
+
+    this.CDU.Performance.setPreSelectedClimbSpeed(undefined);
+    this.refresh();
+  }
+
+  onLSK4() {
+    if (this.scratchpad.isEmpty()) {
+      return;
+    }
+    if (this.scratchpad.isCLR()) {
+      this.CDU.Performance.setPreSelectedClimbSpeed(undefined);
+      return;
+    }
+
+    const contents = this.scratchpad.getContents();
+    const SPD_REGEX = /\d{1,3}/;
+    if (contents.match(SPD_REGEX) === null) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    const spd = parseInt(contents);
+    if (!Number.isFinite(spd)) {
+      this.scratchpad.setMessage(NXSystemMessages.formatError);
+      return;
+    }
+
+    if (spd < 100 || spd > 350) {
+      this.scratchpad.setMessage(NXSystemMessages.entryOutOfRange);
+      return;
+    }
+
+    this.CDU.Performance.setPreSelectedClimbSpeed(spd);
+    this.scratchpad.clear();
+    this.refresh();
   }
 
   // #endregion
